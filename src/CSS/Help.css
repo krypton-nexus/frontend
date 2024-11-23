@@ -1,0 +1,28 @@
+.help {
+  display: flex;
+  flex-direction: column;
+  position: fixed;
+  bottom: 70px;
+  right: 30px;
+  align-items: center;
+  z-index: 1000;
+}
+
+.help h6 {
+  color: #fff;
+}
+
+.helpImage {
+  width: 80px;
+  height: 80px;
+  margin-bottom: -30px;
+}
+
+.iconBtn {
+  margin-bottom: 28px;
+  cursor: pointer;
+}
+
+.iconBtn:hover {
+  transform: scale(1.5);
+}
