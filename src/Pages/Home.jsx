@@ -35,7 +35,7 @@ const Home = () => {
             </button>
             <button
               className="btn register-btn"
-              onClick={() => navigate("/signuptest3")}>
+              onClick={() => navigate("/signup")}>
               Register
             </button>
           </div>

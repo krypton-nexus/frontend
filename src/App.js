@@ -13,8 +13,7 @@ import Help from "./Components/Help";
 import Home from "./Pages/Home";
 
 import Login from "./Components/Login";
-// import Signup from "./Components/Signup";
-import SignupTest3 from "./Components/SignupTest3";
+import Signup from "./Components/Signup";
 
 // import Profile from "./Admin/Profile";
 
@@ -133,26 +132,18 @@ const App = () => {
               </NoButtonLayout>
             }
           />
-          {/* <Route
+          <Route
             path="/signup"
             element={
               <NoButtonLayout>
                 <Signup />
               </NoButtonLayout>
             }
-          /> */}
-          <Route
-            path="/signuptest3"
-            element={
-              <NoButtonLayout>
-                <SignupTest3 />
-              </NoButtonLayout>
-            }
           />
+
           {/* <Route path="/blogpost" element={<BlogPostForm />} /> */}
           <Route path="/login" element={<Login />} />
-          {/* <Route path="/signup" element={<Signup />} /> */}
-          <Route path="/signuptest3" element={<SignupTest3 />} />
+          <Route path="/signup" element={<Signup />} />
           {/* <Route path="/profile" element={<Profile />} /> */}
         </Routes>
       </Router>
