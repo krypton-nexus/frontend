@@ -2,24 +2,20 @@ import React from "react";
 import { Link } from "react-router-dom";
 import { useNavigate } from "react-router-dom";
 import logo1 from "../Images/logo1.png";
+import sesa from "../Images/sesa.png";
+import gavel from "../Images/gavel.jfif";
+import leo from "../Images/leo.png";
+import ad from "../Images/ad.png";
+import img1 from "../Images/img1.png";
 import "../CSS/Home.css";
+import { FaRegClock } from "react-icons/fa6";
+import { GoShieldCheck } from "react-icons/go";
 
 const Home = () => {
   const navigate = useNavigate();
 
   return (
     <div className="home-container">
-      {/* Header Section */}
-      {/* <header className="header">
-        <div className="logo">
-          <span className="highlight">NEX</span>US
-        </div>
-        <div className="header-buttons">
-          <button className="btn login-btn">Login</button>
-          <button className="btn register-btn">Register Now</button>
-        </div>
-      </header> */}
-
       {/* Hero Section */}
       <section className="hero">
         <div className="hero-header">
@@ -67,80 +63,141 @@ const Home = () => {
         </div>
       </section>
 
-      {/* Clubs Section */}
-      <section className="clubs">
-        <h2>Join a Club Today!</h2>
+      <section className="club-section">
+        <h2>JOIN A CLUB TODAY!</h2>
         <p>
           Student clubs provide diverse opportunities for personal growth, skill
-          development, and cultural engagement through workshops, events, and
-          collaborative activities.
+          development, and cultural engagement <br />
+          through workshops, events, and collaborative activities.
         </p>
-        <div className="club-list">
-          <div className="club-card">SESA</div>
-          <div className="club-card">Gavel Clubs</div>
-          <div className="club-card">Cherish Club</div>
-          <div className="club-card">Adventure Club</div>
+        <div className="club-cards">
+          <div className="club-card">
+            <img src={sesa} alt="SESA Logo" />
+          </div>
+          <div className="club-card">
+            <img src={gavel} alt="Gavel Club Logo" />
+          </div>
+          <div className="club-card">
+            <img src={leo} alt="Leo Logo" />
+          </div>
+          <div className="club-card">
+            <img src={ad} alt="Adventure Club Logo" />
+          </div>
         </div>
       </section>
 
-      {/* About Section */}
-      <section className="about">
-        <div className="about-content">
-          <img
-            src="https://source.unsplash.com/600x400/?coding,team"
-            alt="Team"
-            className="about-image"
-          />
-          <div className="about-text">
-            <h2>
-              We Help Students Discover All Available Clubs Within A{" "}
-              <span className="highlight">Single Platform</span>.
-            </h2>
+      {/* Description Section */}
+      <section className="description-section">
+        <div className="description-content">
+          <img src={img1} alt="Students coding" className="description-image" />
+          <div className="description-text">
+            <h3>
+              We Help Students{" "}
+              <span className="highlight">
+                Discover <br /> All Available Clubs
+              </span>{" "}
+              Within A <br />
+              Single Platform.
+            </h3>
             <p>
               Our platform centralizes information about all university clubs,
-              allowing students to easily browse and find the groups that match
+              allowing students to easily browse and find groups that match
               their interests. By providing detailed insights into each club's
               activities and offerings, we aim to enhance student engagement and
-              foster a vibrant campus community.
+              foster a vibrant campus community. With just a few clicks,
+              students can connect with like-minded peers and get involved in
+              enriching experiences.
             </p>
           </div>
         </div>
       </section>
 
-      {/* Features Section */}
-      <section className="features">
-        <h2>Club Merchandise Marketplace</h2>
-        <p>
-          Show your support for your favorite university clubs by exploring our
-          collection of exclusive merchandise!
-        </p>
-        <div className="features-list">
-          <div className="feature-card">24/7 Support</div>
-          <div className="feature-card">Verified Sellers</div>
-          <div className="feature-card">Satisfaction</div>
-          <div className="feature-card">No Contracts</div>
+      {/* Add Club Merchandise Marketplace */}
+      <section className="marketplace-section">
+        <div className="marketplace-content">
+          <div className="marketplace-left">
+            <h2>
+              Club Merchandise <br />
+              <span className="highlight">Marketplace</span>
+            </h2>
+            <p>
+              Show your support for your favorite university clubs by <br />
+              exploring our collection of exclusive merchandise! From stylish
+              <br /> T-shirts and caps to water bottles and hand bands, find{" "}
+              <br />
+              everything you need to represent your club in style. Shop <br />
+              now and wear your pride!
+            </p>
+            <div className="marketplace-badges">
+              <span className="badge red">
+                <FaRegClock />
+                24/7 Support
+              </span>
+              <span className="badge green">
+                <GoShieldCheck />
+                99% Secured
+              </span>
+            </div>
+
+            <button className="view-products-button">View Products</button>
+          </div>
+          {/* <div className="marketplace-cards">
+            <div className="card">Instant 24/7 Support</div>
+            <div className="card">Verified Sellers</div>
+            <div className="card">Satisfaction</div>
+            <div className="card">No Contracts</div>
+          </div> */}
         </div>
       </section>
 
-      {/* Contact Section */}
-      <section className="contact">
-        <h2>Get In Touch</h2>
+      {/* Get In Touch Section */}
+      <section className="contact-section">
+        <h1 className="contact-heading">Get In Touch</h1>
         <form className="contact-form">
-          <input type="text" placeholder="Name" />
-          <input type="email" placeholder="Email Address" />
-          <input type="text" placeholder="Subject" />
-          <textarea placeholder="Leave Us A Message"></textarea>
-          <button type="submit" className="btn">
+          <div className="form-row">
+            <div className="form-group">
+              <input
+                type="text"
+                id="name"
+                placeholder="Enter your name here"
+                required
+              />
+            </div>
+            <div className="form-group">
+              <input
+                type="email"
+                id="email"
+                placeholder="johndoe@gmail.com"
+                required
+              />
+            </div>
+          </div>
+          <div className="form-group">
+            <input
+              type="text"
+              id="subject"
+              placeholder="How can we help"
+              required
+            />
+          </div>
+          <div className="form-group">
+            <textarea
+              id="message"
+              rows="4"
+              placeholder="Please type your comments..."
+              required></textarea>
+          </div>
+          <button type="submit" className="submit-btn">
             Send Message
           </button>
         </form>
       </section>
 
       {/* Footer Section */}
-      <footer className="footer">
-        <div className="footer-columns">
+      <footer className="footer-section">
+        <div className="footer-content">
           <div className="footer-column">
-            <h3>Quick Links</h3>
+            <h4>Quick Link</h4>
             <ul>
               <li>Home</li>
               <li>Clubs</li>
@@ -149,28 +206,35 @@ const Home = () => {
             </ul>
           </div>
           <div className="footer-column">
-            <h3>Content</h3>
+            <h4>Content</h4>
             <ul>
               <li>Join Now</li>
               <li>View All Clubs</li>
               <li>Chat Bot</li>
-              <li>Notifications</li>
+              <li>Notification</li>
+              <li>Tasks</li>
+              <li>Announcements</li>
             </ul>
           </div>
           <div className="footer-column">
-            <h3>Contact Us</h3>
-            <p>
-              Head Office: Address Here
-              <br />
-              University of Knowledge
-              <br />
-              Phone: +123 456 7890
-              <br />
-              Email: info@example.com
-            </p>
+            <h4>Contact Us</h4>
+            <ul>
+              <li>
+                {" "}
+                Head Office Address
+                <br />
+                University of Kelaniya, Faculty of Science
+              </li>
+              <li>Phone: Xxx Xxxx Xxx</li>
+              <li>Email: info@example.com</li>
+            </ul>
           </div>
         </div>
-        <p className="footer-bottom">Copyright © UoK | Designed by Nexus</p>
+        <div className="footer-bottom">
+          <p>
+            Copyright © 2024 | Designed by <span>Nexus</span>
+          </p>
+        </div>
       </footer>
     </div>
   );

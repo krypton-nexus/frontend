@@ -89,7 +89,7 @@ p {
 }
 
 .login-btn:hover {
-  background: #555;
+  background: #f0306b;
 }
 
 .register {
@@ -98,7 +98,7 @@ p {
 }
 
 .register a {
-  color: #a91d3a;
+  color: #f0306b;
   text-decoration: none;
 }
 

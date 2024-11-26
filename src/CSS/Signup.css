@@ -115,21 +115,7 @@ input[type="date"]::-webkit-calendar-picker-indicator {
 }
 
 .register-btn:hover {
-  background: #555;
-}
-
-.login-link {
-  font-size: 0.9rem;
-  color: #ccc;
-}
-
-.login-link a {
-  color: #a91d3a;
-  text-decoration: none;
-}
-
-.login-link a:hover {
-  text-decoration: underline;
+  background: #f0306b;
 }
 
 /* Error box styling */
