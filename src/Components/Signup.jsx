@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import { Link } from "react-router-dom";
+import axios from "axios";
 import "../CSS/Signup.css";
 import logo1 from "../Images/logo1.png";
 
@@ -10,7 +11,20 @@ const Signup = () => {
   const [emailError, setEmailError] = useState("");
   const [passwordError, setPasswordError] = useState("");
   const [confirmPasswordError, setConfirmPasswordError] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [formData, setFormData] = useState({
+    firstName: "",
+    lastName: "",
+    phoneNumber: "",
+    faculty: "",
+    department: "",
+    year: "",
+    courseName: "",
+    studentNumber: "",
+    dateOfBirth: "",
+  });
 
+  // Validation Functions
   const validateEmail = (value) => {
     const emailRegex = /^[a-zA-Z0-9._%+-]+@stu\.kln\.ac\.lk$/;
     if (!value) {
@@ -46,14 +60,82 @@ const Signup = () => {
     }
   };
 
-  const handleSubmit = (e) => {
+  const handleChange = (e) => {
+    const { name, value } = e.target;
+    setFormData((prevData) => ({
+      ...prevData,
+      [name]: value,
+    }));
+
+    // Validate fields dynamically
+    if (name === "email") validateEmail(value);
+    if (name === "password") validatePassword(value);
+    if (name === "confirmPassword") validateConfirmPassword(value);
+  };
+
+  const handleSubmit = async (e) => {
     e.preventDefault();
+
+    // Validate before submission
     validateEmail(email);
     validatePassword(password);
     validateConfirmPassword(confirmPassword);
+
+    // Check for any validation errors
     if (!emailError && !passwordError && !confirmPasswordError) {
-      alert("Form submitted successfully!");
-      // Add your form submission logic here
+      setLoading(true);
+      try {
+        // Submit registration data
+        const response = await axios.post(
+          "http://13.232.48.203:5000/student/register",
+          {
+            first_name: formData.firstName,
+            last_name: formData.lastName,
+            email: email,
+            phone_number: formData.phoneNumber,
+            faculty: formData.faculty,
+            department: formData.department,
+            year: formData.year,
+            course_name: formData.courseName,
+            student_number: formData.studentNumber,
+            dob: formData.dateOfBirth,
+            password: password,
+          },
+          {
+            headers: {
+              "Content-Type": "application/json",
+            },
+          }
+        );
+
+        if (response.status === 201) {
+          alert("Registration successful!");
+          setFormData({
+            firstName: "",
+            lastName: "",
+            phoneNumber: "",
+            faculty: "",
+            department: "",
+            year: "",
+            courseName: "",
+            studentNumber: "",
+            dateOfBirth: "",
+          });
+          setEmail("");
+          setPassword("");
+          setConfirmPassword("");
+        }
+      } catch (error) {
+        console.error("Registration error:", error);
+        console.log("Error response:", error.response?.data);
+
+        alert(
+          error.response?.data?.message ||
+            "An error occurred during registration. Please check your input."
+        );
+      } finally {
+        setLoading(false);
+      }
     }
   };
 
@@ -71,141 +153,144 @@ const Signup = () => {
           <div className="form-row">
             <input
               type="text"
+              name="firstName"
               placeholder="First Name"
               className="input-field"
+              value={formData.firstName}
+              onChange={handleChange}
               required
             />
             <input
               type="text"
+              name="lastName"
               placeholder="Last Name"
               className="input-field"
+              value={formData.lastName}
+              onChange={handleChange}
               required
             />
           </div>
           <div className="form-row">
-            <div className="input-wrapper">
-              <input
-                type="email"
-                placeholder="Email Address"
-                className={`input-field ${emailError ? "error-border" : ""}`}
-                value={email}
-                onChange={(e) => {
-                  setEmail(e.target.value);
-                  validateEmail(e.target.value);
-                }}
-                required
-              />
-              {emailError && (
-                <div className="error-box">
-                  <span className="error-icon">!</span>
-                  {emailError}
-                </div>
-              )}
-            </div>
-            <div className="input-wrapper">
-              <input
-                type="text"
-                placeholder="Phone Number"
-                className="input-field"
-                required
-              />
-            </div>
+            <input
+              type="email"
+              name="email"
+              placeholder="Email Address"
+              className={`input-field ${emailError ? "error-border" : ""}`}
+              value={email}
+              onChange={(e) => {
+                setEmail(e.target.value);
+                validateEmail(e.target.value);
+              }}
+              required
+            />
+            {emailError && <p className="error-text">{emailError}</p>}
+            <input
+              type="text"
+              name="phoneNumber"
+              placeholder="Phone Number"
+              className="input-field"
+              value={formData.phoneNumber}
+              onChange={handleChange}
+              required
+            />
           </div>
-
           <div className="form-row">
-            <div className="input-wrapper">
-              <input
-                type="password"
-                placeholder="Password"
-                className={`input-field ${passwordError ? "error-border" : ""}`}
-                value={password}
-                onChange={(e) => {
-                  setPassword(e.target.value);
-                  validatePassword(e.target.value);
-                }}
-                required
-              />
-              {passwordError && (
-                <div className="error-box">
-                  <span className="error-icon">!</span>
-                  {passwordError}
-                </div>
-              )}
-            </div>
-            <div className="input-wrapper">
-              <input
-                type="password"
-                placeholder="Confirm Password"
-                className={`input-field ${
-                  confirmPasswordError ? "error-border" : ""
-                }`}
-                value={confirmPassword}
-                onChange={(e) => {
-                  setConfirmPassword(e.target.value);
-                  validateConfirmPassword(e.target.value);
-                }}
-                required
-              />
-              {confirmPasswordError && (
-                <div className="error-box">
-                  <span className="error-icon">!</span>
-                  {confirmPasswordError}
-                </div>
-              )}
-            </div>
+            <input
+              type="password"
+              name="password"
+              placeholder="Password"
+              className={`input-field ${passwordError ? "error-border" : ""}`}
+              value={password}
+              onChange={(e) => {
+                setPassword(e.target.value);
+                validatePassword(e.target.value);
+              }}
+              required
+            />
+            {passwordError && <p className="error-text">{passwordError}</p>}
+            <input
+              type="password"
+              name="confirmPassword"
+              placeholder="Confirm Password"
+              className={`input-field ${
+                confirmPasswordError ? "error-border" : ""
+              }`}
+              value={confirmPassword}
+              onChange={(e) => {
+                setConfirmPassword(e.target.value);
+                validateConfirmPassword(e.target.value);
+              }}
+              required
+            />
+            {confirmPasswordError && (
+              <p className="error-text">{confirmPasswordError}</p>
+            )}
           </div>
           <div className="form-row">
             <input
               type="text"
+              name="faculty"
               placeholder="Faculty"
               className="input-field"
+              value={formData.faculty}
+              onChange={handleChange}
               required
             />
             <input
               type="text"
+              name="department"
               placeholder="Department"
               className="input-field"
+              value={formData.department}
+              onChange={handleChange}
               required
             />
           </div>
           <div className="form-row">
             <input
               type="text"
+              name="year"
               placeholder="Year"
               className="input-field"
+              value={formData.year}
+              onChange={handleChange}
               required
             />
             <input
               type="text"
+              name="courseName"
               placeholder="Course Name"
               className="input-field"
+              value={formData.courseName}
+              onChange={handleChange}
               required
             />
           </div>
           <div className="form-row">
             <input
               type="text"
+              name="studentNumber"
               placeholder="Student Number"
               className="input-field"
+              value={formData.studentNumber}
+              onChange={handleChange}
               required
             />
             <input
               type="date"
-              placeholder="Date of Birth"
+              name="dateOfBirth"
               className="input-field"
+              value={formData.dateOfBirth}
+              onChange={handleChange}
               required
             />
           </div>
-          <div className="remember-me">
-            <input type="checkbox" id="remember" />
-            <label htmlFor="remember">Remember Me</label>
-          </div>
-          <button type="submit" className="register-btn">
-            Register
+          <button type="submit" className="register-btn" disabled={loading}>
+            {loading ? "Registering..." : "Register"}
           </button>
         </form>
         <p className="register">
-          If you already have an account? <a href="/login">Login</a>
+          Already have an account? <Link to="/login">Login</Link>
         </p>
       </div>
     </div>
