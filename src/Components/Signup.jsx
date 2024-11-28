@@ -171,60 +171,82 @@ const Signup = () => {
             />
           </div>
           <div className="form-row">
-            <input
-              type="email"
-              name="email"
-              placeholder="Email Address"
-              className={`input-field ${emailError ? "error-border" : ""}`}
-              value={email}
-              onChange={(e) => {
-                setEmail(e.target.value);
-                validateEmail(e.target.value);
-              }}
-              required
-            />
-            {emailError && <p className="error-text">{emailError}</p>}
-            <input
-              type="text"
-              name="phoneNumber"
-              placeholder="Phone Number"
-              className="input-field"
-              value={formData.phoneNumber}
-              onChange={handleChange}
-              required
-            />
+            <div className="input-wrapper">
+              <input
+                type="email"
+                name="email"
+                placeholder="Email Address"
+                className={`input-field ${emailError ? "error-border" : ""}`}
+                value={email}
+                onChange={(e) => {
+                  setEmail(e.target.value);
+                  validateEmail(e.target.value);
+                }}
+                required
+              />
+              {emailError && (
+                <div className="error-box">
+                  <span className="error-icon">!</span>
+                  {emailError}
+                </div>
+              )}
+            </div>
+            <div className="input-wrapper">
+              <input
+                type="text"
+                name="phoneNumber"
+                placeholder="Phone Number"
+                className="input-field"
+                value={formData.phoneNumber}
+                onChange={handleChange}
+                required
+              />
+            </div>
           </div>
+
           <div className="form-row">
-            <input
-              type="password"
-              name="password"
-              placeholder="Password"
-              className={`input-field ${passwordError ? "error-border" : ""}`}
-              value={password}
-              onChange={(e) => {
-                setPassword(e.target.value);
-                validatePassword(e.target.value);
-              }}
-              required
-            />
-            {passwordError && <p className="error-text">{passwordError}</p>}
-            <input
-              type="password"
-              name="confirmPassword"
-              placeholder="Confirm Password"
-              className={`input-field ${
-                confirmPasswordError ? "error-border" : ""
-              }`}
-              value={confirmPassword}
-              onChange={(e) => {
-                setConfirmPassword(e.target.value);
-                validateConfirmPassword(e.target.value);
-              }}
-              required
-            />
-            {confirmPasswordError && (
-              <p className="error-text">{confirmPasswordError}</p>
-            )}
+            <div className="input-wrapper">
+              <input
+                type="password"
+                name="password"
+                placeholder="Password"
+                className={`input-field ${passwordError ? "error-border" : ""}`}
+                value={password}
+                onChange={(e) => {
+                  setPassword(e.target.value);
+                  validatePassword(e.target.value);
+                }}
+                required
+              />
+              {passwordError && (
+                <div className="error-box">
+                  <span className="error-icon">!</span>
+                  {passwordError}
+                </div>
+              )}
+            </div>
+            <div className="input-wrapper">
+              <input
+                type="password"
+                name="confirmPassword"
+                placeholder="Confirm Password"
+                className={`input-field ${
+                  confirmPasswordError ? "error-border" : ""
+                }`}
+                value={confirmPassword}
+                onChange={(e) => {
+                  setConfirmPassword(e.target.value);
+                  validateConfirmPassword(e.target.value);
+                }}
+                required
+              />
+              {confirmPasswordError && (
+                <div className="error-box">
+                  <span className="error-icon">!</span>
+                  {confirmPasswordError}
+                </div>
+              )}
+            </div>
           </div>
           <div className="form-row">
             <input
@@ -284,6 +306,10 @@ const Signup = () => {
               onChange={handleChange}
               required
             />
+          </div>
+          <div className="remember-me">
+            <input type="checkbox" id="remember" />
+            <label htmlFor="remember">Remember Me</label>
           </div>
           <button type="submit" className="register-btn" disabled={loading}>
             {loading ? "Registering..." : "Register"}
