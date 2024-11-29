@@ -11,8 +11,8 @@ const Login = () => {
   const navigate = useNavigate();
 
   const handleLogin = async (e) => {
-    e.preventDefault(); // Prevent default form submission
-    setError(""); // Reset error message
+    e.preventDefault();
+    setError("");
 
     console.log("Email:", email);
     console.log("Password:", password);
@@ -26,12 +26,10 @@ const Login = () => {
         }
       );
 
-      // Check if the response contains the token
       if (response.data.token) {
         const token = response.data.token;
-        localStorage.setItem("access_token", token); // Save token in localStorage
+        localStorage.setItem("access_token", token);
 
-        // If email is not verified, alert and navigate to verification page
         if (
           response.data.error &&
           response.data.error === "Email is not verified."
@@ -39,14 +37,13 @@ const Login = () => {
           alert(
             "Your email is not verified. Please verify your email before logging in."
           );
-          localStorage.removeItem("access_token"); // Clear token if email is not verified
-          navigate("/verifyemail"); // Navigate to the email verification page
+          localStorage.removeItem("access_token");
+          navigate("/verifyemail");
           return;
         }
 
-        // If email is verified, proceed with login
         alert("Login successful!");
-        navigate("/userprofile"); // Redirect to user profile page
+        navigate("/viewclubs");
       } else {
         setError(response.data.message || "Login failed!");
       }
