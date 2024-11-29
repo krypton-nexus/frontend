@@ -61,8 +61,7 @@ const ChatBot = () => {
                 key={index}
                 className={`chatbot-message ${
                   message.sender === "user" ? "user-message" : "bot-message"
-                }`}
-              >
+                }`}>
                 {message.text}
               </div>
             ))}
