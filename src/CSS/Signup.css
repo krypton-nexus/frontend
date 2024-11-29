@@ -10,8 +10,15 @@ body {
   justify-content: center;
   align-items: center;
   height: 100vh;
-  backdrop-filter: blur(5px);
+
+  /* Safari compatibility */
+  -webkit-backdrop-filter: blur(5px); 
+
+ /* For other modern browsers */
+  backdrop-filter: blur(5px); 
+  background-color: rgba(255, 255, 255, 0.6); 
 }
+
 
 .signup-container .logo {
   position: absolute;

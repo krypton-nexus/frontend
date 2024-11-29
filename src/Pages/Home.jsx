@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 import { Link } from "react-router-dom";
 import { useNavigate } from "react-router-dom";
 import logo1 from "../Images/logo1.png";
@@ -10,9 +10,18 @@ import img1 from "../Images/img1.png";
 import "../CSS/Home.css";
 import { FaRegClock } from "react-icons/fa6";
 import { GoShieldCheck } from "react-icons/go";
+import { FaComment } from "react-icons/fa"; 
+
+
 
 const Home = () => {
   const navigate = useNavigate();
+  const [isChatbotOpen, setIsChatbotOpen] = useState(false);
+
+  const toggleChatbot = () => {
+    setIsChatbotOpen((prev) => !prev); // Toggle chatbot visibility
+  };
+
 
   return (
     <div className="home-container">
@@ -26,12 +35,14 @@ const Home = () => {
           <div className="hero-nav-buttons">
             <button
               className="btn login-btn"
-              onClick={() => navigate("/login")}>
+              onClick={() => navigate("/login")}
+            >
               Login
             </button>
             <button
               className="btn register-btn"
-              onClick={() => navigate("/signup")}>
+              onClick={() => navigate("/signup")}
+            >
               Register
             </button>
           </div>
@@ -51,12 +62,14 @@ const Home = () => {
           <div className="hero-nav-buttons">
             <button
               className="btn login-btn"
-              onClick={() => navigate("/login")}>
+              onClick={() => navigate("/login")}
+            >
               Login
             </button>
             <button
               className="btn register-btn"
-              onClick={() => navigate("/signup")}>
+              onClick={() => navigate("/signup")}
+            >
               Register Now
             </button>
           </div>
@@ -150,6 +163,27 @@ const Home = () => {
         </div>
       </section>
 
+      {/* Chatbot Icon */}
+      <div className="chatbot-icon" onClick={toggleChatbot}>
+        <FaComment size={50} color="#fff" />
+      </div>
+
+      {/* Chatbot Popup */}
+      {isChatbotOpen && (
+        <div className="chatbot-popup">
+          <div className="chatbot-header">
+            <h3>Chat with Us!</h3>
+            <button onClick={toggleChatbot} className="close-chatbot">
+              X
+            </button>
+          </div>
+          <div className="chatbot-body">
+            {/* Chatbot content goes here */}
+            <p>Hi! How can I assist you today?</p>
+          </div>
+        </div>
+      )}
+
       {/* Get In Touch Section */}
       <section className="contact-section">
         <h1 className="contact-heading">Get In Touch</h1>
@@ -185,7 +219,8 @@ const Home = () => {
               id="message"
               rows="4"
               placeholder="Please type your comments..."
-              required></textarea>
+              required
+            ></textarea>
           </div>
           <button type="submit" className="submit-btn">
             Send Message
