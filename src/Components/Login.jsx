@@ -11,39 +11,75 @@ const Login = () => {
   const navigate = useNavigate();
 
   const handleLogin = async (e) => {
-    e.preventDefault(); // Prevent default form behavior
-    setError(""); 
+    e.preventDefault();
+    setError("");
+
+    console.log("Email:", email);
+    console.log("Password:", password);
 
     try {
-      // Make API call to the updated endpoint
       const response = await axios.post(
         "http://13.232.48.203:5000/auth/login",
         { email, password },
         {
-          headers: {
-            "Content-Type": "application/json",
-          },
+          headers: { "Content-Type": "application/json" },
         }
       );
 
-      // Handle the response
-      if (response.data.success) {
-        localStorage.setItem("access_token", response.data.token); // Save token to localStorage
+      if (response.data.token) {
+        const token = response.data.token;
+        localStorage.setItem("access_token", token);
+
+        if (
+          response.data.error &&
+          response.data.error === "Email is not verified."
+        ) {
+          alert(
+            "Your email is not verified. Please verify your email before logging in."
+          );
+          localStorage.removeItem("access_token");
+          navigate("/verifyemail");
+          return;
+        }
+
         alert("Login successful!");
-        navigate("/Home.jsx"); // Redirect to home page
+        navigate("/viewclubs");
       } else {
         setError(response.data.message || "Login failed!");
       }
     } catch (error) {
+      console.error("Login Error:", error);
+
+      // Handle different types of errors
       if (error.response) {
-        console.error("API Error Response:", error.response.data);
-        setError(error.response.data.message || "Server error occurred.");
+        console.error("Response data:", error.response.data); // Log response data for more insights
+        switch (error.response.status) {
+          case 404:
+            setError("User not found. Please check your email.");
+            break;
+          case 401:
+            setError("Invalid email or password. Please try again.");
+            break;
+          case 400:
+            if (error.response.data.error === "Email is not verified.") {
+              setError("Your email is not verified. Please check your inbox.");
+              // Redirect to the email verification page
+              navigate("/verifyemail");
+            } else {
+              setError(error.response.data.message || "Login failed.");
+            }
+            break;
+          default:
+            setError(
+              error.response.data.message || "An unexpected error occurred."
+            );
+        }
       } else if (error.request) {
-        console.error("No response from API. Error Request:", error.request);
-        setError("No response from server. Please try again later.");
+        // Request was made, but no response received
+        setError("Unable to reach the server. Please check your connection.");
       } else {
-        console.error("Error in request setup:", error.message);
-        setError("An unexpected error occurred. Please try again.");
+        // Something went wrong while setting up the request
+        setError("An unexpected error occurred. Please try again later.");
       }
     }
   };

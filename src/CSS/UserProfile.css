@@ -1,0 +1,101 @@
+body {
+  font-family: Arial, sans-serif;
+  margin: 0;
+  padding: 0;
+  background-color: #f5f5f5;
+}
+
+.user-profile-container {
+  display: flex;
+  height: 100vh;
+}
+
+.sidebar {
+  width: 250px;
+  background-color: #111;
+  color: #fff;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.sidebar .logo {
+  margin: 20px 0;
+  font-size: 24px;
+  font-weight: bold;
+}
+
+.nav-menu ul {
+  list-style-type: none;
+  padding: 0;
+}
+
+.nav-menu li {
+  margin: 15px 0;
+  cursor: pointer;
+}
+
+.nav-menu .notification .badge {
+  background: red;
+  color: white;
+  border-radius: 50%;
+  padding: 5px 10px;
+  margin-left: 5px;
+}
+
+.logout button {
+  margin-top: auto;
+  padding: 10px 20px;
+  background-color: #e63946;
+  color: white;
+  border: none;
+  cursor: pointer;
+}
+
+.profile-content {
+  flex: 1;
+  padding: 20px;
+}
+
+.profile-header {
+  display: flex;
+  align-items: center;
+  margin-bottom: 20px;
+}
+
+.user-avatar {
+  margin-right: 20px;
+}
+
+.user-info h2 {
+  margin: 0;
+}
+
+.profile-details table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-bottom: 20px;
+}
+
+.profile-details td {
+  padding: 10px;
+  border: 1px solid #ddd;
+}
+
+.profile-actions .btn-password,
+.profile-actions .btn-delete {
+  padding: 10px 20px;
+  margin-right: 10px;
+  border: none;
+  cursor: pointer;
+}
+
+.btn-password {
+  background-color: #1d3557;
+  color: white;
+}
+
+.btn-delete {
+  background-color: #e63946;
+  color: white;
+}

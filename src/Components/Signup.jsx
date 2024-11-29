@@ -3,6 +3,7 @@ import { Link } from "react-router-dom";
 import axios from "axios";
 import "../CSS/Signup.css";
 import logo1 from "../Images/logo1.png";
+import { useNavigate } from "react-router-dom";
 
 const Signup = () => {
   const [email, setEmail] = useState("");
@@ -23,14 +24,15 @@ const Signup = () => {
     studentNumber: "",
     dateOfBirth: "",
   });
+  const navigate = useNavigate();
 
   // Validation Functions
   const validateEmail = (value) => {
-    const emailRegex = /^[a-zA-Z0-9._%+-]+@stu\.kln\.ac\.lk$/;
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!value) {
       setEmailError("Email is required.");
     } else if (!emailRegex.test(value)) {
-      setEmailError("Email must end with @stu.kln.ac.lk.");
+      setEmailError("Please enter a valid email address.");
     } else {
       setEmailError("");
     }
@@ -109,7 +111,8 @@ const Signup = () => {
         );
 
         if (response.status === 201) {
-          alert("Registration successful!");
+          alert("Registration successful! Please verify your email.");
+          navigate("/verifyemail");
           setFormData({
             firstName: "",
             lastName: "",

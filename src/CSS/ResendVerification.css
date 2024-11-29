@@ -1,0 +1,65 @@
+.resend-verification-container {
+  max-width: 500px;
+  margin: 50px auto;
+  padding: 20px;
+  text-align: center;
+  background: #f7f7f9;
+  border-radius: 8px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.resend-verification-container h2 {
+  color: #333;
+  font-size: 24px;
+  margin-bottom: 10px;
+}
+
+.resend-verification-container p {
+  color: #555;
+  margin-bottom: 20px;
+  line-height: 1.5;
+}
+
+.resend-verification-container form {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.resend-verification-container input {
+  width: 100%;
+  padding: 10px;
+  margin-bottom: 15px;
+  font-size: 16px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+}
+
+.resend-verification-container button {
+  width: 100%;
+  padding: 10px;
+  font-size: 16px;
+  font-weight: bold;
+  color: #fff;
+  background: #007bff;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: background 0.3s;
+}
+
+.resend-verification-container button:hover {
+  background: #0056b3;
+}
+
+.success-message {
+  margin-top: 15px;
+  color: #28a745;
+  font-size: 14px;
+}
+
+.error-message {
+  margin-top: 15px;
+  color: #dc3545;
+  font-size: 14px;
+}

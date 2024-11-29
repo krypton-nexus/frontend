@@ -1,11 +1,9 @@
-import React from "react";
-
+import React, { useState } from "react";
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 
 // Import Components
 // import Header from "./components/Header";
 // import Footer from "./components/Footer";
-import Help from "./Components/Help";
 // import BackToTopButton from "./components/BackToTopButton";
 // import Blog from "./pages/blog";
 
@@ -14,7 +12,9 @@ import Home from "./Pages/Home";
 
 import Login from "./Components/Login";
 import Signup from "./Components/Signup";
-
+import VerifyEmail from "./Components/VerifyEmail";
+import UserProfile from "./Pages/UserProfile";
+import ChatBot from "./Components/ChatBot";
 // import Profile from "./Admin/Profile";
 
 const NoButtonLayout = ({ children }) => {
@@ -23,13 +23,17 @@ const NoButtonLayout = ({ children }) => {
       {/* <Header /> */}
       {children}
       {/* <Footer /> */}
-      <Help />
+      <ChatBot />
       {/* <BackToTopButton /> */}
     </>
   );
 };
 
 const App = () => {
+  const [isChatbotOpen, setIsChatbotOpen] = useState(false);
+
+  const toggleChatbot = () => setIsChatbotOpen((prev) => !prev);
+
   return (
     <div>
       <Router>
@@ -140,11 +144,27 @@ const App = () => {
               </NoButtonLayout>
             }
           />
-
-          {/* <Route path="/blogpost" element={<BlogPostForm />} /> */}
+          <Route
+            path="/"
+            element={
+              <>
+                <Home
+                  isChatbotOpen={isChatbotOpen}
+                  toggleChatbot={toggleChatbot}
+                />
+                <ChatBot
+                  isChatbotOpen={isChatbotOpen}
+                  toggleChatbot={toggleChatbot}
+                />
+              </>
+            }
+          />
+          <Route path="/auth/verify/:token" element={<VerifyEmail />} />
           <Route path="/login" element={<Login />} />
           <Route path="/signup" element={<Signup />} />
-          {/* <Route path="/profile" element={<Profile />} /> */}
+          <Route path="/userprofile" element={<UserProfile />} />{" "}
+          <Route path="/verifyemail" element={<VerifyEmail />} />
+          <Route path="*" element={<h1>404 - Page Not Found</h1>} />
         </Routes>
       </Router>
     </div>
