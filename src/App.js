@@ -9,7 +9,9 @@ import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 
 // Import Pages
 import Home from "./Pages/Home";
-
+import ViewClubs from "./Pages/ViewClubs";
+import SesaPage from "./Pages/SesaPage";
+import GavelPage from "./Pages/GavelPage";
 import Login from "./Components/Login";
 import Signup from "./Components/Signup";
 import VerifyEmail from "./Components/VerifyEmail";
@@ -43,6 +45,30 @@ const App = () => {
             element={
               <NoButtonLayout>
                 <Home />
+              </NoButtonLayout>
+            }
+          />
+          <Route
+            path="/viewclubs"
+            element={
+              <NoButtonLayout>
+                <ViewClubs />
+              </NoButtonLayout>
+            }
+          />
+          <Route
+            path="/sesapage"
+            element={
+              <NoButtonLayout>
+                <SesaPage />
+              </NoButtonLayout>
+            }
+          />
+          <Route
+            path="/gavelpage"
+            element={
+              <NoButtonLayout>
+                <GavelPage />
               </NoButtonLayout>
             }
           />
