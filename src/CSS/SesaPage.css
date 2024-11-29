@@ -1,0 +1,216 @@
+/* General Styling */
+.sesa-page-container {
+  font-family: Arial, sans-serif;
+  line-height: 1.6;
+  color: #333;
+}
+
+/* Header Section */
+.sesa-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: #a91d3a;
+  color: #fff;
+  padding: 15px 30px;
+}
+
+.sesa-page-container .logo {
+  width: 150px;
+}
+.sesa-header h1 {
+  font-size: 24px;
+}
+
+.sesa-header .join-now {
+  background: #fff;
+  color: #a91d3a;
+  border: none;
+  padding: 10px 20px;
+  cursor: pointer;
+  font-size: 16px;
+  border-radius: 5px;
+  font-weight: bold;
+}
+
+.sesa-header .join-now:hover {
+  background: #ff4d4d;
+  color: #fff;
+}
+
+/* Back Button Styling */
+.back-button {
+  background: none;
+  border: none;
+  color: #fff;
+  font-size: 20px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  margin-right: 10px;
+}
+
+.back-button:hover {
+  color: #ccc;
+}
+
+.header-left {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+/* Hero Section */
+.sesa-banner {
+  text-align: center;
+  padding: 20px;
+  position: relative;
+  background-color: #fff;
+  /* background: url("../Images/bg.png") no-repeat center center/cover; */
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  height: 90vh;
+  backdrop-filter: blur(5px);
+  box-sizing: border-box;
+}
+
+.sesa-banner .logo {
+  margin-left: 40px;
+}
+.sesa-banner h1 {
+  font-size: 2.5rem;
+  font-weight: bold;
+  color: #000;
+}
+
+.sesa-banner p {
+  font-size: 1.2rem;
+  margin: 20px 0;
+  max-width: 600px;
+  margin-left: auto;
+  margin-right: auto;
+  color: #333;
+}
+
+.sesa-hero-section {
+  display: flex;
+  align-items: center;
+  background: #f4f4f4;
+  padding: 20px 50px 20px 30px;
+  margin-top: 10px;
+  border-radius: 8px;
+}
+
+.sesa-hero-section .hero-image {
+  width: 50%;
+  border-radius: 8px;
+  margin-right: 20px;
+}
+
+.sesa-hero-section .hero-content {
+  margin-top: 30px;
+  flex: 1;
+}
+
+.sesa-hero-section .hero-content h2 {
+  font-size: 28px;
+  color: #a91d3a;
+  margin-bottom: 30px;
+}
+
+.sesa-hero-section .hero-content p {
+  font-size: 18px;
+  text-align: justify;
+  color: #000;
+}
+
+.juniorhack p {
+  padding-right: 100px;
+  padding-left: 40px;
+}
+.juniorhack-image {
+  height: 450px;
+}
+.sesa-hero-buttons .btn {
+  background-color: #ffffff;
+  color: #000;
+  border: 1px solid #ccc;
+  padding: 15px 5px;
+  border-radius: 5px;
+  cursor: pointer;
+  align-items: center;
+}
+
+.sesa-hero-buttons .register-btn {
+  background-color: #a91d3a;
+  color: #fff;
+  border: none;
+  width: 30%;
+  font-size: 15px;
+}
+
+/* Gallery Section */
+.sesa-gallery-section {
+  margin: 20px 0;
+  text-align: center;
+  padding-bottom: 40px;
+}
+
+.sesa-gallery-section h2 {
+  font-size: 24px;
+  margin-bottom: 10px;
+  color: #a91d3a;
+}
+
+.sesa-gallery-section p {
+  font-size: 18px;
+  text-align: justify;
+  color: #000;
+  padding: 10px 40px;
+}
+
+.gallery {
+  display: flex;
+  justify-content: center;
+  gap: 20px;
+}
+
+.gallery img {
+  width: 30%;
+  border-radius: 8px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  transition: transform 0.3s ease;
+}
+
+.gallery img:hover {
+  transform: scale(1.05);
+}
+
+/* Description Section */
+.sesa-description-section {
+  background: #fff;
+  padding: 20px;
+  border-radius: 8px;
+  margin-top: 20px;
+}
+
+.sesa-description-section .description-image {
+  width: 100%;
+}
+.sesa-description-section h2 {
+  font-size: 24px;
+  color: #a91d3a;
+  margin-bottom: 40px;
+  margin-top: 40px;
+  text-align: center;
+}
+
+.sesa-description-section p {
+  font-size: 16px;
+  margin-bottom: 20px;
+  text-align: justify;
+  color: #333;
+  padding: 0px 30px 0px 30px;
+}
