@@ -4,6 +4,7 @@ import axios from "axios";
 import "../CSS/Signup.css";
 import logo1 from "../Images/logo1.png";
 import { useNavigate } from "react-router-dom";
+import { enqueueSnackbar } from "notistack";
 
 const Signup = () => {
   const [email, setEmail] = useState("");
@@ -111,7 +112,9 @@ const Signup = () => {
         );
 
         if (response.status === 201) {
-          alert("Registration successful! Please verify your email.");
+        enqueueSnackbar("Registration successful! Please verify your email.", {
+          variant: "success",
+        });
           navigate("/verifyemail");
           setFormData({
             firstName: "",

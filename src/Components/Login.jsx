@@ -3,6 +3,7 @@ import axios from "axios";
 import { Link, useNavigate } from "react-router-dom";
 import "../CSS/Login.css";
 import logo1 from "../Images/logo1.png";
+import { enqueueSnackbar } from "notistack";
 
 const Login = () => {
   const [email, setEmail] = useState("");
@@ -20,7 +21,7 @@ const Login = () => {
     try {
       const response = await axios.post(
         "http://13.232.48.203:5000/auth/login",
-        { email, password },
+        { email, password},
         {
           headers: { "Content-Type": "application/json" },
         }
@@ -30,22 +31,7 @@ const Login = () => {
       if (response.data.token) {
         const token = response.data.token;
         localStorage.setItem("access_token", token); // Save token in localStorage
-
-        // If email is not verified, alert and navigate to verification page
-        if (
-          response.data.error &&
-          response.data.error === "Email is not verified."
-        ) {
-          alert(
-            "Your email is not verified. Please verify your email before logging in."
-          );
-          localStorage.removeItem("access_token"); // Clear token if email is not verified
-          navigate("/verifyemail"); // Navigate to the email verification page
-          return;
-        }
-
-        // If email is verified, proceed with login
-        alert("Login successful!");
+        enqueueSnackbar("Login Successfully", { variant: "success" });
         navigate("/userprofile"); // Redirect to user profile page
       } else {
         setError(response.data.message || "Login failed!");
@@ -56,34 +42,14 @@ const Login = () => {
       // Handle different types of errors
       if (error.response) {
         console.error("Response data:", error.response.data); // Log response data for more insights
-        switch (error.response.status) {
-          case 404:
-            setError("User not found. Please check your email.");
-            break;
-          case 401:
-            setError("Invalid email or password. Please try again.");
-            break;
-          case 400:
-            if (error.response.data.error === "Email is not verified.") {
-              setError("Your email is not verified. Please check your inbox.");
-              // Redirect to the email verification page
-              navigate("/verifyemail");
-            } else {
-              setError(error.response.data.message || "Login failed.");
-            }
-            break;
-          default:
-            setError(
-              error.response.data.message || "An unexpected error occurred."
-            );
-        }
-      } else if (error.request) {
-        // Request was made, but no response received
-        setError("Unable to reach the server. Please check your connection.");
-      } else {
-        // Something went wrong while setting up the request
-        setError("An unexpected error occurred. Please try again later.");
-      }
+        setError(error.response.data.error);
+
+      } else 
+        enqueueSnackbar(
+          "An unexpected error occurred. Please try again later.",
+          { variant: "error" }
+        );
+
     }
   };
 
