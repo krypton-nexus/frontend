@@ -31,30 +31,11 @@ const Login = () => {
         const token = response.data.token;
         localStorage.setItem("access_token", token); // Save token in localStorage
         enqueueSnackbar("Login Successfully", { variant: "success" });
-        navigate("/userprofile"); // Redirect to user profile page
-
-        localStorage.setItem("access_token", token);
-
-        if (
-          response.data.error &&
-          response.data.error === "Email is not verified."
-        ) {
-          alert(
-            "Your email is not verified. Please verify your email before logging in."
-          );
-          localStorage.removeItem("access_token");
-          navigate("/verifyemail");
-          return;
-        }
-
-        alert("Login successful!");
         navigate("/viewclubs");
       } else {
         setError(response.data.message || "Login failed!");
       }
     } catch (error) {
-      console.error("Login Error:", error);
-
       // Handle different types of errors
       if (error.response) {
         console.error("Response data:", error.response.data); // Log response data for more insights

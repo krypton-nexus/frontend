@@ -17,6 +17,7 @@ import Signup from "./Components/Signup";
 import VerifyEmail from "./Components/VerifyEmail";
 import UserProfile from "./Pages/UserProfile";
 import ChatBot from "./Components/ChatBot";
+import Verify from "./Components/VerifyEmail";
 // import Profile from "./Admin/Profile";
 
 const NoButtonLayout = ({ children }) => {
@@ -189,7 +190,7 @@ const App = () => {
           <Route path="/login" element={<Login />} />
           <Route path="/signup" element={<Signup />} />
           <Route path="/userprofile" element={<UserProfile />} />{" "}
-          <Route path="/verifyemail" element={<VerifyEmail />} />
+          <Route path="/verify/:token" element={<Verify />} />
           <Route path="*" element={<h1>404 - Page Not Found</h1>} />
         </Routes>
       </Router>

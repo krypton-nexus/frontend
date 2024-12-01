@@ -1,52 +1,61 @@
 import React, { useState } from "react";
-import "../CSS/ChatBot.css"; // Ensure this file exists for styling
+import axios from "axios";
+import "../CSS/ChatBot.css";
 import helpIcon from "../Images/help.png";
 
 const ChatBot = () => {
-  const [isChatbotOpen, setIsChatbotOpen] = useState(false); // State to manage chatbot visibility
-  const [messages, setMessages] = useState([]); // Chat messages
-  const [inputValue, setInputValue] = useState(""); // User input
+  const [isChatbotOpen, setIsChatbotOpen] = useState(false);
+  const [messages, setMessages] = useState([]);
+  const [input, setInput] = useState("");
 
-  // Toggle chatbot visibility
+  // Toggles the visibility of the chatbot
   const toggleChatbot = () => {
     setIsChatbotOpen((prev) => !prev);
   };
 
-  // Handle message submission
-  const handleSendMessage = () => {
-    if (inputValue.trim() !== "") {
-      setMessages((prevMessages) => [
-        ...prevMessages,
-        { sender: "user", text: inputValue },
-      ]);
-      setInputValue("");
+  const sendMessage = async () => {
+    if (!input.trim()) return;
 
-      // Simulate a bot response
-      setTimeout(() => {
-        setMessages((prevMessages) => [
-          ...prevMessages,
-          {
-            sender: "bot",
-            text: "Thank you for your message! How can I help?",
-          },
-        ]);
-      }, 1000);
+    // Add user message to the chat
+    const userMessage = { sender: "user", text: input.trim() };
+    setMessages((prevMessages) => [...prevMessages, userMessage]);
+    setInput(""); // Clear the input field
+
+    try {
+      // Send the user's message to the server
+      const response = await axios.post("http://127.0.0.1:8000/chat", {
+        message: input.trim(),
+        //history: messages,
+        system_message: "You are a friendly chatbot.",
+      });
+
+      // Extract the bot's response from the API
+      const botResponse = response?.data || "I couldn't understand that.";
+
+      // Add bot response to the chat
+      const botMessage = { sender: "bot", text: botResponse };
+      setMessages((prevMessages) => [...prevMessages, botMessage]);
+    } catch (error) {
+      console.error("Error fetching bot response:", error);
+
+      // Add error message to the chat
+      const botErrorMessage = {
+        sender: "bot",
+        text: "An error occurred. Please try again.",
+      };
+      setMessages((prevMessages) => [...prevMessages, botErrorMessage]);
     }
   };
 
   return (
     <>
-      {/* Help Icon */}
       <div className="help" onClick={toggleChatbot}>
         <img src={helpIcon} alt="Help Icon" className="helpImage" />
         <h6>Get Help</h6>
-        <br />
       </div>
 
-      {/* Chatbot Popup */}
       {isChatbotOpen && (
         <div className="chatbot-container">
-          {/* Chatbot Header */}
           <div className="chatbot-header">
             <h3>Chat with Us!</h3>
             <button onClick={toggleChatbot} className="chatbot-close-btn">
@@ -54,30 +63,29 @@ const ChatBot = () => {
             </button>
           </div>
 
-          {/* Chat Messages */}
           <div className="chatbot-messages">
             {messages.map((message, index) => (
               <div
                 key={index}
                 className={`chatbot-message ${
                   message.sender === "user" ? "user-message" : "bot-message"
-                }`}>
+                }`}
+              >
                 {message.text}
               </div>
             ))}
           </div>
 
-          {/* Chat Input */}
           <div className="chatbot-input-container">
             <input
               type="text"
               className="chatbot-input"
               placeholder="Type a message..."
-              value={inputValue}
-              onChange={(e) => setInputValue(e.target.value)}
-              onKeyDown={(e) => e.key === "Enter" && handleSendMessage()}
+              value={input}
+              onChange={(e) => setInput(e.target.value)}
+              onKeyDown={(e) => e.key === "Enter" && sendMessage()}
             />
-            <button className="chatbot-send-btn" onClick={handleSendMessage}>
+            <button className="chatbot-send-btn" onClick={sendMessage}>
               Send
             </button>
           </div>

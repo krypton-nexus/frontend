@@ -8,6 +8,7 @@ import { enqueueSnackbar } from "notistack";
 
 const Signup = () => {
   const [email, setEmail] = useState("");
+  const [error, setError] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [emailError, setEmailError] = useState("");
@@ -112,10 +113,13 @@ const Signup = () => {
         );
 
         if (response.status === 201) {
-        enqueueSnackbar("Registration successful! Please verify your email.", {
-          variant: "success",
-        });
-          navigate("/verifyemail");
+          enqueueSnackbar(
+            "Registration successful! Please verify your email.",
+            {
+              variant: "success",
+            }
+          );
+          navigate("/verify/:token");
           setFormData({
             firstName: "",
             lastName: "",
@@ -132,13 +136,14 @@ const Signup = () => {
           setConfirmPassword("");
         }
       } catch (error) {
-        console.error("Registration error:", error);
-        console.log("Error response:", error.response?.data);
-
-        alert(
-          error.response?.data?.message ||
-            "An error occurred during registration. Please check your input."
-        );
+        if (error.response) {
+          console.error("Response data:", error.response.data); // Log response data for more insights
+          setError(error.response.data.error);
+        } else
+          enqueueSnackbar(
+            "An error occurred during registration. Please check your input.",
+            { variant: "error" }
+          );
       } finally {
         setLoading(false);
       }
@@ -321,6 +326,7 @@ const Signup = () => {
             {loading ? "Registering..." : "Register"}
           </button>
         </form>
+        {error && <p className="error-message">{error}</p>}
         <p className="register">
           Already have an account? <Link to="/login">Login</Link>
         </p>
