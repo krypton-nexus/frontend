@@ -4,6 +4,7 @@ import { Link, useNavigate } from "react-router-dom";
 import "../CSS/Login.css";
 import logo1 from "../Images/logo1.png";
 import { enqueueSnackbar } from "notistack";
+import useAuthCheck from "./UseAuthCheck";
 
 const Login = () => {
   const [email, setEmail] = useState("");
@@ -11,17 +12,16 @@ const Login = () => {
   const [error, setError] = useState("");
   const navigate = useNavigate();
 
+  useAuthCheck(navigate);
+
   const handleLogin = async (e) => {
     e.preventDefault();
     setError("");
 
-    console.log("Email:", email);
-    console.log("Password:", password);
-
     try {
       const response = await axios.post(
         "http://13.232.48.203:5000/auth/login",
-        { email, password},
+        { email, password },
         {
           headers: { "Content-Type": "application/json" },
         }
@@ -29,42 +29,43 @@ const Login = () => {
 
       if (response.data.token) {
         const token = response.data.token;
-        localStorage.setItem("access_token", token); // Save token in localStorage
+        const expiresIn = response.data.expiresIn; // Ensure this is correct
+        localStorage.setItem("access_token", token);
+        localStorage.setItem(
+          "token_expiry",
+          new Date().getTime() + expiresIn * 1000
+        ); // Store in milliseconds
+
         enqueueSnackbar("Login Successfully", { variant: "success" });
         navigate("/viewclubs");
       } else {
         setError(response.data.message || "Login failed!");
       }
     } catch (error) {
-      // Handle different types of errors
       if (error.response) {
-        console.error("Response data:", error.response.data); // Log response data for more insights
+        console.error("Response data:", error.response.data);
         setError(error.response.data.error);
-
-      } else 
+      } else {
         enqueueSnackbar(
           "An unexpected error occurred. Please try again later.",
           { variant: "error" }
         );
-
+      }
     }
   };
 
   return (
     <div className="login-container">
-      {/* Logo */}
       <Link to="/home">
         <img src={logo1} alt="Logo" className="logo" />
       </Link>
 
       <div className="login-box">
-        {/* Header */}
         <h2>
           WELCOME <span className="highlight">NEXUS</span>
         </h2>
         <p>Welcome to Nexus dashboard Community</p>
 
-        {/* Login Form */}
         <form onSubmit={handleLogin}>
           <input
             type="email"
@@ -91,10 +92,8 @@ const Login = () => {
           </button>
         </form>
 
-        {/* Error Message */}
         {error && <p className="error-message">{error}</p>}
 
-        {/* Register Link */}
         <p className="register">
           Don’t have an account? <Link to="/signup">Register</Link>
         </p>

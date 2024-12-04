@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { useNavigate } from "react-router-dom";
 import logo1 from "../Images/logo1.png";
@@ -10,19 +10,46 @@ import img1 from "../Images/img1.png";
 import "../CSS/Home.css";
 import { FaRegClock } from "react-icons/fa6";
 import { GoShieldCheck } from "react-icons/go";
-import { FaComment } from "react-icons/fa"; 
+import { FaComment } from "react-icons/fa";
+import profilePic from "../Images/User.jpg";
 
-
+import { Menu, MenuItem } from "@mui/material";
+import Avatar from "@mui/material/Avatar";
 
 const Home = () => {
   const navigate = useNavigate();
   const [isChatbotOpen, setIsChatbotOpen] = useState(false);
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [anchorEl, setAnchorEl] = useState(null);
+  // Check for valid token on component mount
+  useEffect(() => {
+    const token = localStorage.getItem("access_token");
+    console.log("Token:", token); // Check if token is null or valid
+    setIsAuthenticated(!!token);
+  }, []);
 
   const toggleChatbot = () => {
     setIsChatbotOpen((prev) => !prev); // Toggle chatbot visibility
   };
 
+  const handleLogout = () => {
+    localStorage.removeItem("access_token");
+    setIsAuthenticated(false);
+    navigate("/home"); // Redirect to the login page after logout
+  };
 
+  const handleClick = (event) => {
+    setAnchorEl(event.currentTarget);
+  };
+
+  const handleClose = () => {
+    setAnchorEl(null);
+  };
+
+   const handleViewClubs = () => {
+     navigate("/viewclubs");
+     handleClose(); // Close the menu after navigation
+   };
   return (
     <div className="home-container">
       {/* Hero Section */}
@@ -33,23 +60,46 @@ const Home = () => {
           </Link>
 
           <div className="hero-nav-buttons">
-            <button
-              className="btn login-btn"
-              onClick={() => navigate("/login")}
-            >
-              Login
-            </button>
-            <button
-              className="btn register-btn"
-              onClick={() => navigate("/signup")}
-            >
-              Register
-            </button>
+            {isAuthenticated ? (
+              <div className="profile-menu-container">
+                <Avatar
+                  alt="User Profile"
+                  src={profilePic} // Replace with dynamic user image URL if available
+                  onClick={handleClick}
+                  className="profile-avatar"
+                />
+                <Menu
+                  anchorEl={anchorEl}
+                  open={Boolean(anchorEl)}
+                  onClose={handleClose}
+                  anchorOrigin={{ vertical: "bottom", horizontal: "right" }}
+                  transformOrigin={{ vertical: "top", horizontal: "right" }}
+                >
+                  <MenuItem onClick={handleViewClubs}>View Clubs</MenuItem>
+                  <MenuItem onClick={handleLogout}>Logout</MenuItem>
+                </Menu>
+              </div>
+            ) : (
+              <>
+                <button
+                  className="btn login-btn"
+                  onClick={() => navigate("/login")}
+                >
+                  Login
+                </button>
+                <button
+                  className="btn register-btn"
+                  onClick={() => navigate("/signup")}
+                >
+                  Register
+                </button>
+              </>
+            )}
           </div>
         </div>
         <div className="hero-content">
           <h1>
-            Welcome to <span className="highlight">UoK</span> <br></br>Club
+            Welcome to <span className="highlight">UoK</span> <br /> Club
             Management System!
           </h1>
           <p>
@@ -59,20 +109,22 @@ const Home = () => {
             Experience!
           </p>
 
-          <div className="hero-nav-buttons">
-            <button
-              className="btn login-btn"
-              onClick={() => navigate("/login")}
-            >
-              Login
-            </button>
-            <button
-              className="btn register-btn"
-              onClick={() => navigate("/signup")}
-            >
-              Register Now
-            </button>
-          </div>
+          {!isAuthenticated && (
+            <div className="hero-nav-buttons">
+              <button
+                className="btn login-btn"
+                onClick={() => navigate("/login")}
+              >
+                Login
+              </button>
+              <button
+                className="btn register-btn"
+                onClick={() => navigate("/signup")}
+              >
+                Register Now
+              </button>
+            </div>
+          )}
         </div>
       </section>
 
@@ -154,12 +206,6 @@ const Home = () => {
 
             <button className="view-products-button">View Products</button>
           </div>
-          {/* <div className="marketplace-cards">
-            <div className="card">Instant 24/7 Support</div>
-            <div className="card">Verified Sellers</div>
-            <div className="card">Satisfaction</div>
-            <div className="card">No Contracts</div>
-          </div> */}
         </div>
       </section>
 
@@ -178,7 +224,6 @@ const Home = () => {
             </button>
           </div>
           <div className="chatbot-body">
-            {/* Chatbot content goes here */}
             <p>Hi! How can I assist you today?</p>
           </div>
         </div>
@@ -255,7 +300,6 @@ const Home = () => {
             <h4>Contact Us</h4>
             <ul>
               <li>
-                {" "}
                 Head Office Address
                 <br />
                 University of Kelaniya, Faculty of Science

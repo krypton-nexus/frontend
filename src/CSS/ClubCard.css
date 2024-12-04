@@ -1,0 +1,88 @@
+/* Club Card Styling */
+.club-card {
+  background-size: cover;
+  background-position: center;
+  border-radius: 10px;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  height: 270px;
+  width: 100%;
+  position: relative;
+  box-shadow: 5px 5px 15px rgba(103, 2, 2, 0.5);
+  transition: transform 0.3s ease-in-out;
+}
+
+.club-card:hover {
+  transform: scale(1.05);
+}
+
+.card-overlay {
+  background: rgba(0, 0, 0, 0.3);
+  color: #fff;
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  padding: 20px;
+}
+
+.club-title {
+  font-size: 18px;
+  font-weight: bold;
+  background-color: #a91d3a;
+  margin-top: -10px;
+  padding: 10px;
+  color: #fff;
+  text-align: center;
+  width: 100%;
+  border-radius: 6px;
+  box-sizing: border-box;
+}
+
+.club-description {
+  font-size: 14px;
+  margin-top: 60px;
+  color: #fff;
+}
+
+.buttons {
+  display: flex;
+  justify-content: space-around;
+  width: 100%;
+}
+
+.view-club,
+.join-now {
+  padding: 8px 20px;
+  border: none;
+  cursor: pointer;
+  border-radius: 5px;
+  font-size: 16px;
+  transition: background 0.3s;
+}
+
+.view-club {
+  background: #ddd;
+  border-color: #a91d3a;
+  color: #a91d3a;
+}
+
+.view-club:hover {
+  background: #ccc;
+}
+
+.join-now {
+  background: #a91d3a;
+  color: #fff;
+}
+
+.join-now:hover {
+  background: #8b1742;
+}

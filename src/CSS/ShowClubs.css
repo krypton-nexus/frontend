@@ -1,0 +1,189 @@
+/* Container Layout */
+.show-clubs-container {
+  display: flex;
+  font-family: Arial, sans-serif;
+  height: 100vh;
+  overflow: hidden;
+}
+
+.sidebar {
+  width: 250px;
+  background: #1a1a1a;
+  color: #fff;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 20px;
+}
+
+.show-clubs-container .logo {
+  width: 200px;
+}
+
+.menu {
+  list-style: none;
+  padding: 0;
+  width: 100%;
+  margin-bottom: -20px;
+}
+
+.menu li {
+  padding: 10px 10px 10px 50px;
+  cursor: pointer;
+  text-align: center;
+  transition: background 0.3s;
+  display: flex;
+  align-items: left;
+  border-radius: 8px;
+}
+
+.menu li:hover {
+  background: #333;
+}
+
+.menu li.active {
+  background: #a91d3a; /* Active menu item background */
+}
+
+.menu li svg {
+  margin-right: 10px;
+}
+
+.notifications {
+  /* margin-bottom: 20px; */
+  font-size: 16px;
+  align-items: center;
+  display: flex;
+  justify-content: center;
+}
+
+.badge {
+  background: red;
+  color: #fff;
+  border-radius: 50%;
+  padding: 5px 10px;
+  margin-left: 5px;
+}
+
+.show-clubs-container .logout {
+  margin-top: auto;
+  background: #ff4d4d;
+  color: #fff;
+  border: none;
+  padding: 10px 20px;
+  cursor: pointer;
+  border-radius: 5px;
+  display: flex;
+  align-items: center;
+}
+
+.show-clubs-container .logout svg {
+  margin-right: 10px; /* Space between icon and text */
+}
+
+/* Main Content Styling */
+.show-clubs-container .main-content {
+  flex: 1;
+  padding: 10px 20px 0px 30px;
+  background: #f4f4f4;
+  overflow-y: auto;
+}
+
+.search-bar {
+  width: 80%;
+  padding: 10px;
+  margin-bottom: 0px;
+  border: 1px solid #ddd;
+  border-radius: 5px;
+}
+
+/* Club Cards Styling */
+.show-clubs-container .clubs {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 5px;
+  grid-template-rows: repeat(2, auto);
+  margin-top: 15px;
+}
+
+.show-clubs-container .club-card {
+  background-size: cover;
+  background-position: center;
+  border-radius: 10px;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  height: 270px;
+  width: 80%;
+  position: relative;
+  box-shadow: 5px 5px 15px rgba(103, 2, 2, 0.5);
+}
+
+.show-clubs-container .card-overlay {
+  background: rgba(0, 0, 0, 0.3);
+  color: #fff;
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  padding: 20px;
+}
+
+.show-clubs-container .club-title {
+  font-size: 18px;
+  font-weight: bold;
+  background-color: #a91d3a;
+  margin-top: -10px;
+  padding: 10px;
+  color: #fff;
+  text-align: center;
+  width: 100%;
+  border-radius: 6px;
+  box-sizing: border-box;
+}
+
+.club-description {
+  font-size: 14px;
+  margin-top: 60px;
+  color: #fff;
+}
+
+.show-clubs-container .buttons {
+  display: flex;
+  justify-content: space-around;
+  width: 100%;
+}
+
+.show-clubs-container .show-club,
+.join-now {
+  padding: 8px 20px;
+  border: none;
+  cursor: pointer;
+  border-radius: 5px;
+  font-size: 16px;
+}
+
+.show-clubs-container .show-club {
+  background: #ddd;
+  border-color: #a91d3a;
+  color: #a91d3a;
+}
+
+.show-clubs-container .join-now {
+  background: #a91d3a;
+  color: #fff;
+}
+
+.loading-message {
+  justify-content: center;
+  align-items: center;
+  height: 100%; 
+  font-size: 20px; 
+  color: red; 
+}

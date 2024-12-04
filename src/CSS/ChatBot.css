@@ -1,9 +1,10 @@
 /* Chatbot Container */
 .chatbot-container {
   position: fixed;
-  bottom: 20px;
-  right: 20px;
-  width: 300px;
+  bottom: 150px;
+  right: 100px;
+  width: 600px;
+  height: 60%;
   background-color: #ffffff;
   box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
   border-radius: 10px;
@@ -47,6 +48,13 @@
   padding: 8px 12px;
   border-radius: 5px;
   max-width: 80%;
+}
+
+.chatbot-image {
+  max-width: 100%;
+  border-radius: 8px;
+  margin-top: 5px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
 .user-message {
@@ -118,4 +126,56 @@
 
 .iconBtn:hover {
   transform: scale(1.5);
+}
+
+/* Image upload button styling */
+.chatbot-upload-btn {
+  background-color: #a91d3a;
+  color: white;
+  padding: 10px 10px;
+  border-radius: 10%;
+  cursor: pointer;
+  margin-left: 0px;
+  display: inline-block;
+  font-size: 14px;
+}
+
+.chatbot-upload-btn:hover {
+  background-color: #c62828;
+}
+
+.chatbot-image {
+  max-width: 100%;
+  border-radius: 8px;
+  margin-top: 5px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+/* Style for displaying images in the chat */
+.chatbot-image {
+  max-width: 100%;        /* Make sure the image doesn't overflow the container */
+  max-height: 200px;      /* Set a max height for images */
+  margin-top: 10px;       /* Add spacing between text and image */
+  border-radius: 5px;     /* Optional: rounded corners for the image */
+}
+
+/* Style for the upload button */
+.chatbot-upload-btn {
+  background-color: transparent;
+  border: none;
+  cursor: pointer;
+  padding: 5px;
+  margin-left: 10px;
+}
+
+/* Style for the upload icon */
+.upload-icon {
+  font-size: 24px;
+  color: #a91d3a;  /* Icon color */
+}
+
+/* Hover effect for the upload icon */
+.chatbot-upload-btn:hover .upload-icon {
+  transform: scale(1.1);
+  color: black;
 }
