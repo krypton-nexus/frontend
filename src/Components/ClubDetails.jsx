@@ -10,7 +10,9 @@ const ClubDetails = () => {
   useEffect(() => {
     const fetchClubDetails = async () => {
       try {
-        const response = await fetch(`http://13.232.48.203:5000/club/${clubId}`);
+        const response = await fetch(
+          `http://43.205.202.255:5000/club/${clubId}`
+        );
         if (!response.ok) {
           throw new Error(`HTTP error! status: ${response.status}`);
         }

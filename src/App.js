@@ -17,9 +17,10 @@ import ShowClubs from "./Components/ShowClubs";
 import SesaPage from "./Pages/SesaPage";
 import GavelPage from "./Pages/GavelPage";
 import Login from "./Components/Login";
+import AdminLogin from "./Components/AdminLogin";
 import Signup from "./Components/Signup";
-import VerifyEmail from "./Components/VerifyEmail";
 import UserProfile from "./Pages/UserProfile";
+import AdminDashboard from "./Pages/AdminDashboard";
 
 const NoButtonLayout = ({ children }) => (
   <>
@@ -36,6 +37,7 @@ const App = () => {
         {/* Redirect root path to /home */}
         <Route path="/" element={<Navigate to="/home" replace />} />
 
+        {/* Public Routes */}
         <Route
           path="/home"
           element={
@@ -76,19 +78,21 @@ const App = () => {
             </NoButtonLayout>
           }
         />
-        <Route
-          path="/auth/verify/:token"
-          element={
-            <NoButtonLayout>
-              <VerifyEmail />
-            </NoButtonLayout>
-          }
-        />
+
+        {/* Authentication Routes */}
         <Route
           path="/login"
           element={
             <NoButtonLayout>
               <Login />
+            </NoButtonLayout>
+          }
+        />
+        <Route
+          path="/adminlogin"
+          element={
+            <NoButtonLayout>
+              <AdminLogin />
             </NoButtonLayout>
           }
         />
@@ -101,6 +105,24 @@ const App = () => {
           }
         />
         <Route
+          path="/admindashboard"
+          element={
+            <NoButtonLayout>
+              <AdminDashboard/>
+            </NoButtonLayout>
+          }
+        />
+        {/* <Route
+          path="/auth/verify/:token"
+          element={
+            <NoButtonLayout>
+              <VerifyEmail />
+            </NoButtonLayout>
+          }
+        /> */}
+
+        {/* User Profile */}
+        <Route
           path="/userprofile"
           element={
             <NoButtonLayout>
@@ -108,16 +130,16 @@ const App = () => {
             </NoButtonLayout>
           }
         />
-        <Route
-          path="/verify/:token"
+
+        {/* Fallback 404 Route */}
+        {/* <Route
+          path="*"
           element={
             <NoButtonLayout>
-              <VerifyEmail />
+              <NotFound />
             </NoButtonLayout>
           }
-        />
-        {/* Fallback 404 Route */}
-        <Route path="*" element={<h1>404 - Page Not Found</h1>} />
+        /> */}
       </Routes>
     </Router>
   );

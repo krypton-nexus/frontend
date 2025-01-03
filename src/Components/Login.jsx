@@ -1,10 +1,11 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import axios from "axios";
 import { Link, useNavigate } from "react-router-dom";
-import "../CSS/Login.css";
-import logo1 from "../Images/logo1.png";
+import { jwtDecode } from "jwt-decode";
 import { enqueueSnackbar } from "notistack";
 import useAuthCheck from "./UseAuthCheck";
+import "../CSS/Login.css";
+import logo1 from "../Images/logo1.png";
 
 const Login = () => {
   const [email, setEmail] = useState("");
@@ -19,40 +20,61 @@ const Login = () => {
     setError("");
 
     try {
-      const response = await axios.post(
-        "http://13.232.48.203:5000/auth/login",
+      const { data } = await axios.post(
+        "http://43.205.202.255:5000/auth/login",
         { email, password },
-        {
-          headers: { "Content-Type": "application/json" },
-        }
+        { headers: { "Content-Type": "application/json" } }
       );
 
-      if (response.data.token) {
-        const token = response.data.token;
-        const expiresIn = response.data.expiresIn; // Ensure this is correct
-        localStorage.setItem("access_token", token);
-        localStorage.setItem(
-          "token_expiry",
-          new Date().getTime() + expiresIn * 1000
-        ); // Store in milliseconds
+      if (data.token) {
+        const { exp } = jwtDecode(data.token);
+        const expiryTime = exp * 1000;
+
+        localStorage.setItem("access_token", data.token);
+        localStorage.setItem("token_expiry", expiryTime);
 
         enqueueSnackbar("Login Successfully", { variant: "success" });
         navigate("/viewclubs");
       } else {
-        setError(response.data.message || "Login failed!");
+        setError(data.message || "Login failed!");
       }
-    } catch (error) {
-      if (error.response) {
-        console.error("Response data:", error.response.data);
-        setError(error.response.data.error);
-      } else {
-        enqueueSnackbar(
-          "An unexpected error occurred. Please try again later.",
-          { variant: "error" }
-        );
-      }
+    } catch (err) {
+      const errorMessage =
+        err.response?.data?.error ||
+        "An unexpected error occurred. Please try again later.";
+      enqueueSnackbar(errorMessage, { variant: "error" });
+      setError(errorMessage);
     }
   };
+
+  const isTokenValid = () => {
+    const token = localStorage.getItem("access_token");
+    if (!token) return false;
+
+    try {
+      const { exp } = jwtDecode(token);
+      const isExpired = new Date().getTime() >= exp * 1000;
+
+      if (isExpired) {
+        localStorage.removeItem("access_token");
+        localStorage.removeItem("token_expiry");
+        return false;
+      }
+
+      return true;
+    } catch {
+      localStorage.removeItem("access_token");
+      localStorage.removeItem("token_expiry");
+      return false;
+    }
+  };
+
+  useEffect(() => {
+    if (isTokenValid()) {
+      enqueueSnackbar("Already logged in.", { variant: "info" });
+      navigate("/viewclubs");
+    }
+  }, [navigate]);
 
   return (
     <div className="login-container">
@@ -64,7 +86,7 @@ const Login = () => {
         <h2>
           WELCOME <span className="highlight">NEXUS</span>
         </h2>
-        <p>Welcome to Nexus dashboard Community</p>
+        <p>Welcome to Nexus Dashboard Community</p>
 
         <form onSubmit={handleLogin}>
           <input

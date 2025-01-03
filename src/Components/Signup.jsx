@@ -91,7 +91,7 @@ const Signup = () => {
       try {
         // Submit registration data
         const response = await axios.post(
-          "http://13.232.48.203:5000/student/register",
+          "http://43.205.202.255:5000/student/register",
           {
             first_name: formData.firstName,
             last_name: formData.lastName,

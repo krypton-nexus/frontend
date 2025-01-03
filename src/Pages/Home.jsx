@@ -8,8 +8,6 @@ import leo from "../Images/leo.png";
 import ad from "../Images/ad.png";
 import img1 from "../Images/img1.png";
 import "../CSS/Home.css";
-import { FaRegClock } from "react-icons/fa6";
-import { GoShieldCheck } from "react-icons/go";
 import { FaComment } from "react-icons/fa";
 import profilePic from "../Images/User.jpg";
 
@@ -193,16 +191,7 @@ const Home = () => {
               everything you need to represent your club in style. Shop <br />
               now and wear your pride!
             </p>
-            <div className="marketplace-badges">
-              <span className="badge red">
-                <FaRegClock />
-                24/7 Support
-              </span>
-              <span className="badge green">
-                <GoShieldCheck />
-                99% Secured
-              </span>
-            </div>
+            <div className="marketplace-badges"></div>
 
             <button className="view-products-button">View Products</button>
           </div>
