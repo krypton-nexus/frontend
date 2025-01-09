@@ -15,12 +15,15 @@ import UseAuthCheck from "./Components/UseAuthCheck";
 import Home from "./Pages/Home";
 import ShowClubs from "./Components/ShowClubs";
 import SesaPage from "./Pages/SesaPage";
+import ViewEvents from "./Pages/ViewEvents";
 import GavelPage from "./Pages/GavelPage";
 import Login from "./Components/Login";
 import AdminLogin from "./Components/AdminLogin";
 import Signup from "./Components/Signup";
 import UserProfile from "./Pages/UserProfile";
 import AdminDashboard from "./Pages/AdminDashboard";
+import Notification from "./Pages/Notification";
+import Merchandise from "./Pages/Merchandise";
 
 const NoButtonLayout = ({ children }) => (
   <>
@@ -51,6 +54,14 @@ const App = () => {
           element={
             <NoButtonLayout>
               <ShowClubs />
+            </NoButtonLayout>
+          }
+        />
+        <Route
+          path="/viewevents"
+          element={
+            <NoButtonLayout>
+              <ViewEvents />
             </NoButtonLayout>
           }
         />
@@ -108,7 +119,23 @@ const App = () => {
           path="/admindashboard"
           element={
             <NoButtonLayout>
-              <AdminDashboard/>
+              <AdminDashboard />
+            </NoButtonLayout>
+          }
+        />
+        <Route
+          path="/notification"
+          element={
+            <NoButtonLayout>
+              <Notification />
+            </NoButtonLayout>
+          }
+        />
+        <Route
+          path="/merchandise"
+          element={
+            <NoButtonLayout>
+              <Merchandise />
             </NoButtonLayout>
           }
         />
