@@ -10,21 +10,25 @@ import {
 import ClubDetails from "./Components/ClubDetails";
 import ChatBot from "./Components/ChatBot";
 import UseAuthCheck from "./Components/UseAuthCheck";
+import CommunicationChannel from "./Components/CommunicationChannel";
+import ChannelList from "./Components/ChannelList";
+import ClubChannel from "./Components/ClubChannel";
 
 // Import Pages
 import Home from "./Pages/Home";
 import ShowClubs from "./Components/ShowClubs";
-import SesaPage from "./Pages/SesaPage";
 import ViewEvents from "./Pages/ViewEvents";
+import SesaPage from "./Pages/SesaPage";
 import GavelPage from "./Pages/GavelPage";
 import Login from "./Components/Login";
-import AdminLogin from "./Components/AdminLogin";
 import Signup from "./Components/Signup";
 import UserProfile from "./Pages/UserProfile";
 import AdminDashboard from "./Pages/AdminDashboard";
 import Notification from "./Pages/Notification";
 import Merchandise from "./Pages/Merchandise";
+import AdminLogin from "./Components/AdminLogin";
 
+// Layout Wrapper to include ChatBot in all pages
 const NoButtonLayout = ({ children }) => (
   <>
     {children}
@@ -35,12 +39,12 @@ const NoButtonLayout = ({ children }) => (
 const App = () => {
   return (
     <Router>
-      <UseAuthCheck /> {/* Runs the auth check on app load */}
+      <UseAuthCheck />
       <Routes>
-        {/* Redirect root path to /home */}
+        {/* Redirect root path to home */}
         <Route path="/" element={<Navigate to="/home" replace />} />
 
-        {/* Public Routes */}
+        {/* Public Pages */}
         <Route
           path="/home"
           element={
@@ -81,14 +85,6 @@ const App = () => {
             </NoButtonLayout>
           }
         />
-        <Route
-          path="/club/:clubId"
-          element={
-            <NoButtonLayout>
-              <ClubDetails />
-            </NoButtonLayout>
-          }
-        />
 
         {/* Authentication Routes */}
         <Route
@@ -115,6 +111,8 @@ const App = () => {
             </NoButtonLayout>
           }
         />
+
+        {/* Admin Dashboard */}
         <Route
           path="/admindashboard"
           element={
@@ -123,6 +121,18 @@ const App = () => {
             </NoButtonLayout>
           }
         />
+
+        {/* User Profile */}
+        <Route
+          path="/userprofile"
+          element={
+            <NoButtonLayout>
+              <UserProfile />
+            </NoButtonLayout>
+          }
+        />
+
+        {/* Notifications and Merchandise */}
         <Route
           path="/notification"
           element={
@@ -139,34 +149,48 @@ const App = () => {
             </NoButtonLayout>
           }
         />
-        {/* <Route
-          path="/auth/verify/:token"
-          element={
-            <NoButtonLayout>
-              <VerifyEmail />
-            </NoButtonLayout>
-          }
-        /> */}
 
-        {/* User Profile */}
+        {/* Clubs & Communication */}
         <Route
-          path="/userprofile"
+          path="/clubdetails"
           element={
             <NoButtonLayout>
-              <UserProfile />
+              <ClubDetails />
             </NoButtonLayout>
           }
         />
-
-        {/* Fallback 404 Route */}
-        {/* <Route
-          path="*"
+        <Route
+          path="/club/:clubId"
           element={
             <NoButtonLayout>
-              <NotFound />
+              <ClubDetails />
             </NoButtonLayout>
           }
-        /> */}
+        />
+        <Route
+          path="/clubs"
+          element={
+            <NoButtonLayout>
+              <ChannelList />
+            </NoButtonLayout>
+          }
+        />
+        <Route
+          path="/club/:clubId/channel"
+          element={
+            <NoButtonLayout>
+              <ClubChannel />
+            </NoButtonLayout>
+          }
+        />
+        <Route
+          path="/communication"
+          element={
+            <NoButtonLayout>
+              <CommunicationChannel />
+            </NoButtonLayout>
+          }
+        />
       </Routes>
     </Router>
   );

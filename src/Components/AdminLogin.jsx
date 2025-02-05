@@ -11,7 +11,6 @@ const AdminLogin = () => {
   const [error, setError] = useState("");
   const navigate = useNavigate();
 
-  // Check if admin is already logged in by checking the token in localStorage
   useEffect(() => {
     const adminAccessToken = localStorage.getItem("admin_access_token");
     if (adminAccessToken) {
@@ -19,10 +18,8 @@ const AdminLogin = () => {
         const decodedToken = jwtDecode(adminAccessToken);
         const expiryTime = decodedToken.exp * 1000; // Convert to milliseconds
         if (new Date().getTime() < expiryTime) {
-          // If token is valid, redirect to admin dashboard
           navigate("/admindashboard");
         } else {
-          // Token has expired, remove it from localStorage
           localStorage.removeItem("admin_access_token");
         }
       } catch (error) {
@@ -36,6 +33,7 @@ const AdminLogin = () => {
     e.preventDefault();
     setError("");
 
+
     try {
       const response = await axios.post(
         "http://43.205.202.255:5000/auth/admin/login",
@@ -47,7 +45,6 @@ const AdminLogin = () => {
         const token = response.data.token;
         localStorage.setItem("admin_access_token", token);
 
-        // Handle email verification case
         if (response.data.error === "Email is not verified.") {
           alert(
             "Your email is not verified. Please verify your email before logging in."
@@ -56,7 +53,7 @@ const AdminLogin = () => {
           navigate("/verifyemail");
           return;
         }
-        navigate("/admindashboard"); // Redirect to admin dashboard
+        navigate("/admindashboard"); 
       } else {
         setError(response.data.message || "Login failed!");
       }

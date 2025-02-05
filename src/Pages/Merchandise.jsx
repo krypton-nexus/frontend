@@ -2,7 +2,7 @@ import React from "react";
 import "../CSS/Merchandise.css";
 import tshirt1 from "../Images/t shirt.jpg";
 // import tshirt2 from "../Images/t shirt1.jpg";
-import cap1 from "../Images/cap.jpg";
+// import cap1 from "../Images/cap.jpg";
 import cap2 from "../Images/cap2.jpg";
 import cup1 from "../Images/cup.jpg";
 import handband1 from "../Images/handband.jpg";

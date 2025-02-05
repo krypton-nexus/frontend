@@ -39,11 +39,13 @@ const ClubDetails = () => {
     <div className="club-details-container">
       <div className="club-header">
         <h1 className="club-title">{club.title}</h1>
-        <img
-          src={club.images_url["header image"]}
-          alt={`${club.title} header`}
-          className="club-header-img"
-        />
+        {club.images_url?.img1 && (
+          <img
+            src={club.images_url.img1}
+            alt={`${club.title} header`}
+            className="club-header-img"
+          />
+        )}
       </div>
       <div className="club-content">
         <p className="club-welcome-message">{club.welcome_msg}</p>
@@ -62,11 +64,13 @@ const ClubDetails = () => {
         </section>
       </div>
       <div className="club-footer">
-        <img
-          src={club.images_url["footer image"]}
-          alt={`${club.title} footer`}
-          className="club-footer-img"
-        />
+        {club.images_url?.footer && (
+          <img
+            src={club.images_url.footer}
+            alt={`${club.title} footer`}
+            className="club-footer-img"
+          />
+        )}
       </div>
     </div>
   );

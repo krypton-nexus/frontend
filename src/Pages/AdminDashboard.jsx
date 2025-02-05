@@ -1,9 +1,9 @@
-// Imports
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect ,useMemo} from "react";
 import { useNavigate } from "react-router-dom";
 import { ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import { jwtDecode } from "jwt-decode";
+import axios from "axios";
 import {
   FaUsers,
   FaTasks,
@@ -14,7 +14,6 @@ import {
   FaSignOutAlt,
 } from "react-icons/fa";
 import { Link } from "react-router-dom";
-import axios from "axios";
 import logo1short from "../Images/logo1short.png";
 import "../CSS/AdminDashboard.css";
 import { IoCloseCircleOutline } from "react-icons/io5";
@@ -35,6 +34,16 @@ const AdminDashboard = () => {
 
   const navigate = useNavigate();
   const adminAccessToken = localStorage.getItem("admin_access_token");
+
+  // Axios instance
+  const axiosInstance = useMemo(() => {
+    return axios.create({
+      baseURL: "http://43.205.202.255:5000",
+      headers: {
+        Authorization: `Bearer ${localStorage.getItem("admin_access_token")}`,
+      },
+    });
+  }, []);
 
   // Decode JWT Token
   const getAdminEmailFromToken = (token) => {
@@ -60,8 +69,8 @@ const AdminDashboard = () => {
 
     const fetchAdminDetails = async () => {
       try {
-        const response = await axios.get(
-          `http://43.205.202.255:5000/admin/email?email=${adminEmail}`
+        const response = await axiosInstance.get(
+          `/admin/email?email=${adminEmail}`
         );
         setClubId(response.data.club_id);
       } catch (error) {
@@ -71,14 +80,10 @@ const AdminDashboard = () => {
 
     const fetchUnreadNotifications = async () => {
       try {
-        const response = await axios.get(
-          `http://43.205.202.255:5000/notification_admin/unread?admin_email=${adminEmail}`
+        const response = await axiosInstance.get(
+          `/notifications/unread?admin_email=${adminEmail}`
         );
-        setUnreadNotifications(
-          Array.isArray(response.data.unread_notifications)
-            ? response.data.unread_notifications
-            : []
-        );
+        setUnreadNotifications(response.data.unread_notifications || []);
       } catch (error) {
         console.error("Failed to fetch unread notifications:", error);
       }
@@ -86,27 +91,22 @@ const AdminDashboard = () => {
 
     fetchAdminDetails();
     fetchUnreadNotifications();
-  }, [adminEmail, navigate]);
+  }, [adminEmail, navigate, axiosInstance]);
 
   // Fetch all notifications
   useEffect(() => {
     const fetchNotifications = async () => {
       try {
-        const response = await axios.get(
-          `http://43.205.202.255:5000/notification_admin/all?admin_email=${adminEmail}`
+        const response = await axiosInstance.get(
+          `/notification_admin/all?admin_email=${adminEmail}`
         );
-        setAllNotifications(
-          Array.isArray(response.data.all_notifications)
-            ? response.data.all_notifications
-            : []
-        );
+        setAllNotifications(response.data.all_notifications || []);
       } catch (error) {
         console.error("Failed to fetch notifications:", error);
       }
     };
-
     fetchNotifications();
-  }, [adminEmail]);
+  }, [adminEmail, axiosInstance]);
 
   // Filter notifications
   useEffect(() => {
@@ -128,12 +128,9 @@ const AdminDashboard = () => {
     const fetchMembershipData = async () => {
       try {
         const [membershipResponse, studentResponse] = await Promise.all([
-          axios.get(
-            `http://43.205.202.255:5000/membership/list?club_id=${clubId}`
-          ),
-          axios.get(`http://43.205.202.255:5000/student/list`),
+          axiosInstance.get(`/membership/list?club_id=${clubId}`),
+          axiosInstance.get("/student/list"),
         ]);
-
         const memberships = membershipResponse.data?.memberships || [];
         const allStudents = studentResponse.data.students || [];
 
@@ -174,7 +171,7 @@ const AdminDashboard = () => {
     };
 
     fetchMembershipData();
-  }, [clubId]);
+  }, [clubId,axiosInstance]);
 
   // Handlers
   const handleLogout = () => {
@@ -186,9 +183,7 @@ const AdminDashboard = () => {
 
   const handleViewDetails = async (email) => {
     try {
-      const response = await axios.get(
-        `http://43.205.202.255:5000/student/${email}`
-      );
+      const response = await axiosInstance.get(`/student/${email}`);
       setModalUserData(response.data);
       setIsModalOpen(true);
     } catch (error) {
@@ -204,8 +199,8 @@ const AdminDashboard = () => {
         status: action,
       };
 
-      const response = await axios.put(
-        `http://43.205.202.255:5000/membership/update/status`,
+      const response = await axiosInstance.put(
+        `/membership/update/status`,
         requestBody
       );
 
@@ -234,12 +229,9 @@ const AdminDashboard = () => {
 
   const handleMemberDeletion = async (email) => {
     try {
-      const response = await axios.delete(
-        `http://43.205.202.255:5000/membership/delete`,
-        {
-          data: { student_email: email, club_id: clubId },
-        }
-      );
+      const response = await axiosInstance.delete(`/membership/delete`, {
+        data: { student_email: email, club_id: clubId },
+      });
 
       if (response.status === 200) {
         alert(`Member ${email} has been removed from the club.`);
@@ -342,9 +334,6 @@ const AdminDashboard = () => {
     );
   };
 
-  console.log(adminEmail);
-  
-
   const NotificationPopup = () => {
     const markAllAsRead = async () => {
       try {
@@ -353,18 +342,10 @@ const AdminDashboard = () => {
           .map((notification) => notification.id);
 
         if (unreadNotificationIds.length > 0) {
-          await axios.patch(
-            "http://43.205.202.255:5000/notification_admin/mark-as-read",
-            {
-              admin_email: adminEmail,
-              notification_ids: unreadNotificationIds,
-            },
-            {
-              headers: {
-                "Content-Type": "application/json",
-              },
-            }
-          );
+          await axiosInstance.patch("/notification_admin/mark-as-read", {
+            admin_email: adminEmail,
+            notification_ids: unreadNotificationIds,
+          });
           // Update the notifications locally
           setFilteredNotifications((prevNotifications) =>
             prevNotifications.map((notif) => ({
@@ -472,10 +453,12 @@ const AdminDashboard = () => {
             <div className="info-item">
               <strong>Date of Birth:</strong>{" "}
               <span>
-                {new Date(user.dob).toLocaleString("en-US", {
-                  timeZone: "Asia/Colombo",
-                  dateStyle: "long",
-                }) || "N/A"}
+                {user.dob
+                  ? new Date(user.dob).toLocaleDateString("en-US", {
+                      timeZone: "Asia/Colombo",
+                      dateStyle: "long",
+                    })
+                  : "N/A"}
               </span>
             </div>
             <div className="info-item">
@@ -504,6 +487,7 @@ const AdminDashboard = () => {
       </div>
     );
   };
+
   return (
     <div className="view-clubs-container">
       <ToastContainer />

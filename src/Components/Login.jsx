@@ -33,7 +33,7 @@ const Login = () => {
         localStorage.setItem("access_token", data.token);
         localStorage.setItem("token_expiry", expiryTime);
 
-        enqueueSnackbar("Login Successfully", { variant: "success" });
+        enqueueSnackbar("Login Successful", { variant: "success" });
         navigate("/viewclubs");
       } else {
         setError(data.message || "Login failed!");

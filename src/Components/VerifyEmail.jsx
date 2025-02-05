@@ -10,7 +10,7 @@ const Verify = () => {
     const verifyEmail = async () => {
       try {
         const response = await axios.get(
-          `http://13.232.48.203:5000/auth/verify/${token}`
+          `http://43.205.202.255:5000/auth/verify/${token}`
         );
         setMessage(response.data.message);
         setTimeout(() => {

@@ -96,9 +96,9 @@
   background: #ffffff;
   overflow-y: auto;
   display: flex;
-  flex-direction: row;
+  flex-direction: column;
   gap: 20px;
-  }
+}
 
 header {
   display: flex;
