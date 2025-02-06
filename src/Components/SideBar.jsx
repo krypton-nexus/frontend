@@ -27,7 +27,7 @@ const Sidebar = () => {
   const menuItems = [
     { path: "/viewclubs", label: "View Clubs", icon: <FaUsers /> },
     { path: "/view-feed", label: "View Feed", icon: <FaRss /> },
-    { path: "/view-events", label: "View Events", icon: <FaCalendarAlt /> },
+    { path: "/viewevents", label: "View Events", icon: <FaCalendarAlt /> },
     {
       path: "#",
       label: "Communication",

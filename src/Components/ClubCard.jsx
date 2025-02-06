@@ -12,11 +12,11 @@ const ClubCard = ({ club }) => {
 
   useEffect(() => {
     const getStudentEmailFromToken = () => {
-      const token = localStorage.getItem("access_token"); 
+      const token = localStorage.getItem("access_token");
       if (token) {
         try {
           const decodedToken = jwtDecode(token);
-          return decodedToken.email; 
+          return decodedToken.email;
         } catch (error) {
           console.error("Failed to decode token:", error);
           return null;
@@ -26,15 +26,15 @@ const ClubCard = ({ club }) => {
     };
 
     const email = getStudentEmailFromToken();
-    setStudentEmail(email); 
+    setStudentEmail(email);
 
     if (club.additional_information) {
       const sentences = club.additional_information
         .split(".")
-        .filter((sentence) => sentence.trim() !== ""); 
-      setClubDescription(sentences); 
+        .filter((sentence) => sentence.trim() !== "");
+      setClubDescription(sentences);
     }
-  }, [club]); 
+  }, [club]);
 
   useEffect(() => {
     const timer = setTimeout(() => {
@@ -43,8 +43,8 @@ const ClubCard = ({ club }) => {
       );
     }, 5000);
 
-    return () => clearTimeout(timer); 
-  }, [currentSentenceIndex, clubDescription.length]); 
+    return () => clearTimeout(timer);
+  }, [currentSentenceIndex, clubDescription.length]);
 
   const handleJoinNow = async () => {
     const token = localStorage.getItem("access_token");
@@ -131,17 +131,19 @@ const ClubCard = ({ club }) => {
       className="club-card"
       style={{
         backgroundImage: `url(${
-          club.images_url?.card || "/placeholder-image.jpg"
+          club.images_url["logo"] || "/placeholder-image.jpg"
         })`,
-      }}
-    >
+        backgroundSize: "contain",
+        backgroundRepeat: "no-repeat",
+        backgroundPosition: "center",
+        height: "280px",
+      }}>
       <div className="card-overlay">
         <div className="club-title">{club.title || "Club Name"}</div>
         <div className="buttons">
           <button
             className="view-club"
-            onClick={() => navigate(`/club/${club.id}`)}
-          >
+            onClick={() => navigate(`/club/${club.id}`)}>
             View Club
           </button>
           <button className="join-now" onClick={handleJoinNow}>

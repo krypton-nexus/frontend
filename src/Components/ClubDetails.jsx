@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
-import { useParams } from "react-router-dom";
+import { useParams, Link } from "react-router-dom";
 import "../CSS/ClubDetails.css";
+import { FaArrowLeft } from "react-icons/fa";
 
 const ClubDetails = () => {
   const { clubId } = useParams();
@@ -38,7 +39,13 @@ const ClubDetails = () => {
   return (
     <div className="club-details-container">
       <div className="club-header">
-        <h1 className="club-title">{club.title}</h1>
+        <div className="club-header-content">
+          <Link to="/viewclubs" className="back-arrow">
+            <FaArrowLeft />
+          </Link>
+          <h1 className="club-title">{club.title}</h1>
+        </div>
+
         {club.images_url?.img1 && (
           <img
             src={club.images_url.img1}

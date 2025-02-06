@@ -9,6 +9,30 @@
 }
 
 /* Header Styling */
+
+.club-header-content {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+}
+
+.back-arrow {
+  position: absolute;
+  left: 0;
+  color: #fff;
+  margin-left: 20px;
+  margin-bottom: 15px;
+  font-size: 20px;
+  cursor: pointer;
+  text-decoration: none;
+  transition: color 0.3s;
+}
+
+.back-arrow:hover {
+  color: #a91d3a;
+}
+
 .club-header {
   text-align: center;
   margin-bottom: 20px;

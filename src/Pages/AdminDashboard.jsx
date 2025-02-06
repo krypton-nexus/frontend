@@ -1,4 +1,4 @@
-import React, { useState, useEffect ,useMemo} from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import { ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
@@ -12,6 +12,7 @@ import {
   FaStore,
   FaRegBell,
   FaSignOutAlt,
+  FaCalendarAlt,
 } from "react-icons/fa";
 import { Link } from "react-router-dom";
 import logo1short from "../Images/logo1short.png";
@@ -171,7 +172,7 @@ const AdminDashboard = () => {
     };
 
     fetchMembershipData();
-  }, [clubId,axiosInstance]);
+  }, [clubId, axiosInstance]);
 
   // Handlers
   const handleLogout = () => {
@@ -280,16 +281,14 @@ const AdminDashboard = () => {
                     <>
                       <button
                         className="view-btn"
-                        onClick={() => handleViewDetails(member.student_email)}
-                      >
+                        onClick={() => handleViewDetails(member.student_email)}>
                         View
                       </button>
                       <button
                         className="delete-btn"
                         onClick={() =>
                           handleMemberDeletion(member.student_email)
-                        }
-                      >
+                        }>
                         Delete
                       </button>
                     </>
@@ -297,8 +296,7 @@ const AdminDashboard = () => {
                     <>
                       <button
                         className="view-btn"
-                        onClick={() => handleViewDetails(member.student_email)}
-                      >
+                        onClick={() => handleViewDetails(member.student_email)}>
                         View
                       </button>
                       <button
@@ -308,8 +306,7 @@ const AdminDashboard = () => {
                             "approved",
                             member.student_email
                           )
-                        }
-                      >
+                        }>
                         Accept
                       </button>
                       <button
@@ -319,8 +316,7 @@ const AdminDashboard = () => {
                             "rejected",
                             member.student_email
                           )
-                        }
-                      >
+                        }>
                         Reject
                       </button>
                     </>
@@ -411,8 +407,7 @@ const AdminDashboard = () => {
                       style={{
                         fontWeight:
                           notification.is_read === 0 ? "bold" : "normal",
-                      }}
-                    >
+                      }}>
                       <div>{notification.notification}</div>
                       <div>{notification.formattedDate}</div>
                     </li>
@@ -498,6 +493,9 @@ const AdminDashboard = () => {
         <ul className="menu">
           <li className="active">
             <FaUsers /> Membership
+          </li>
+          <li>
+            <FaCalendarAlt /> Event Management
           </li>
           <li>
             <FaTasks /> Task Management

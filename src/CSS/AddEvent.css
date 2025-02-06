@@ -1,0 +1,38 @@
+.event-form {
+  display: flex;
+  flex-direction: column;
+  max-width: 90%;
+  margin: 20px auto;
+  gap: 15px;
+}
+
+.event-form label {
+  display: flex;
+  flex-direction: column;
+  font-size: 16px;
+}
+
+.event-form input,
+.event-form select,
+.event-form textarea {
+  padding: 8px;
+  font-size: 14px;
+  border: 1px solid #ddd;
+  border-radius: 5px;
+}
+
+.event-form textarea {
+  height: 50px;
+}
+.create-event-btn {
+  padding: 10px;
+  background-color: #a91d3a;
+  color: white;
+  border: none;
+  cursor: pointer;
+  border-radius: 5px;
+}
+
+.create-event-btn:hover {
+  background-color: #8b1742;
+}
