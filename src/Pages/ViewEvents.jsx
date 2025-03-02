@@ -3,7 +3,7 @@ import { jwtDecode } from "jwt-decode";
 import { Link } from "react-router-dom";
 import "../CSS/ViewEvents.css";
 import Sidebar from "../Components/SideBar";
-import bannerImage from "../Images/events-banner.jpg";
+import bannerImage from "../Images/bannerevent.png";
 import {
   FaUsers,
   FaRegBell,
