@@ -66,7 +66,7 @@ const Merchandise = () => {
       <header className="banner">
         <FaArrowLeft
           className="back-arrow"
-          onClick={() => navigate("/dashboard")}
+          onClick={() => navigate("/viewclubs")}
         />
         <img src={bg} alt="MarketPlace Banner" className="market-bg" />
       </header>

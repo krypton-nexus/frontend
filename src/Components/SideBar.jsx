@@ -28,12 +28,13 @@ const Sidebar = () => {
     { path: "/viewclubs", label: "View Clubs", icon: <FaUsers /> },
     { path: "/view-feed", label: "View Feed", icon: <FaRss /> },
     { path: "/viewevents", label: "View Events", icon: <FaCalendarAlt /> },
-    {
-      path: "#",
-      label: "Communication",
-      icon: <FaComment />,
-      action: () => setIsModalOpen(true),
-    }, // Open Modal
+    { path: "/communication", label: "Communication", icon: <FaComment /> },
+    // {
+    //   path: "/communication",
+    //   label: "Communication",
+    //   icon: <FaComment />,
+    //   action: () => setIsModalOpen(true),
+    // },
     {
       path: "/merchandise",
       label: "Purchase Merchandise",
@@ -71,12 +72,12 @@ const Sidebar = () => {
       </aside>
 
       {/* Communication Modal */}
-      {isModalOpen && (
+      {/* {isModalOpen && (
         <CommunicationChannel
           isOpen={isModalOpen}
           onClose={() => setIsModalOpen(false)}
         />
-      )}
+      )} */}
     </>
   );
 };

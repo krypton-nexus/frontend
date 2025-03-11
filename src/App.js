@@ -10,7 +10,7 @@ import {
 import ClubDetails from "./Components/ClubDetails";
 import ChatBot from "./Components/ChatBot";
 import UseAuthCheck from "./Components/UseAuthCheck";
-import CommunicationChannel from "./Components/CommunicationChannel";
+import Communication from "./Pages/Communication";
 import ChannelList from "./Components/ChannelList";
 import ClubChannel from "./Components/ClubChannel";
 
@@ -158,6 +158,14 @@ const App = () => {
             </NoButtonLayout>
           }
         />
+        <Route
+          path="/communication"
+          element={
+            <NoButtonLayout>
+              <Communication />
+            </NoButtonLayout>
+          }
+        />
 
         {/* Clubs & Communication */}
         <Route
@@ -192,14 +200,14 @@ const App = () => {
             </NoButtonLayout>
           }
         />
-        <Route
+        {/* <Route
           path="/communication"
           element={
             <NoButtonLayout>
-              <CommunicationChannel />
+              <Communication />
             </NoButtonLayout>
           }
-        />
+        /> */}
       </Routes>
     </Router>
   );
