@@ -1,6 +1,9 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import axios from "axios";
 import { Link, useNavigate } from "react-router-dom";
+import { jwtDecode } from "jwt-decode";
+import { enqueueSnackbar } from "notistack";
+import useAuthCheck from "./UseAuthCheck";
 import "../CSS/Login.css";
 import logo1 from "../Images/logo1.png";
 
@@ -10,95 +13,85 @@ const Login = () => {
   const [error, setError] = useState("");
   const navigate = useNavigate();
 
+  useAuthCheck(navigate);
+
+  // Function to check if the token is valid (exists and not expired)
+  const isTokenValid = () => {
+    const token = localStorage.getItem("access_token");
+    const tokenExpiry = localStorage.getItem("token_expiry");
+
+    if (!token || !tokenExpiry) {
+      return false; // Token or expiry time is missing
+    }
+
+    // Check if token is expired
+    const currentTime = new Date().getTime();
+    if (currentTime >= tokenExpiry) {
+      localStorage.removeItem("access_token");
+      localStorage.removeItem("token_expiry");
+      return false; // Token is expired
+    }
+
+    return true; // Token is valid
+  };
+
+  // Handle Login
   const handleLogin = async (e) => {
     e.preventDefault();
-    setError("");
-
-    console.log("Email:", email);
-    console.log("Password:", password);
+    setError(""); // Reset error message
 
     try {
-      const response = await axios.post(
-        "http://13.232.48.203:5000/auth/login",
+      const { data } = await axios.post(
+        "http://43.205.202.255:5000/auth/login",
         { email, password },
-        {
-          headers: { "Content-Type": "application/json" },
-        }
+        { headers: { "Content-Type": "application/json" } }
       );
 
-      if (response.data.token) {
-        const token = response.data.token;
-        localStorage.setItem("access_token", token);
+      if (data.token) {
+        const { exp } = jwtDecode(data.token);
+        const expiryTime = exp * 1000;
 
-        if (
-          response.data.error &&
-          response.data.error === "Email is not verified."
-        ) {
-          alert(
-            "Your email is not verified. Please verify your email before logging in."
-          );
-          localStorage.removeItem("access_token");
-          navigate("/verifyemail");
-          return;
-        }
+        // Save token and expiry time in localStorage
+        localStorage.setItem("access_token", data.token);
+        localStorage.setItem("token_expiry", expiryTime);
 
-        alert("Login successful!");
+        console.log(data.token);
+        console.log(expiryTime);
+
+        enqueueSnackbar("Login Successful", { variant: "success" });
         navigate("/viewclubs");
       } else {
-        setError(response.data.message || "Login failed!");
+        setError(data.message || "Login failed!");
       }
-    } catch (error) {
-      console.error("Login Error:", error);
-
-      // Handle different types of errors
-      if (error.response) {
-        console.error("Response data:", error.response.data); // Log response data for more insights
-        switch (error.response.status) {
-          case 404:
-            setError("User not found. Please check your email.");
-            break;
-          case 401:
-            setError("Invalid email or password. Please try again.");
-            break;
-          case 400:
-            if (error.response.data.error === "Email is not verified.") {
-              setError("Your email is not verified. Please check your inbox.");
-              // Redirect to the email verification page
-              navigate("/verifyemail");
-            } else {
-              setError(error.response.data.message || "Login failed.");
-            }
-            break;
-          default:
-            setError(
-              error.response.data.message || "An unexpected error occurred."
-            );
-        }
-      } else if (error.request) {
-        // Request was made, but no response received
-        setError("Unable to reach the server. Please check your connection.");
-      } else {
-        // Something went wrong while setting up the request
-        setError("An unexpected error occurred. Please try again later.");
-      }
+    } catch (err) {
+      const errorMessage =
+        err.response?.data?.error ||
+        "An unexpected error occurred. Please try again later.";
+      enqueueSnackbar(errorMessage, { variant: "error" });
+      setError(errorMessage);
     }
   };
 
+  useEffect(() => {
+    // Check if the token is valid when the component loads
+    if (isTokenValid()) {
+      enqueueSnackbar("Already logged in.", { variant: "info" });
+      navigate("/viewclubs");
+    }
+  }, [navigate]);
+
   return (
     <div className="login-container">
-      {/* Logo */}
       <Link to="/home">
         <img src={logo1} alt="Logo" className="logo" />
       </Link>
 
       <div className="login-box">
-        {/* Header */}
         <h2>
           WELCOME <span className="highlight">NEXUS</span>
         </h2>
-        <p>Welcome to Nexus dashboard Community</p>
+        <p>Welcome to Nexus Dashboard Community</p>
 
-        {/* Login Form */}
         <form onSubmit={handleLogin}>
           <input
             type="email"
@@ -125,10 +118,8 @@ const Login = () => {
           </button>
         </form>
 
-        {/* Error Message */}
         {error && <p className="error-message">{error}</p>}
 
-        {/* Register Link */}
         <p className="register">
           Don’t have an account? <Link to="/signup">Register</Link>
         </p>

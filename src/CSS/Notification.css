@@ -1,0 +1,40 @@
+.notifications-container {
+  width: 1000px;
+  margin: 20px 20px 20px 40px;
+  font-family: Arial, sans-serif;
+}
+
+.notifications-container h2 {
+  color: #333;
+  margin-bottom: 20px;
+}
+
+.notification-card {
+  background: #fff;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  padding: 15px 20px;
+  margin-bottom: 10px;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.notification-card p {
+  color: rgb(59, 58, 58);
+}
+
+.notification-card:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.15);
+}
+
+.notification-card.unread {
+  background: #edf3ff; /* Unread notifications background */
+}
+
+.notification-time {
+  display: block;
+  margin-top: 10px;
+  font-size: 0.85em;
+  color: #888;
+}

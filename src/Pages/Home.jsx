@@ -1,5 +1,6 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
+import axios from "axios";
 import { useNavigate } from "react-router-dom";
 import logo1 from "../Images/logo1.png";
 import sesa from "../Images/sesa.png";
@@ -8,20 +9,81 @@ import leo from "../Images/leo.png";
 import ad from "../Images/ad.png";
 import img1 from "../Images/img1.png";
 import "../CSS/Home.css";
-import { FaRegClock } from "react-icons/fa6";
-import { GoShieldCheck } from "react-icons/go";
-import { FaComment } from "react-icons/fa"; 
+import { FaComment } from "react-icons/fa";
+import profilePic from "../Images/User.jpg";
 
-
+import { Menu, MenuItem } from "@mui/material";
+import Avatar from "@mui/material/Avatar";
 
 const Home = () => {
+  const [formData, setFormData] = useState({
+    name: "",
+    email: "",
+    subject: "",
+    message: "",
+  });
+
+  const [responseMessage, setResponseMessage] = useState("");
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  // Handle form data change
+  const handleChange = (e) => {
+    const { name, value } = e.target;
+    setFormData({ ...formData, [name]: value });
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setIsSubmitting(true);
+    setResponseMessage("");
+
+    try {
+      const response = await axios.post(
+        "http://localhost:5000/send-email",
+        formData
+      );
+      console.log(response); // You can log the response if you want to inspect it
+      setResponseMessage("Your message has been sent successfully!");
+      setFormData({ name: "", email: "", subject: "", message: "" }); // Clear form after success
+    } catch (error) {
+      setResponseMessage("Error sending message. Please try again later.");
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
   const navigate = useNavigate();
   const [isChatbotOpen, setIsChatbotOpen] = useState(false);
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [anchorEl, setAnchorEl] = useState(null);
+  useEffect(() => {
+    const token = localStorage.getItem("access_token");
+    console.log("Token:", token); // Check if token is null or valid
+    setIsAuthenticated(!!token);
+  }, []);
 
   const toggleChatbot = () => {
     setIsChatbotOpen((prev) => !prev); // Toggle chatbot visibility
   };
 
+  const handleLogout = () => {
+    localStorage.removeItem("access_token");
+    setIsAuthenticated(false);
+    navigate("/home"); // Redirect to the login page after logout
+  };
+
+  const handleClick = (event) => {
+    setAnchorEl(event.currentTarget);
+  };
+
+  const handleClose = () => {
+    setAnchorEl(null);
+  };
+
+  const handleViewClubs = () => {
+    navigate("/viewclubs");
+    handleClose(); // Close the menu after navigation
+  };
 
   return (
     <div className="home-container">
@@ -33,23 +95,43 @@ const Home = () => {
           </Link>
 
           <div className="hero-nav-buttons">
-            <button
-              className="btn login-btn"
-              onClick={() => navigate("/login")}
-            >
-              Login
-            </button>
-            <button
-              className="btn register-btn"
-              onClick={() => navigate("/signup")}
-            >
-              Register
-            </button>
+            {isAuthenticated ? (
+              <div className="profile-menu-container">
+                <Avatar
+                  alt="User Profile"
+                  src={profilePic} // Replace with dynamic user image URL if available
+                  onClick={handleClick}
+                  className="profile-avatar"
+                />
+                <Menu
+                  anchorEl={anchorEl}
+                  open={Boolean(anchorEl)}
+                  onClose={handleClose}
+                  anchorOrigin={{ vertical: "bottom", horizontal: "right" }}
+                  transformOrigin={{ vertical: "top", horizontal: "right" }}>
+                  <MenuItem onClick={handleViewClubs}>View Clubs</MenuItem>
+                  <MenuItem onClick={handleLogout}>Logout</MenuItem>
+                </Menu>
+              </div>
+            ) : (
+              <>
+                <button
+                  className="btn login-btn"
+                  onClick={() => navigate("/login")}>
+                  Login
+                </button>
+                <button
+                  className="btn register-btn"
+                  onClick={() => navigate("/signup")}>
+                  Register
+                </button>
+              </>
+            )}
           </div>
         </div>
         <div className="hero-content">
           <h1>
-            Welcome to <span className="highlight">UoK</span> <br></br>Club
+            Welcome to <span className="highlight">UoK</span> <br /> Club
             Management System!
           </h1>
           <p>
@@ -59,20 +141,20 @@ const Home = () => {
             Experience!
           </p>
 
-          <div className="hero-nav-buttons">
-            <button
-              className="btn login-btn"
-              onClick={() => navigate("/login")}
-            >
-              Login
-            </button>
-            <button
-              className="btn register-btn"
-              onClick={() => navigate("/signup")}
-            >
-              Register Now
-            </button>
-          </div>
+          {!isAuthenticated && (
+            <div className="hero-nav-buttons">
+              <button
+                className="btn login-btn"
+                onClick={() => navigate("/login")}>
+                Login
+              </button>
+              <button
+                className="btn register-btn"
+                onClick={() => navigate("/signup")}>
+                Register Now
+              </button>
+            </div>
+          )}
         </div>
       </section>
 
@@ -141,25 +223,10 @@ const Home = () => {
               everything you need to represent your club in style. Shop <br />
               now and wear your pride!
             </p>
-            <div className="marketplace-badges">
-              <span className="badge red">
-                <FaRegClock />
-                24/7 Support
-              </span>
-              <span className="badge green">
-                <GoShieldCheck />
-                99% Secured
-              </span>
-            </div>
+            <div className="marketplace-badges"></div>
 
             <button className="view-products-button">View Products</button>
           </div>
-          {/* <div className="marketplace-cards">
-            <div className="card">Instant 24/7 Support</div>
-            <div className="card">Verified Sellers</div>
-            <div className="card">Satisfaction</div>
-            <div className="card">No Contracts</div>
-          </div> */}
         </div>
       </section>
 
@@ -178,7 +245,6 @@ const Home = () => {
             </button>
           </div>
           <div className="chatbot-body">
-            {/* Chatbot content goes here */}
             <p>Hi! How can I assist you today?</p>
           </div>
         </div>
@@ -187,13 +253,16 @@ const Home = () => {
       {/* Get In Touch Section */}
       <section className="contact-section">
         <h1 className="contact-heading">Get In Touch</h1>
-        <form className="contact-form">
+        <form className="contact-form" onSubmit={handleSubmit}>
           <div className="form-row">
             <div className="form-group">
               <input
                 type="text"
                 id="name"
-                placeholder="Enter your name here"
+                name="name"
+                placeholder="Enter your name"
+                value={formData.name}
+                onChange={handleChange}
                 required
               />
             </div>
@@ -201,7 +270,10 @@ const Home = () => {
               <input
                 type="email"
                 id="email"
-                placeholder="johndoe@gmail.com"
+                name="email"
+                placeholder="Your email"
+                value={formData.email}
+                onChange={handleChange}
                 required
               />
             </div>
@@ -210,22 +282,28 @@ const Home = () => {
             <input
               type="text"
               id="subject"
-              placeholder="How can we help"
+              name="subject"
+              placeholder="How can we help?"
+              value={formData.subject}
+              onChange={handleChange}
               required
             />
           </div>
           <div className="form-group">
             <textarea
               id="message"
+              name="message"
               rows="4"
               placeholder="Please type your comments..."
-              required
-            ></textarea>
+              value={formData.message}
+              onChange={handleChange}
+              required></textarea>
           </div>
-          <button type="submit" className="submit-btn">
-            Send Message
+          <button type="submit" className="submit-btn" disabled={isSubmitting}>
+            {isSubmitting ? "Sending..." : "Send Message"}
           </button>
         </form>
+        {responseMessage && <p>{responseMessage}</p>}
       </section>
 
       {/* Footer Section */}
@@ -255,7 +333,6 @@ const Home = () => {
             <h4>Contact Us</h4>
             <ul>
               <li>
-                {" "}
                 Head Office Address
                 <br />
                 University of Kelaniya, Faculty of Science

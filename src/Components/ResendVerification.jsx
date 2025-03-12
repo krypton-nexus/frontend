@@ -16,7 +16,7 @@ const ResendVerification = () => {
 
     try {
       const response = await axios.post(
-        "http://13.232.48.203:5000/student/resend-verification",
+        "http://43.205.202.255:5000/student/resend-verification",
         { email },
         {
           headers: {

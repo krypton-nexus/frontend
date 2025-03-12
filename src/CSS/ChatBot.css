@@ -1,11 +1,25 @@
+/* Define CSS variables for consistent styling */
+:root {
+  --primary-color: #a91d3a;
+  --primary-hover: #c62828;
+  --bot-bg: #f1f8e9;
+  --bot-text: #a91d3a;
+  --user-bg: #e1f5fe;
+  --user-text: #0277bd;
+  --input-border: #ddd;
+  --shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  --shadow-light: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
 /* Chatbot Container */
 .chatbot-container {
   position: fixed;
-  bottom: 20px;
-  right: 20px;
-  width: 300px;
-  background-color: #ffffff;
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  bottom: 150px;
+  right: 100px;
+  width: 600px;
+  height: 60%;
+  background-color: #fff;
+  box-shadow: var(--shadow);
   border-radius: 10px;
   display: flex;
   flex-direction: column;
@@ -14,9 +28,9 @@
 
 /* Chatbot Header */
 .chatbot-header {
-  background-color: #a91d3a;
-  color: white;
-  padding: 10px;
+  background-color: var(--primary-color);
+  color: #fff;
+  padding: 10px 15px;
   border-top-left-radius: 10px;
   border-top-right-radius: 10px;
   display: flex;
@@ -27,95 +41,148 @@
 .chatbot-close-btn {
   background: none;
   border: none;
-  color: white;
+  color: #fff;
   font-size: 18px;
   cursor: pointer;
 }
 
-/* Chatbot Messages */
+/* Chatbot Messages Area */
 .chatbot-messages {
-  padding: 10px;
+  padding: 15px;
   flex: 1;
   overflow-y: auto;
-  max-height: 300px;
   display: flex;
   flex-direction: column;
+  gap: 10px;
 }
 
+/* Individual Chat Message */
 .chatbot-message {
-  margin: 5px 0;
-  padding: 8px 12px;
-  border-radius: 5px;
+  padding: 10px 15px;
+  border-radius: 8px;
   max-width: 80%;
+  word-wrap: break-word;
+  box-shadow: var(--shadow-light);
 }
 
 .user-message {
   align-self: flex-end;
-  background-color: #e1f5fe;
-  color: #0277bd;
+  background-color: var(--user-bg);
+  color: var(--user-text);
 }
 
 .bot-message {
   align-self: flex-start;
-  background-color: #f1f8e9;
-  color: #a91d3a;
+  background-color: var(--bot-bg);
+  color: var(--bot-text);
 }
 
-/* Chatbot Input */
+/* Styling for Uploaded/Attached Images in Chat */
+.chatbot-image {
+  display: block;
+  max-width: 100%;
+  max-height: 200px;
+  margin-top: 10px;
+  border-radius: 5px;
+  box-shadow: var(--shadow-light);
+}
+
+/* Chatbot Input Section */
 .chatbot-input-container {
   display: flex;
-  border-top: 1px solid #ddd;
+  align-items: center;
+  border-top: 1px solid var(--input-border);
+  padding: 10px;
 }
 
 .chatbot-input {
   flex: 1;
   padding: 10px;
+  font-size: 16px;
   border: none;
-  border-bottom-left-radius: 10px;
   outline: none;
 }
 
 .chatbot-send-btn {
-  background-color: #a91d3a;
-  color: white;
+  background-color: var(--primary-color);
+  color: #fff;
   border: none;
-  padding: 10px 15px;
+  padding: 10px 20px;
+  font-size: 16px;
   cursor: pointer;
-  border-bottom-right-radius: 10px;
+  border-radius: 0 10px 10px 0;
+  transition: background-color 0.3s ease;
 }
 
 .chatbot-send-btn:hover {
-  background-color: #a91d3a;
+  background-color: var(--primary-hover);
 }
 
-/* Help Section */
+/* Help Button Section */
 .help {
-  display: flex;
-  flex-direction: column;
   position: fixed;
   bottom: 70px;
   right: 30px;
+  display: flex;
+  flex-direction: column;
   align-items: center;
   z-index: 1000;
 }
 
 .help h6 {
   color: #fff;
+  margin-top: 5px;
   cursor: pointer;
+  font-size: 14px;
 }
 
 .helpImage {
   width: 80px;
   height: 80px;
-  margin-bottom: -30px;
   cursor: pointer;
 }
 
-.iconBtn {
-  margin-bottom: 28px;
+/* Image Upload Button Styling */
+.chatbot-upload-btn {
+  background: transparent;
+  border: none;
   cursor: pointer;
+  margin-right: 10px;
+  padding: 5px;
 }
 
-.iconBtn:hover {
-  transform: scale(1.5);
+.upload-icon {
+  font-size: 24px;
+  color: var(--primary-color);
+  transition: transform 0.3s ease, color 0.3s ease;
+}
+
+.chatbot-upload-btn:hover .upload-icon {
+  transform: scale(1.1);
+  color: #000;
+}
+
+/* OCR/Upload Spinner and Animation */
+.ocr-loading {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  padding: 10px;
+  font-size: 14px;
+  color: var(--primary-color);
+}
+
+.spinner {
+  width: 30px;
+  height: 30px;
+  border: 4px solid #f3f3f3;
+  border-top: 4px solid var(--primary-color);
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
 }

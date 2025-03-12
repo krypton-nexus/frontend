@@ -1,0 +1,97 @@
+/* General Styling */
+.club-details-container {
+  font-family: Arial, sans-serif;
+  color: #333;
+  line-height: 1.6;
+  padding: 20px;
+  background-color: #f4f4f4;
+  border-radius: 8px;
+}
+
+/* Header Styling */
+
+.club-header-content {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+}
+
+.back-arrow {
+  position: absolute;
+  left: 0;
+  color: #fff;
+  margin-left: 20px;
+  margin-bottom: 15px;
+  font-size: 20px;
+  cursor: pointer;
+  text-decoration: none;
+  transition: color 0.3s;
+}
+
+.back-arrow:hover {
+  color: #a91d3a;
+}
+
+.club-header {
+  text-align: center;
+  margin-bottom: 20px;
+}
+
+.club-title {
+  font-size: 2rem;
+  color: #a91d3a;
+  margin-bottom: 10px;
+}
+
+.club-header-img {
+  width: 100%;
+  max-height: 400px;
+  object-fit: cover;
+  border-radius: 8px;
+  margin-bottom: 20px;
+}
+
+/* Content Styling */
+.club-content {
+  padding: 20px;
+  background-color: #fff;
+  border-radius: 8px;
+}
+
+.club-welcome-message,
+.club-short-message,
+.club-section p {
+  margin-bottom: 20px;
+  text-align: justify;
+  color: #333;
+}
+
+/* Section Styling */
+.club-section h2 {
+  font-size: 1.5rem;
+  color: #a91d3a;
+  margin-bottom: 10px;
+}
+
+/* Footer Styling */
+.club-footer {
+  text-align: center;
+  margin-top: 20px;
+}
+
+.club-footer-img {
+  width: 100%;
+  max-height: 300px;
+  object-fit: cover;
+  border-radius: 8px;
+}
+
+/* Error and Loading Styling */
+.error-message,
+.loading-message {
+  font-size: 1.2rem;
+  color: #a91d3a;
+  text-align: center;
+  padding: 20px;
+}
