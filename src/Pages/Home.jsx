@@ -108,8 +108,7 @@ const Home = () => {
                   open={Boolean(anchorEl)}
                   onClose={handleClose}
                   anchorOrigin={{ vertical: "bottom", horizontal: "right" }}
-                  transformOrigin={{ vertical: "top", horizontal: "right" }}
-                >
+                  transformOrigin={{ vertical: "top", horizontal: "right" }}>
                   <MenuItem onClick={handleViewClubs}>View Clubs</MenuItem>
                   <MenuItem onClick={handleLogout}>Logout</MenuItem>
                 </Menu>
@@ -118,14 +117,12 @@ const Home = () => {
               <>
                 <button
                   className="btn login-btn"
-                  onClick={() => navigate("/login")}
-                >
+                  onClick={() => navigate("/login")}>
                   Login
                 </button>
                 <button
                   className="btn register-btn"
-                  onClick={() => navigate("/signup")}
-                >
+                  onClick={() => navigate("/signup")}>
                   Register
                 </button>
               </>
@@ -148,14 +145,12 @@ const Home = () => {
             <div className="hero-nav-buttons">
               <button
                 className="btn login-btn"
-                onClick={() => navigate("/login")}
-              >
+                onClick={() => navigate("/login")}>
                 Login
               </button>
               <button
                 className="btn register-btn"
-                onClick={() => navigate("/signup")}
-              >
+                onClick={() => navigate("/signup")}>
                 Register Now
               </button>
             </div>
@@ -302,8 +297,7 @@ const Home = () => {
               placeholder="Please type your comments..."
               value={formData.message}
               onChange={handleChange}
-              required
-            ></textarea>
+              required></textarea>
           </div>
           <button type="submit" className="submit-btn" disabled={isSubmitting}>
             {isSubmitting ? "Sending..." : "Send Message"}

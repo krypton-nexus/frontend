@@ -11,12 +11,12 @@ import {
 } from "react-icons/fa";
 import logo1short from "../Images/logo1short.png";
 import "../CSS/SideBar.css";
-import CommunicationChannel from "./CommunicationChannel"; // Import the modal
+import CommunicationChannel from "./CommunicationChannel";
 
 const Sidebar = () => {
   const location = useLocation();
   const navigate = useNavigate();
-  const [isModalOpen, setIsModalOpen] = useState(false); // Popup state
+  const [isModalOpen, setIsModalOpen] = useState(false);
 
   const handleLogout = () => {
     localStorage.removeItem("access_token");
