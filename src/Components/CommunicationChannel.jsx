@@ -24,15 +24,28 @@ const CommunicationChannel = ({ isOpen, onClose }) => {
         const decoded = jwtDecode(token);
         setUserEmail(decoded.email);
 
-        // Fetch user clubs
+        // Fetch user clubs with Authorization token
         const membershipRes = await fetch(
-          `http://43.205.202.255:5000/student/clubs/${decoded.email}`
+          `http://43.205.202.255:5000/student/clubs/${decoded.email}`,
+          {
+            method: "GET",
+            headers: {
+              "Content-Type": "application/json",
+              Authorization: `Bearer ${token}`, // Pass token in the Authorization header
+            },
+          }
         );
         const membershipData = await membershipRes.json();
         setUserClubs(membershipData.clubs || []);
 
-        // Fetch all clubs
-        const clubsRes = await fetch("http://43.205.202.255:5000/club/list");
+        // Fetch all clubs with Authorization token
+        const clubsRes = await fetch("http://43.205.202.255:5000/club/list", {
+          method: "GET",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`, // Pass token in the Authorization header
+          },
+        });
         const clubsData = await clubsRes.json();
         setClubs(clubsData.clubs || []);
 
@@ -48,7 +61,7 @@ const CommunicationChannel = ({ isOpen, onClose }) => {
     };
 
     initializeData();
-  }, []);
+  }, []); // Runs only once when the component is mounted
 
   if (!isOpen) return null;
 

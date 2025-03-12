@@ -19,13 +19,17 @@ const ViewEvents = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [studentEmail, setStudentEmail] = useState("");
+  const [token, setToken] = useState(null);
+  const [participantCounts, setParticipantCounts] = useState({});
 
+  // Fetch and decode the JWT token, set token in state
   useEffect(() => {
     const token = localStorage.getItem("access_token");
     if (token) {
       try {
         const decoded = jwtDecode(token);
         setStudentEmail(decoded.email);
+        setToken(token); // Save token in state
       } catch (err) {
         console.error("Invalid token or failed to decode", err);
         setError("Failed to decode token. Please log in again.");
@@ -36,11 +40,21 @@ const ViewEvents = () => {
     }
   }, []);
 
+  // Fetch events only when token is available
   useEffect(() => {
+    if (!token) return; // Don't fetch events if token is not available
+
     const fetchEvents = async () => {
       try {
         const response = await fetch(
-          "http://43.205.202.255:5000/event/get_events?club_id=club_sesa"
+          "http://43.205.202.255:5000/event/get_events?club_id=club_sesa",
+          {
+            method: "GET",
+            headers: {
+              "Content-Type": "application/json",
+              Authorization: `Bearer ${token}`, // Pass token in the Authorization header
+            },
+          }
         );
         if (!response.ok) {
           throw new Error(`HTTP error! Status: ${response.status}`);
@@ -48,6 +62,11 @@ const ViewEvents = () => {
         const data = await response.json();
         if (data.events && Array.isArray(data.events)) {
           setEvents(data.events);
+
+          // Fetch participant count for each event
+          data.events.forEach((event) => {
+            fetchParticipantCount(event.club_id, event.id);
+          });
         } else {
           console.error("Unexpected data format:", data);
         }
@@ -60,16 +79,136 @@ const ViewEvents = () => {
     };
 
     fetchEvents();
-  }, []);
+  }, [token]); // Only fetch when token is available and changed
 
-  const handleYesClick = (eventId) => {
-    setEvents((prevEvents) =>
-      prevEvents.map((event) =>
-        event.id === eventId
-          ? { ...event, participant_count: (event.participant_count || 0) + 1 }
-          : event
-      )
-    );
+  const fetchParticipantCount = async (clubId, eventId) => {
+    const token = localStorage.getItem("access_token");
+    if (!token) return;
+
+    try {
+      const response = await fetch(
+        "http://43.205.202.255:5000/event/get_participant_count",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`, // Pass token in the Authorization header
+          },
+          body: JSON.stringify({
+            club_id: clubId,
+            event_id: eventId,
+          }),
+        }
+      );
+      if (!response.ok) {
+        throw new Error(
+          `Failed to fetch participant count: ${response.status}`
+        );
+      }
+      const data = await response.json();
+      setParticipantCounts((prevCounts) => ({
+        ...prevCounts,
+        [eventId]: data.participant_count || 0,
+      }));
+    } catch (error) {
+      console.error("Error fetching participant count:", error);
+    }
+  };
+
+  const handleYesClick = async (eventId) => {
+    const token = localStorage.getItem("access_token");
+
+    if (!token) {
+      console.error("Authorization token is missing.");
+      return;
+    }
+
+    const decoded = jwtDecode(token);
+    const studentEmail = decoded.email;
+
+    const event = events.find((event) => event.id === eventId);
+    if (!event) return; // If the event is not found, do nothing.
+
+    const clubId = event.club_id; // Assuming the club ID is stored in the event data
+
+    try {
+      // Send the request to add the participant to the backend
+      const response = await fetch(
+        "http://43.205.202.255:5000/event/add_participant",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`, // Pass the token in the Authorization header
+          },
+          body: JSON.stringify({
+            club_id: clubId,
+            event_id: eventId,
+            student_email: studentEmail,
+          }),
+        }
+      );
+
+      if (!response.ok) {
+        throw new Error(`Failed to add participant: ${response.status}`);
+      }
+
+      // Refetch participant count from the backend after adding the participant
+      await fetchParticipantCount(clubId, eventId);
+
+      const data = await response.json();
+      console.log("Participant added successfully:", data);
+    } catch (error) {
+      console.error("Error adding participant:", error);
+    }
+  };
+
+  const handleNoClick = async (eventId) => {
+    const token = localStorage.getItem("access_token");
+
+    if (!token) {
+      console.error("Authorization token is missing.");
+      return;
+    }
+
+    const decoded = jwtDecode(token);
+    const studentEmail = decoded.email;
+
+    const event = events.find((event) => event.id === eventId);
+    if (!event) return; // If the event is not found, do nothing.
+
+    const clubId = event.club_id; // Assuming the club ID is stored in the event data
+
+    try {
+      // Send the request to remove the participant from the backend
+      const response = await fetch(
+        "http://43.205.202.255:5000/event/delete_participant",
+        {
+          method: "DELETE",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`, // Pass the token in the Authorization header
+          },
+          body: JSON.stringify({
+            club_id: clubId,
+            event_id: eventId,
+            student_email: studentEmail,
+          }),
+        }
+      );
+
+      if (!response.ok) {
+        throw new Error(`Failed to remove participant: ${response.status}`);
+      }
+
+      // Refetch participant count from the backend after removing the participant
+      await fetchParticipantCount(clubId, eventId);
+
+      const data = await response.json();
+      console.log("Participant removed successfully:", data);
+    } catch (error) {
+      console.error("Error removing participant:", error);
+    }
   };
 
   const getImageUrl = (images) => {
@@ -102,6 +241,7 @@ const ViewEvents = () => {
           <div className="events-grid">
             {events.map((event) => {
               const imageUrl = getImageUrl(event.images);
+              const participantCount = participantCounts[event.id] || 0; // Get participant count dynamically
               return (
                 <div className="event-card" key={event.id}>
                   {imageUrl && (
@@ -118,16 +258,21 @@ const ViewEvents = () => {
                     </p>
                     <p className="event-location">{event.venue}</p>
                     <p className="event-participants">
-                      <strong>Participants:</strong>{" "}
-                      {event.participant_count || 0}
+                      <strong>Participants:</strong> {participantCount}
                     </p>
                     <div className="button-group">
                       <button
                         className="yes-btn"
-                        onClick={() => handleYesClick(event.id)}>
+                        onClick={() => handleYesClick(event.id)}
+                      >
                         Yes
                       </button>
-                      <button className="no-btn">No</button>
+                      <button
+                        className="no-btn"
+                        onClick={() => handleNoClick(event.id)}
+                      >
+                        No
+                      </button>
                       <button className="maybe-btn">Maybe</button>
                     </div>
                   </div>

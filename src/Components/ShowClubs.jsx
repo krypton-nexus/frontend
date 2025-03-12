@@ -12,7 +12,7 @@ const ShowClubs = () => {
 
   // Decode the JWT and extract the email
   useEffect(() => {
-    const token = localStorage.getItem("access_token"); // Replace with the appropriate storage mechanism
+    const token = localStorage.getItem("access_token");
     if (token) {
       try {
         const decoded = jwtDecode(token); // Decode the token
@@ -27,29 +27,48 @@ const ShowClubs = () => {
     }
   }, []);
 
-  useEffect(() => {
-    const fetchClubs = async () => {
-      try {
-        const response = await fetch("http://43.205.202.255:5000/club/list");
-        if (!response.ok) {
-          throw new Error(`HTTP error! Status: ${response.status}`);
-        }
-        const data = await response.json();
-        if (data.clubs && Array.isArray(data.clubs)) {
-          setClubs(data.clubs);
-        } else {
-          console.error("Unexpected data format:", data);
-        }
-      } catch (error) {
-        console.error("Error fetching clubs data:", error);
-        setError("Failed to load clubs. Please try again later.");
-      } finally {
-        setLoading(false);
-      }
-    };
+  // Fetch the list of clubs
+  const fetchClubs = async () => {
+    const token = localStorage.getItem("access_token"); // Get the token from localStorage
+    if (!token) {
+      setError("Authorization token is missing. Please log in again.");
+      setLoading(false);
+      return;
+    }
 
-    fetchClubs();
-  }, []);
+    try {
+      const response = await fetch("http://43.205.202.255:5000/club/list", {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`, // Add the token in Authorization header
+        },
+      });
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! Status: ${response.status}`);
+      }
+
+      const data = await response.json();
+      if (data.clubs && Array.isArray(data.clubs)) {
+        setClubs(data.clubs);
+      } else {
+        console.error("Unexpected data format:", data);
+        setError("Failed to load clubs. Please try again later.");
+      }
+    } catch (error) {
+      console.error("Error fetching clubs data:", error);
+      setError("Failed to load clubs. Please try again later.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    if (studentEmail) {
+      fetchClubs();
+    }
+  }, [studentEmail]);
 
   return (
     <div className="show-clubs-container">

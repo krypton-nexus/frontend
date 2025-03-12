@@ -7,23 +7,24 @@ const useAuthCheck = () => {
   useEffect(() => {
     const token = localStorage.getItem("access_token");
     const currentPath = window.location.pathname;
+    const expiryTime = localStorage.getItem("token_expiry");
 
-    if (token && currentPath === "/login") {
-      // Redirect to /viewclubs if the user is logged in and trying to access /login
-      navigate("/viewclubs");
-    } else if (
-      !token &&
-      currentPath !== "/login" &&
-      currentPath !== "/adminlogin" &&
-      currentPath !== "/admindashboard" &&
-      currentPath !== "/home" &&
-      currentPath !== "/signup" // Allow unauthenticated users to access the signup page
-    ) {
-      // Redirect to /home if the user is not logged in and trying to access a protected route
+    // If the token is expired, clear it and redirect
+    if (token && expiryTime && new Date().getTime() >= expiryTime) {
+      localStorage.removeItem("access_token");
+      localStorage.removeItem("token_expiry");
       navigate("/home");
-    } else if (token && currentPath === "/signup") {
-      // Redirect to /viewclubs if the user is already logged in and tries to access /signup
+      return; // Prevent further checks once the token is expired
+    }
+
+    // If authenticated and on login/signup page, redirect to /viewclubs
+    if (token && (currentPath === "/login" || currentPath === "/signup")) {
       navigate("/viewclubs");
+    }
+
+    // If not authenticated and on protected route, redirect to /home
+    if (!token && !["/login", "/signup", "/home"].includes(currentPath)) {
+      navigate("/home");
     }
   }, [navigate]);
 };

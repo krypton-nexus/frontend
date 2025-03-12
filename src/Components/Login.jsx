@@ -15,9 +15,30 @@ const Login = () => {
 
   useAuthCheck(navigate);
 
+  // Function to check if the token is valid (exists and not expired)
+  const isTokenValid = () => {
+    const token = localStorage.getItem("access_token");
+    const tokenExpiry = localStorage.getItem("token_expiry");
+
+    if (!token || !tokenExpiry) {
+      return false; // Token or expiry time is missing
+    }
+
+    // Check if token is expired
+    const currentTime = new Date().getTime();
+    if (currentTime >= tokenExpiry) {
+      localStorage.removeItem("access_token");
+      localStorage.removeItem("token_expiry");
+      return false; // Token is expired
+    }
+
+    return true; // Token is valid
+  };
+
+  // Handle Login
   const handleLogin = async (e) => {
     e.preventDefault();
-    setError("");
+    setError(""); // Reset error message
 
     try {
       const { data } = await axios.post(
@@ -30,8 +51,12 @@ const Login = () => {
         const { exp } = jwtDecode(data.token);
         const expiryTime = exp * 1000;
 
+        // Save token and expiry time in localStorage
         localStorage.setItem("access_token", data.token);
         localStorage.setItem("token_expiry", expiryTime);
+
+        console.log(data.token);
+        console.log(expiryTime);
 
         enqueueSnackbar("Login Successful", { variant: "success" });
         navigate("/viewclubs");
@@ -47,29 +72,8 @@ const Login = () => {
     }
   };
 
-  const isTokenValid = () => {
-    const token = localStorage.getItem("access_token");
-    if (!token) return false;
-
-    try {
-      const { exp } = jwtDecode(token);
-      const isExpired = new Date().getTime() >= exp * 1000;
-
-      if (isExpired) {
-        localStorage.removeItem("access_token");
-        localStorage.removeItem("token_expiry");
-        return false;
-      }
-
-      return true;
-    } catch {
-      localStorage.removeItem("access_token");
-      localStorage.removeItem("token_expiry");
-      return false;
-    }
-  };
-
   useEffect(() => {
+    // Check if the token is valid when the component loads
     if (isTokenValid()) {
       enqueueSnackbar("Already logged in.", { variant: "info" });
       navigate("/viewclubs");

@@ -41,10 +41,10 @@ const AdminDashboard = () => {
     return axios.create({
       baseURL: "http://43.205.202.255:5000",
       headers: {
-        Authorization: `Bearer ${localStorage.getItem("admin_access_token")}`,
+        Authorization: `Bearer ${adminAccessToken}`, // Include token in headers
       },
     });
-  }, []);
+  }, [adminAccessToken]);
 
   // Decode JWT Token
   const getAdminEmailFromToken = (token) => {
@@ -161,10 +161,10 @@ const AdminDashboard = () => {
         }));
 
         setNewMembershipRequests(
-          enrichedMemberships.filter((m) => m.status === "pending")
+          enrichedMemberships.filter((m) => m.status === "Pending")
         );
         setCurrentMembers(
-          enrichedMemberships.filter((m) => m.status === "approved")
+          enrichedMemberships.filter((m) => m.status === "Approved")
         );
       } catch (error) {
         console.error("Failed to fetch membership data:", error);
@@ -208,7 +208,7 @@ const AdminDashboard = () => {
       if (response.status === 200) {
         alert(
           `${
-            action === "approved" ? "Approved" : "Rejected"
+            action === "Approved" ? "Approved" : "Rejected"
           } membership request for ${email}.`
         );
 
@@ -216,11 +216,11 @@ const AdminDashboard = () => {
           prevRequests.filter((member) => member.student_email !== email)
         );
 
-        if (action === "approved") {
-          const approvedMember = newMembershipRequests.find(
+        if (action === "Approved") {
+          const ApprovedMember = newMembershipRequests.find(
             (member) => member.student_email === email
           );
-          setCurrentMembers((prevMembers) => [...prevMembers, approvedMember]);
+          setCurrentMembers((prevMembers) => [...prevMembers, ApprovedMember]);
         }
       }
     } catch (error) {
@@ -281,14 +281,16 @@ const AdminDashboard = () => {
                     <>
                       <button
                         className="view-btn"
-                        onClick={() => handleViewDetails(member.student_email)}>
+                        onClick={() => handleViewDetails(member.student_email)}
+                      >
                         View
                       </button>
                       <button
                         className="delete-btn"
                         onClick={() =>
                           handleMemberDeletion(member.student_email)
-                        }>
+                        }
+                      >
                         Delete
                       </button>
                     </>
@@ -296,17 +298,19 @@ const AdminDashboard = () => {
                     <>
                       <button
                         className="view-btn"
-                        onClick={() => handleViewDetails(member.student_email)}>
+                        onClick={() => handleViewDetails(member.student_email)}
+                      >
                         View
                       </button>
                       <button
                         className="accept-btn"
                         onClick={() =>
                           handleMembershipStatus(
-                            "approved",
+                            "Approved",
                             member.student_email
                           )
-                        }>
+                        }
+                      >
                         Accept
                       </button>
                       <button
@@ -316,7 +320,8 @@ const AdminDashboard = () => {
                             "rejected",
                             member.student_email
                           )
-                        }>
+                        }
+                      >
                         Reject
                       </button>
                     </>

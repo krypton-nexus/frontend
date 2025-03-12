@@ -44,6 +44,7 @@ const AdminLogin = () => {
       if (response.data.token) {
         const token = response.data.token;
         localStorage.setItem("admin_access_token", token);
+console.log(token);
 
         if (response.data.error === "Email is not verified.") {
           alert(

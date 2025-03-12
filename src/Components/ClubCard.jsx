@@ -1,30 +1,29 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import { jwtDecode } from "jwt-decode";
 import "../CSS/ClubCard.css";
 
 const ClubCard = ({ club }) => {
   const navigate = useNavigate();
-
   const [studentEmail, setStudentEmail] = useState(null);
   const [clubDescription, setClubDescription] = useState([]);
   const [currentSentenceIndex, setCurrentSentenceIndex] = useState(0);
 
-  useEffect(() => {
-    const getStudentEmailFromToken = () => {
-      const token = localStorage.getItem("access_token");
-      if (token) {
-        try {
-          const decodedToken = jwtDecode(token);
-          return decodedToken.email;
-        } catch (error) {
-          console.error("Failed to decode token:", error);
-          return null;
-        }
+  const getStudentEmailFromToken = useCallback(() => {
+    const token = localStorage.getItem("access_token");
+    if (token) {
+      try {
+        const decodedToken = jwtDecode(token);
+        return decodedToken.email;
+      } catch (error) {
+        console.error("Failed to decode token:", error);
+        return null;
       }
-      return null;
-    };
+    }
+    return null;
+  }, []);
 
+  useEffect(() => {
     const email = getStudentEmailFromToken();
     setStudentEmail(email);
 
@@ -34,7 +33,7 @@ const ClubCard = ({ club }) => {
         .filter((sentence) => sentence.trim() !== "");
       setClubDescription(sentences);
     }
-  }, [club]);
+  }, [club, getStudentEmailFromToken]);
 
   useEffect(() => {
     const timer = setTimeout(() => {
@@ -46,21 +45,33 @@ const ClubCard = ({ club }) => {
     return () => clearTimeout(timer);
   }, [currentSentenceIndex, clubDescription.length]);
 
-  const handleJoinNow = async () => {
-    const token = localStorage.getItem("access_token");
-    if (!token) {
-      alert("Authorization token is missing. Please log in again.");
-      return;
-    }
+  const isTokenValid = (token) => {
+    if (!token) return false;
 
     try {
       const decodedToken = jwtDecode(token);
       const currentTime = Math.floor(Date.now() / 1000);
-      if (decodedToken.exp < currentTime) {
-        alert("Your session has expired. Please log in again.");
-        return;
-      }
+      return decodedToken.exp >= currentTime;
+    } catch (error) {
+      return false;
+    }
+  };
 
+  const handleJoinNow = async () => {
+    const token = localStorage.getItem("access_token");
+    if (!token || !isTokenValid(token)) {
+      alert("Authorization token is missing or expired. Please log in again.");
+      return;
+    }
+
+    if (!studentEmail) {
+      alert("Student email is missing. Please log in again.");
+      return;
+    }
+
+    console.log(studentEmail, club.id);
+
+    try {
       const response = await fetch(
         "http://43.205.202.255:5000/membership/add",
         {
@@ -130,20 +141,20 @@ const ClubCard = ({ club }) => {
     <div
       className="club-card"
       style={{
-        backgroundImage: `url(${
-          club.images_url["logo"] || "/placeholder-image.jpg"
-        })`,
+        backgroundImage: `url(${club.images_url?.logo || ""})`,
         backgroundSize: "contain",
         backgroundRepeat: "no-repeat",
         backgroundPosition: "center",
         height: "280px",
-      }}>
+      }}
+    >
       <div className="card-overlay">
         <div className="club-title">{club.title || "Club Name"}</div>
         <div className="buttons">
           <button
             className="view-club"
-            onClick={() => navigate(`/club/${club.id}`)}>
+            onClick={() => navigate(`/club/${club.id}`)}
+          >
             View Club
           </button>
           <button className="join-now" onClick={handleJoinNow}>

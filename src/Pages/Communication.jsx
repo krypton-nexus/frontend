@@ -24,28 +24,57 @@ const Communication = ({ isOpen = true, onClose = () => {} }) => {
   const [userEmail, setUserEmail] = useState("");
   const [isLoading, setIsLoading] = useState(true);
 
+  // Helper function to get the token and decode it
+  const getToken = () => {
+    const token = localStorage.getItem("access_token");
+    if (!token) {
+      return null;
+    }
+
+    try {
+      const decoded = jwtDecode(token);
+      return { token, decoded };
+    } catch (error) {
+      console.error("Invalid token or failed to decode", error);
+      return null;
+    }
+  };
+
+  // Initialize and fetch data
   useEffect(() => {
     const initializeData = async () => {
-      const token = localStorage.getItem("access_token");
+      const { token, decoded } = getToken();
 
       if (!token) {
         setIsLoading(false);
         return;
       }
 
-      try {
-        const decoded = jwtDecode(token);
-        setUserEmail(decoded.email);
+      setUserEmail(decoded.email);
 
-        // Fetch user clubs
+      try {
+        // Fetch user clubs if token is valid
         const membershipRes = await fetch(
-          `http://43.205.202.255:5000/student/clubs/${decoded.email}`
+          `http://43.205.202.255:5000/student/clubs/${decoded.email}`,
+          {
+            method: "GET",
+            headers: {
+              "Content-Type": "application/json",
+              Authorization: `Bearer ${token}`, // Add token in Authorization header
+            },
+          }
         );
         const membershipData = await membershipRes.json();
         setUserClubs(membershipData.clubs || []);
 
-        // Fetch all clubs
-        const clubsRes = await fetch("http://43.205.202.255:5000/club/list");
+        // Fetch all clubs if token is valid
+        const clubsRes = await fetch("http://43.205.202.255:5000/club/list", {
+          method: "GET",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`, // Add token in Authorization header
+          },
+        });
         const clubsData = await clubsRes.json();
         setClubs(clubsData.clubs || []);
 
@@ -61,7 +90,7 @@ const Communication = ({ isOpen = true, onClose = () => {} }) => {
     };
 
     initializeData();
-  }, []);
+  }, []); // Empty dependency array means this will run only once on mount
 
   if (!isOpen) return null;
 
@@ -69,9 +98,6 @@ const Communication = ({ isOpen = true, onClose = () => {} }) => {
     <div className="view-events-container">
       <Sidebar />
       <main className="main-content">
-        {/* <header className="banner">
-          <img src={bannerImage} alt="Events Banner" className="banner-image" />
-        </header> */}
         {isLoading ? (
           <div className="loading-container">
             <p className="loading-text">Loading...</p>
@@ -85,7 +111,8 @@ const Communication = ({ isOpen = true, onClose = () => {} }) => {
                   className={`tab ${
                     club.id === selectedClubId ? "active" : ""
                   }`}
-                  onClick={() => setSelectedClubId(club.id)}>
+                  onClick={() => setSelectedClubId(club.id)}
+                >
                   {club.title}
                 </div>
               ))}

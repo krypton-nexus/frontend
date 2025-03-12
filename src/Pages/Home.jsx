@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
+import axios from "axios";
 import { useNavigate } from "react-router-dom";
 import logo1 from "../Images/logo1.png";
 import sesa from "../Images/sesa.png";
@@ -15,11 +16,46 @@ import { Menu, MenuItem } from "@mui/material";
 import Avatar from "@mui/material/Avatar";
 
 const Home = () => {
+  const [formData, setFormData] = useState({
+    name: "",
+    email: "",
+    subject: "",
+    message: "",
+  });
+
+  const [responseMessage, setResponseMessage] = useState("");
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  // Handle form data change
+  const handleChange = (e) => {
+    const { name, value } = e.target;
+    setFormData({ ...formData, [name]: value });
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setIsSubmitting(true);
+    setResponseMessage("");
+
+    try {
+      const response = await axios.post(
+        "http://localhost:5000/send-email",
+        formData
+      );
+      console.log(response); // You can log the response if you want to inspect it
+      setResponseMessage("Your message has been sent successfully!");
+      setFormData({ name: "", email: "", subject: "", message: "" }); // Clear form after success
+    } catch (error) {
+      setResponseMessage("Error sending message. Please try again later.");
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
   const navigate = useNavigate();
   const [isChatbotOpen, setIsChatbotOpen] = useState(false);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [anchorEl, setAnchorEl] = useState(null);
-  // Check for valid token on component mount
   useEffect(() => {
     const token = localStorage.getItem("access_token");
     console.log("Token:", token); // Check if token is null or valid
@@ -44,10 +80,11 @@ const Home = () => {
     setAnchorEl(null);
   };
 
-   const handleViewClubs = () => {
-     navigate("/viewclubs");
-     handleClose(); // Close the menu after navigation
-   };
+  const handleViewClubs = () => {
+    navigate("/viewclubs");
+    handleClose(); // Close the menu after navigation
+  };
+
   return (
     <div className="home-container">
       {/* Hero Section */}
@@ -221,13 +258,16 @@ const Home = () => {
       {/* Get In Touch Section */}
       <section className="contact-section">
         <h1 className="contact-heading">Get In Touch</h1>
-        <form className="contact-form">
+        <form className="contact-form" onSubmit={handleSubmit}>
           <div className="form-row">
             <div className="form-group">
               <input
                 type="text"
                 id="name"
-                placeholder="Enter your name here"
+                name="name"
+                placeholder="Enter your name"
+                value={formData.name}
+                onChange={handleChange}
                 required
               />
             </div>
@@ -235,7 +275,10 @@ const Home = () => {
               <input
                 type="email"
                 id="email"
-                placeholder="johndoe@gmail.com"
+                name="email"
+                placeholder="Your email"
+                value={formData.email}
+                onChange={handleChange}
                 required
               />
             </div>
@@ -244,22 +287,29 @@ const Home = () => {
             <input
               type="text"
               id="subject"
-              placeholder="How can we help"
+              name="subject"
+              placeholder="How can we help?"
+              value={formData.subject}
+              onChange={handleChange}
               required
             />
           </div>
           <div className="form-group">
             <textarea
               id="message"
+              name="message"
               rows="4"
               placeholder="Please type your comments..."
+              value={formData.message}
+              onChange={handleChange}
               required
             ></textarea>
           </div>
-          <button type="submit" className="submit-btn">
-            Send Message
+          <button type="submit" className="submit-btn" disabled={isSubmitting}>
+            {isSubmitting ? "Sending..." : "Send Message"}
           </button>
         </form>
+        {responseMessage && <p>{responseMessage}</p>}
       </section>
 
       {/* Footer Section */}
