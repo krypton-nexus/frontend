@@ -70,8 +70,11 @@ const ChatBot = () => {
       // ✅ Check if response is a string
       if (typeof response.data === "string") {
         try {
-          // ✅ Remove any invalid control characters before parsing
-          const sanitizedResponse = response.data.replace(/[\u0000-\u001F]/g, ""); 
+          // ✅ Remove only problematic characters, keeping newlines and spaces
+          const sanitizedResponse = response.data.replace(
+            /[\u0000-\u0008\u000B\u000C\u000E-\u001F]/g,
+            ""
+          );
           parsedData = JSON.parse(sanitizedResponse);
         } catch (parseError) {
           console.error("Error parsing response JSON:", parseError);
@@ -123,6 +126,7 @@ const ChatBot = () => {
                 className={`chatbot-message ${
                   message.sender === "user" ? "user-message" : "bot-message"
                 }`}
+                style={{ whiteSpace: "pre-wrap" }} // ✅ PRESERVES NEWLINES & SPACES
               >
                 {message.text}
               </div>
