@@ -1,8 +1,8 @@
 {
   "files": {
     "main.css": "/static/css/main.9e624280.css",
-    "main.js": "/static/js/main.07952f92.js",
-    "static/js/488.c056dfae.chunk.js": "/static/js/488.c056dfae.chunk.js",
+    "main.js": "/static/js/main.fc45e25b.js",
+    "static/js/488.50849acc.chunk.js": "/static/js/488.50849acc.chunk.js",
     "static/media/juniorhack.jpg": "/static/media/juniorhack.58f5ecd8ce477d2c2f3e.jpg",
     "static/media/bannerevent.png": "/static/media/bannerevent.bc61a5c3733ba7d757e6.png",
     "static/media/bg.png": "/static/media/bg.d4044b732bd8da30106d.png",
@@ -35,11 +35,11 @@
     "static/media/sesacard.jfif": "/static/media/sesacard.e9dbe72d54729dd50191.jfif",
     "index.html": "/index.html",
     "main.9e624280.css.map": "/static/css/main.9e624280.css.map",
-    "main.07952f92.js.map": "/static/js/main.07952f92.js.map",
-    "488.c056dfae.chunk.js.map": "/static/js/488.c056dfae.chunk.js.map"
+    "main.fc45e25b.js.map": "/static/js/main.fc45e25b.js.map",
+    "488.50849acc.chunk.js.map": "/static/js/488.50849acc.chunk.js.map"
   },
   "entrypoints": [
     "static/css/main.9e624280.css",
-    "static/js/main.07952f92.js"
+    "static/js/main.fc45e25b.js"
   ]
 }
