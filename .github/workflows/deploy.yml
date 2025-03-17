@@ -25,6 +25,6 @@ jobs:
             git pull origin main
             npm install
             npm run build
-            pm2 restart static-page-serve  # Restart the correct PM2 process
+            pm2 restart static-page-server-3000  # Restart the correct PM2 process
           EOF
 
