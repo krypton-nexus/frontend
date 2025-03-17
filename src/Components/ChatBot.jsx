@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
-import { marked } from "marked";
 import "../CSS/ChatBot.css";
 import helpIcon from "../Images/help.png";
 
@@ -39,26 +38,20 @@ const ChatBot = () => {
   const toggleChatbot = () => {
     setIsChatbotOpen((prev) => !prev);
   };
-
-  const sanitizeResponse = (response) => {
-    if (!response) return "";
-    return response.replace(/[\u0000-\u0008\u000B\u000C\u000E-\u001F]/g, ""); // Remove only unsafe control characters
-  };
-
   const sendMessage = async () => {
     const messageText = input.trim();
     if (!messageText) return;
-
+  
     const userMessage = { sender: "user", text: messageText };
     const updatedMessages = [...messages, userMessage];
     setMessages(updatedMessages);
     setInput("");
-
+  
     try {
       const userMessagesOnly = updatedMessages.filter(
         (msg) => msg.sender === "user"
       );
-
+  
       const response = await axios.post(
         "http://43.205.202.255:5000/chat",
         {
@@ -67,27 +60,32 @@ const ChatBot = () => {
         },
         { headers: { "Content-Type": "application/json" } }
       );
-
+  
       console.log("Raw API Response:", response.data);
-
+  
       let botText = "I couldn't process your request. Please try again.";
       let parsedData;
-
+  
+      // ✅ Step 1: Ensure response is a string before parsing
       if (typeof response.data === "string") {
         try {
-          const sanitizedResponse = sanitizeResponse(response.data);
+          // ✅ Step 2: Fix bad control characters before parsing
+          const sanitizedResponse = response.data.replace(/[\u0000-\u001F]/g, ""); 
+  
+          // ✅ Step 3: Parse the JSON safely
           parsedData = JSON.parse(sanitizedResponse);
         } catch (parseError) {
           console.error("Error parsing response JSON:", parseError);
         }
       } else {
-        parsedData = response.data;
+        parsedData = response.data; // If already an object, use it directly
       }
-
+  
+      // ✅ Step 4: Extract and format the text
       if (parsedData && parsedData.text) {
-        botText = parsedData.text.replace(/\\n/g, "\n");
+        botText = parsedData.text.replace(/\\n/g, "\n"); // Preserve line breaks
       }
-
+  
       setMessages((prev) => [...prev, { sender: "bot", text: botText }]);
     } catch (error) {
       console.error("Error fetching bot response:", error);
@@ -97,6 +95,7 @@ const ChatBot = () => {
       ]);
     }
   };
+  
 
   const clearChatHistory = () => {
     localStorage.removeItem("chatbotHistory");
@@ -126,9 +125,10 @@ const ChatBot = () => {
                 className={`chatbot-message ${
                   message.sender === "user" ? "user-message" : "bot-message"
                 }`}
-                style={{ whiteSpace: "pre-wrap" }}
-                dangerouslySetInnerHTML={{ __html: marked.parse(message.text) }} // ✅ Converts Markdown safely
-              />
+                style={{ whiteSpace: "pre-wrap" }} // ✅ PRESERVES NEWLINES & SPACES
+              >
+                {message.text}
+              </div>
             ))}
           </div>
 
