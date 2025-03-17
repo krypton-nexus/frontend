@@ -4,6 +4,8 @@
   "private": true,
   "dependencies": {
     "@aws-amplify/auth": "^6.8.0",
+    "@chatscope/chat-ui-kit-react": "^2.0.3",
+    "@chatscope/chat-ui-kit-styles": "^1.4.0",
     "@emotion/react": "^11.14.0",
     "@emotion/styled": "^11.14.0",
     "@mui/material": "^6.3.1",

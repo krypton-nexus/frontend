@@ -1,160 +1,110 @@
-import React, { useState, useEffect } from "react";
-import axios from "axios";
-import "../CSS/ChatBot.css";
-import helpIcon from "../Images/help.png";
+import { useState } from 'react';
+import './App.css';
+import '@chatscope/chat-ui-kit-styles/dist/default/styles.min.css';
+import { 
+  MainContainer, 
+  ChatContainer, 
+  MessageList, 
+  Message, 
+  MessageInput, 
+  TypingIndicator 
+} from '@chatscope/chat-ui-kit-react';
 
-const ChatBot = () => {
-  const [isChatbotOpen, setIsChatbotOpen] = useState(false);
-  const [messages, setMessages] = useState(() => {
-    const savedMessages = localStorage.getItem("chatbotHistory");
-    const refreshed = sessionStorage.getItem("refreshed");
+const AZURE_API_KEY = "0b9c53361dc945f4a866356180073582";
+const AZURE_ENDPOINT = "https://iwmi-chat-demo.openai.azure.com/";
+const AZURE_API_VERSION = "2024-02-15-preview";
+const AZURE_DEPLOYMENT_NAME = "iwmi-gpt-4o";
 
-    if (refreshed) {
-      localStorage.removeItem("chatbotHistory");
-      sessionStorage.removeItem("refreshed");
-      return [{ sender: "bot", text: "Hi! How may I assist you?" }];
+const systemMessage = {
+  "role": "system",
+  "content": `You are a helpful assistant. Your name is NexusAssistant. 
+  Currently, we focus on the University of Kelaniya. Below are details about club activities:
+
+  **SESA Club**  
+  The Software Engineering Students' Association (SESA) is the official student society for Software Engineering undergraduates at the Faculty of Science, University of Kelaniya. It fosters technical and soft skills, promotes collaboration, and unites students through educational and community initiatives. Key events include RealHack (hackathon), Junior Hack (for junior students), Inceptio (final-year celebrations), Node Fall (social event), beach cleaning programs, and outbound leadership training.
+
+  **Gavel Club**  
+  Established on October 21, 2004, the Gavel Club at the University of Kelaniya is the first Gavel Club in South Asia, affiliated with Toastmasters International USA. It helps undergraduates enhance public speaking, English language, and leadership skills. Key events include the Best Speaker Contest (inter-university), Inter-School Best Speaker Contest, and collaborative meetings with other university Gavel Clubs.`
+};
+
+function ChatBot() {
+  const [messages, setMessages] = useState([
+    {
+      message: "Hello, I'm NexusAssistant! Ask me anything!",
+      sentTime: "just now",
+      sender: "NexusAssistant"
     }
-    return savedMessages
-      ? JSON.parse(savedMessages)
-      : [{ sender: "bot", text: "Hi! How may I assist you?" }];
-  });
+  ]);
+  const [isTyping, setIsTyping] = useState(false);
 
-  const [input, setInput] = useState("");
-
-  useEffect(() => {
-    localStorage.setItem("chatbotHistory", JSON.stringify(messages));
-  }, [messages]);
-
-  useEffect(() => {
-    const handleBeforeUnload = () => {
-      sessionStorage.setItem("refreshed", "true");
+  const handleSend = async (message) => {
+    const newMessage = {
+      message,
+      direction: 'outgoing',
+      sender: "user"
     };
-    window.addEventListener("beforeunload", handleBeforeUnload);
-    return () => {
-      window.removeEventListener("beforeunload", handleBeforeUnload);
-    };
-  }, []);
 
-  const toggleChatbot = () => {
-    setIsChatbotOpen((prev) => !prev);
+    const newMessages = [...messages, newMessage];
+    setMessages(newMessages);
+    setIsTyping(true);
+
+    await processMessageToAzure(newMessages);
   };
-  const sendMessage = async () => {
-    const messageText = input.trim();
-    if (!messageText) return;
-  
-    const userMessage = { sender: "user", text: messageText };
-    const updatedMessages = [...messages, userMessage];
-    setMessages(updatedMessages);
-    setInput("");
-  
-    try {
-      const userMessagesOnly = updatedMessages.filter(
-        (msg) => msg.sender === "user"
-      );
-  
-      const response = await axios.post(
-        "http://43.205.202.255:5000/chat",
-        {
-          question: messageText,
-          history: userMessagesOnly,
-        },
-        { headers: { "Content-Type": "application/json" } }
-      );
-  
-      console.log("Raw API Response:", response.data);
-  
-      let botText = "I couldn't process your request. Please try again.";
-      let parsedData;
-  
-      // ✅ Step 1: Ensure response is a string before parsing
-      if (typeof response.data === "string") {
-        try {
-          // ✅ Step 2: Fix bad control characters before parsing
-          const sanitizedResponse = response.data.replace(/[\u0000-\u001F]/g, ""); 
-  
-          // ✅ Step 3: Parse the JSON safely
-          parsedData = JSON.parse(sanitizedResponse);
-        } catch (parseError) {
-          console.error("Error parsing response JSON:", parseError);
+
+  async function processMessageToAzure(chatMessages) {
+    let apiMessages = chatMessages.map((messageObject) => {
+      let role = messageObject.sender === "NexusAssistant" ? "assistant" : "user";
+      return { role: role, content: messageObject.message };
+    });
+
+    const apiRequestBody = {
+      "messages": [systemMessage, ...apiMessages],
+      "temperature": 0.7,
+      "max_tokens": 500
+    };
+
+    await fetch(`${AZURE_ENDPOINT}openai/deployments/${AZURE_DEPLOYMENT_NAME}/chat/completions?api-version=${AZURE_API_VERSION}`,
+    {
+      method: "POST",
+      headers: {
+        "Authorization": `Bearer ${AZURE_API_KEY}`,
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify(apiRequestBody)
+    }).then(response => response.json())
+      .then(data => {
+        if (data.choices && data.choices.length > 0) {
+          setMessages([...chatMessages, {
+            message: data.choices[0].message.content,
+            sender: "NexusAssistant"
+          }]);
         }
-      } else {
-        parsedData = response.data; // If already an object, use it directly
-      }
-  
-      // ✅ Step 4: Extract and format the text
-      if (parsedData && parsedData.text) {
-        botText = parsedData.text.replace(/\\n/g, "\n"); // Preserve line breaks
-      }
-  
-      setMessages((prev) => [...prev, { sender: "bot", text: botText }]);
-    } catch (error) {
-      console.error("Error fetching bot response:", error);
-      setMessages((prev) => [
-        ...prev,
-        { sender: "bot", text: "An error occurred. Please try again." },
-      ]);
-    }
-  };
-  
-
-  const clearChatHistory = () => {
-    localStorage.removeItem("chatbotHistory");
-    setMessages([{ sender: "bot", text: "Hi! How may I assist you?" }]);
-  };
+        setIsTyping(false);
+      }).catch(error => {
+        console.error("Error fetching response:", error);
+        setIsTyping(false);
+      });
+  }
 
   return (
-    <>
-      <div className="help" onClick={toggleChatbot}>
-        <img src={helpIcon} alt="Help Icon" className="helpImage" />
-        <h6>Get Help</h6>
+    <div className="App">
+      <div style={{ position: "relative", height: "800px", width: "700px" }}>
+        <MainContainer>
+          <ChatContainer>
+            <MessageList 
+              scrollBehavior="smooth"
+              typingIndicator={isTyping ? <TypingIndicator content="NexusAssistant is typing..." /> : null}
+            >
+              {messages.map((message, i) => (
+                <Message key={i} model={message} />
+              ))}
+            </MessageList>
+            <MessageInput placeholder="Type a message here..." onSend={handleSend} />
+          </ChatContainer>
+        </MainContainer>
       </div>
-
-      {isChatbotOpen && (
-        <div className="chatbot-container">
-          <div className="chatbot-header">
-            <h3>Chat with Us!</h3>
-            <button onClick={toggleChatbot} className="chatbot-close-btn">
-              X
-            </button>
-          </div>
-
-          <div className="chatbot-messages">
-            {messages.map((message, index) => (
-              <div
-                key={index}
-                className={`chatbot-message ${
-                  message.sender === "user" ? "user-message" : "bot-message"
-                }`}
-                style={{ whiteSpace: "pre-wrap" }} // ✅ PRESERVES NEWLINES & SPACES
-              >
-                {message.text}
-              </div>
-            ))}
-          </div>
-
-          <div className="chatbot-input-container">
-            <input
-              type="text"
-              className="chatbot-input"
-              placeholder="Type a message..."
-              value={input}
-              onChange={(e) => setInput(e.target.value)}
-              onKeyDown={(e) => {
-                if (e.key === "Enter") sendMessage();
-              }}
-            />
-            <button className="chatbot-send-btn" onClick={sendMessage}>
-              Send
-            </button>
-          </div>
-
-          <button className="clear-history-btn" onClick={clearChatHistory}>
-            Clear History
-          </button>
-        </div>
-      )}
-    </>
+    </div>
   );
-};
+}
 
 export default ChatBot;
