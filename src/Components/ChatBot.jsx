@@ -1,7 +1,9 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
 import "../CSS/ChatBot.css";
+import logo2 from "../Images/logo2.png";
 import helpIcon from "../Images/help.png";
+import { FaTimes, FaTrash } from "react-icons/fa";
 
 const ChatBot = () => {
   const [isChatbotOpen, setIsChatbotOpen] = useState(false);
@@ -66,27 +68,23 @@ const ChatBot = () => {
       let botText = "I couldn't process your request. Please try again.";
       let parsedData;
 
-      // ✅ Step 1: Ensure response is a string before parsing
       if (typeof response.data === "string") {
         try {
-          // ✅ Step 2: Fix bad control characters before parsing
           const sanitizedResponse = response.data.replace(
             /[\u0000-\u001F]/g,
             ""
           );
 
-          // ✅ Step 3: Parse the JSON safely
           parsedData = JSON.parse(sanitizedResponse);
         } catch (parseError) {
           console.error("Error parsing response JSON:", parseError);
         }
       } else {
-        parsedData = response.data; // If already an object, use it directly
+        parsedData = response.data;
       }
 
-      // ✅ Step 4: Extract and format the text
       if (parsedData && parsedData.text) {
-        botText = parsedData.text.replace(/\\n/g, "\n"); // Preserve line breaks
+        botText = parsedData.text.replace(/\\n/g, "\n");
       }
 
       setMessages((prev) => [...prev, { sender: "bot", text: botText }]);
@@ -112,12 +110,26 @@ const ChatBot = () => {
       </div>
 
       {isChatbotOpen && (
+        <div className="chatbot-overlay" onClick={toggleChatbot}></div>
+      )}
+
+      {isChatbotOpen && (
         <div className="chatbot-container">
           <div className="chatbot-header">
+            <img src={logo2} alt="ChatBot Logo" className="chatbot-logo" />
             <h3>Chat with Us!</h3>
-            <button onClick={toggleChatbot} className="chatbot-close-btn">
-              X
-            </button>
+            <div className="chatbot-header-icons">
+              <FaTrash
+                className="chatbot-bin-icon"
+                onClick={clearChatHistory}
+                title="Clear Chat"
+              />
+              <FaTimes
+                className="chatbot-close-btn"
+                onClick={toggleChatbot}
+                title="Close"
+              />
+            </div>
           </div>
 
           <div className="chatbot-messages">
@@ -127,8 +139,7 @@ const ChatBot = () => {
                 className={`chatbot-message ${
                   message.sender === "user" ? "user-message" : "bot-message"
                 }`}
-                style={{ whiteSpace: "pre-wrap" }} // ✅ PRESERVES NEWLINES & SPACES
-              >
+                style={{ whiteSpace: "pre-wrap" }}>
                 {message.text}
               </div>
             ))}
@@ -150,9 +161,9 @@ const ChatBot = () => {
             </button>
           </div>
 
-          <button className="clear-history-btn" onClick={clearChatHistory}>
+          {/* <button className="clear-history-btn" onClick={clearChatHistory}>
             Clear History
-          </button>
+          </button> */}
         </div>
       )}
     </>
