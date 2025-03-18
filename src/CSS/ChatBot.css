@@ -10,29 +10,80 @@
   --shadow-light: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
+.chatbot-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+}
+
 .chatbot-container {
   position: fixed;
-  bottom: 150px;
+  bottom: 30px;
   right: 100px;
-  width: 600px;
-  height: 60%;
+  width: 70%;
+  height: 90%;
   background-color: #fff;
   box-shadow: var(--shadow);
   border-radius: 10px;
   display: flex;
   flex-direction: column;
-  z-index: 1000;
+  z-index: 1001;
+}
+
+.help {
+  position: fixed;
+  bottom: -20px;
+  right: 30px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  z-index: 1002;
 }
 
 .chatbot-header {
-  background-color: var(--primary-color);
-  color: #fff;
-  padding: 10px 15px;
-  border-top-left-radius: 10px;
-  border-top-right-radius: 10px;
   display: flex;
-  justify-content: space-between;
   align-items: center;
+  justify-content: space-between;
+  background: #a91d3a;
+  color: white;
+  padding: 5px;
+  border-radius: 8px 8px 0 0;
+  position: relative;
+}
+
+.chatbot-logo {
+  width: 100px;
+  height: 50px;
+  margin-right: 5px;
+}
+
+.chatbot-header h3 {
+  flex: 1;
+  /* text-align: center; */
+  margin: 0;
+  font-size: 18px;
+  font-weight: bold;
+}
+
+.chatbot-close-btn {
+  background: none;
+  border: none;
+  color: white;
+  font-size: 20px;
+  cursor: pointer;
+}
+
+.chatbot-close-btn :hover {
+  background: #555;
+  border: none;
+  color: white;
 }
 
 .chatbot-close-btn {
@@ -41,6 +92,7 @@
   color: #fff;
   font-size: 18px;
   cursor: pointer;
+  margin-right: 10px;
 }
 
 .chatbot-messages {
@@ -179,4 +231,32 @@
   100% {
     transform: rotate(360deg);
   }
+}
+
+.chatbot-header-icons {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.chatbot-bin-icon {
+  font-size: 18px;
+  color: white;
+  cursor: pointer;
+  transition: color 0.3s ease-in-out;
+}
+
+.chatbot-bin-icon:hover {
+  color: #ffcc00;
+}
+
+.chatbot-close-btn {
+  font-size: 20px;
+  color: white;
+  cursor: pointer;
+  transition: color 0.3s ease-in-out;
+}
+
+.chatbot-close-btn:hover {
+  color: #ff4444;
 }
