@@ -9,14 +9,14 @@ html {
 
 .view-events-container {
   display: flex;
-  height: 100vh; /* Full viewport height */
+  height: 100vh;
 }
 
 .sidebar {
-  width: 250px;
+  width: 220px;
   position: fixed;
-  height: 100vh; /* Full height for sidebar */
-  overflow: hidden; /* Prevent scroll in the sidebar */
+  height: 100vh;
+  overflow: hidden;
   background-color: #1f1f2e;
   color: white;
   display: flex;
@@ -25,18 +25,22 @@ html {
   padding: 20px 10px;
 }
 
-.main-content {
+.view-events-container .main-content {
   flex: 1;
-  margin-left: 300px; /* Matches the width of the sidebar */
+  margin-left: 280px;
   padding: 20px;
   background-color: #f5f5f5;
-  overflow-y: auto; /* Vertical scrolling for the main content only */
-  height: 100vh; /* Full height */
+  overflow-y: auto;
+  height: auto;
 }
 
 .events-header {
   text-align: center;
   margin-bottom: 20px;
+}
+
+.events-header h2 {
+  color: #a91d3a !important;
 }
 
 .banner {
@@ -45,9 +49,10 @@ html {
 }
 
 .banner-image {
+  margin-top: 10px;
   width: 100%;
   border-radius: 10px;
-  height: 300px;
+  height: 200px;
   object-fit: cover;
 }
 
@@ -75,7 +80,6 @@ html {
   color: #333;
 }
 
-/* Events Grid */
 .events-grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
@@ -83,7 +87,6 @@ html {
   padding: 10px;
 }
 
-/* Event Card */
 .event-card {
   background-color: white;
   border-radius: 10px;
@@ -103,13 +106,17 @@ html {
 }
 
 .event-info {
-  padding: 15px;
+  padding: 10px 15px;
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  line-height: 0.05;
 }
 
 .event-title {
   font-size: 18px;
   color: #333;
-  margin: 0 0 5px;
+  margin-bottom: 5px;
 }
 
 .event-date,
@@ -117,38 +124,29 @@ html {
 .event-participants {
   font-size: 14px;
   color: #777;
-  margin: 5px 0;
+  margin: 2px 0; /* Reduce space between items */
+  line-height: 1; /* Adjust the line height */
 }
 
-.button-group {
-  margin-top: 15px;
+.event-buttons {
   display: flex;
-  gap: 10px;
-  justify-content: center;
+  justify-content: space-between;
+  margin-top: 10px;
 }
 
-.yes-btn,
-.no-btn,
-.maybe-btn {
-  padding: 10px 15px;
-  border-radius: 8px;
+.event-buttons button {
+  flex: 1;
+  padding: 8px 12px;
   border: none;
+  border-radius: 5px;
   cursor: pointer;
-  font-size: 14px;
+  transition: background-color 0.3s ease-in-out;
+  margin: 0 5px;
 }
 
+/* Yes Button */
 .yes-btn {
   background-color: #28a745;
-  color: white;
-}
-
-.no-btn {
-  background-color: #dc3545;
-  color: white;
-}
-
-.maybe-btn {
-  background-color: #ffc107;
   color: white;
 }
 
@@ -156,12 +154,140 @@ html {
   background-color: #218838;
 }
 
+/* No Button */
+.no-btn {
+  background-color: #dc3545;
+  color: white;
+}
+
 .no-btn:hover {
   background-color: #c82333;
 }
 
+/* Maybe Button */
+.maybe-btn {
+  background-color: #ffc107;
+  color: black;
+}
+
 .maybe-btn:hover {
   background-color: #e0a800;
+}
+
+.trending-my-events {
+  padding: 20px;
+  display: flex;
+  justify-content: space-between;
+  margin: 20px 0;
+  box-shadow: 4px 0 10px rgba(0, 0, 0, 0.1);
+}
+
+.trending-events {
+  width: 65%;
+  background: #9f9a9b;
+  padding: 20px;
+  border-radius: 15px;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 4px 0 10px rgba(0, 0, 0, 0.1);
+}
+
+.trending-my-events h2 {
+  text-align: center;
+  font-size: 1.5rem;
+}
+
+.trending-image {
+  width: 100%;
+  height: 250px;
+  margin-top: 20px;
+  border-radius: 10px;
+  object-fit: cover;
+}
+
+.my-events {
+  /* background: #a91d3a; */
+  background: #ede9fe;
+  border-radius: 15px;
+  padding: 20px;
+  margin-left: 20px;
+  width: 35%;
+  text-align: center;
+  box-shadow: 4px 0 10px rgba(103, 102, 102, 0.1);
+}
+
+.my-events h2 {
+  text-align: center;
+  font-size: 1.5rem;
+  color: #000;
+}
+
+.event-item h5 {
+  color: #3b3a3a !important;
+}
+.event-tabs {
+  display: flex;
+  justify-content: center;
+  gap: 20px;
+  margin-top: 10px;
+}
+
+.all-event-tabs {
+  display: flex;
+  justify-content: center;
+  gap: 60px;
+  margin-top: 10px;
+  margin-bottom: 20px;
+}
+
+.all-event-tabs2 {
+  display: flex;
+  justify-content: center;
+  gap: 180px;
+  margin-top: 10px;
+  margin-bottom: 20px;
+}
+.event-tab {
+  font-size: 16px;
+  font-weight: 500;
+  cursor: pointer;
+  position: relative;
+  padding-bottom: 5px;
+  color: #555;
+}
+
+.event-tab:hover {
+  color: #a91d3a; /* Hover color */
+}
+
+/* Underline effect when active */
+.active-tab {
+  /* font-weight: bold; */
+  color: #a91d3a; /* Active color */
+}
+
+.active-tab::after {
+  content: "";
+  display: block;
+  width: 100%;
+  height: 2px;
+  background-color: #a91d3a;
+  position: absolute;
+  bottom: 0;
+  left: 0;
+}
+
+.event-tabs button {
+  margin: 5px;
+  padding: 8px 15px;
+  cursor: pointer;
+}
+
+.active-tab {
+  /* background-color: #a91d3a; */
+  /* color: white; */
+  color: #c82333;
+  background: none;
 }
 
 /* Responsive Design */

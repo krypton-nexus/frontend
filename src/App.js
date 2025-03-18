@@ -25,6 +25,7 @@ import Signup from "./Components/Signup";
 import UserProfile from "./Pages/UserProfile";
 import AdminDashboard from "./Pages/AdminDashboard";
 import AddEvent from "./Pages/AddEvent";
+import AdminEvent from "./Pages/AdminEvent";
 import Notification from "./Pages/Notification";
 import Merchandise from "./Pages/Merchandise";
 import AdminLogin from "./Components/AdminLogin";
@@ -75,6 +76,14 @@ const App = () => {
           element={
             <NoButtonLayout>
               <AddEvent />
+            </NoButtonLayout>
+          }
+        />
+        <Route
+          path="/adminevent"
+          element={
+            <NoButtonLayout>
+              <AdminEvent />
             </NoButtonLayout>
           }
         />

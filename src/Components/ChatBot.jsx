@@ -2,14 +2,13 @@ import React, { useState, useEffect } from "react";
 import axios from "axios";
 import "../CSS/ChatBot.css";
 import helpIcon from "../Images/help.png";
-import { RiImageAddLine } from "react-icons/ri";
-import { createWorker } from "tesseract.js";
 
 const ChatBot = () => {
   const [isChatbotOpen, setIsChatbotOpen] = useState(false);
   const [messages, setMessages] = useState(() => {
     const savedMessages = localStorage.getItem("chatbotHistory");
     const refreshed = sessionStorage.getItem("refreshed");
+
     if (refreshed) {
       localStorage.removeItem("chatbotHistory");
       sessionStorage.removeItem("refreshed");
@@ -21,8 +20,6 @@ const ChatBot = () => {
   });
 
   const [input, setInput] = useState("");
-  const [image, setImage] = useState(null);
-  const [ocrLoading, setOcrLoading] = useState(false);
 
   useEffect(() => {
     localStorage.setItem("chatbotHistory", JSON.stringify(messages));
@@ -42,103 +39,62 @@ const ChatBot = () => {
     setIsChatbotOpen((prev) => !prev);
   };
 
-  const extractTextFromImage = async (imageFile) => {
-    const worker = createWorker();
-    await worker.load();
-    await worker.loadLanguage("eng");
-    await worker.initialize("eng");
-    const {
-      data: { text },
-    } = await worker.recognize(imageFile);
-    await worker.terminate();
-    return text;
-  };
-
   const sendMessage = async () => {
     const messageText = input.trim();
+    if (!messageText) return;
 
-    if (!messageText && !image) return;
-
-    if (!image && messageText.toLowerCase().includes("image")) {
-      const clarificationMessage = {
-        sender: "bot",
-        text: "It seems like there's a bit of confusion as there's no image attached to your message. Could you please provide more details, describe the image, or rephrase your question?",
-      };
-      setMessages((prevMessages) => [
-        ...prevMessages,
-        { sender: "user", text: messageText },
-        clarificationMessage,
-      ]);
-      setInput("");
-      return;
-    }
-    const userMessage = {
-      sender: "user",
-      text: messageText || "Image attached",
-      image: image ? URL.createObjectURL(image) : null,
-    };
+    const userMessage = { sender: "user", text: messageText };
     const updatedMessages = [...messages, userMessage];
     setMessages(updatedMessages);
     setInput("");
 
-    let extractedTextFromImage = "";
-    if (image) {
-      setOcrLoading(true);
-      try {
-        extractedTextFromImage = await extractTextFromImage(image);
-      } catch (err) {
-        console.error("OCR error: ", err);
-      }
-      setOcrLoading(false);
-
-      if (!messageText && extractedTextFromImage.trim() === "") {
-        const clarificationMessage = {
-          sender: "bot",
-          text: "It seems like there's no clear text in the attached image. Could you please provide more details or rephrase your question?",
-        };
-        setMessages((prevMessages) => [...prevMessages, clarificationMessage]);
-        setImage(null);
-        return;
-      }
-    }
-    setImage(null);
-
     try {
+      const userMessagesOnly = updatedMessages.filter(
+        (msg) => msg.sender === "user"
+      );
+
       const response = await axios.post(
         "http://43.205.202.255:5000/chat",
         {
           question: messageText,
-          history: updatedMessages,
-          extractedText: extractedTextFromImage,
+          history: userMessagesOnly,
         },
-        {
-          headers: { "Content-Type": "application/json" },
-        }
+        { headers: { "Content-Type": "application/json" } }
       );
 
-      const botMessage = {
-        sender: "bot",
-        text: response.data.text || "I couldn't understand that.",
-      };
+      console.log("Raw API Response:", response.data);
 
-      if (response.data.image) {
-        botMessage.image = response.data.image;
+      let botText = "I couldn't process your request. Please try again.";
+      let parsedData;
+
+      // ✅ Check if response is a string
+      if (typeof response.data === "string") {
+        try {
+          // ✅ Remove any invalid control characters before parsing
+          const sanitizedResponse = response.data.replace(
+            /[\u0000-\u001F]/g,
+            ""
+          );
+          parsedData = JSON.parse(sanitizedResponse);
+        } catch (parseError) {
+          console.error("Error parsing response JSON:", parseError);
+        }
+      } else {
+        parsedData = response.data; // Already an object
       }
-      setMessages((prevMessages) => [...prevMessages, botMessage]);
+
+      // ✅ Extract text safely
+      if (parsedData && parsedData.text) {
+        botText = parsedData.text;
+      }
+
+      setMessages((prev) => [...prev, { sender: "bot", text: botText }]);
     } catch (error) {
       console.error("Error fetching bot response:", error);
-      const botErrorMessage = {
-        sender: "bot",
-        text: "An error occurred. Please try again.",
-      };
-      setMessages((prevMessages) => [...prevMessages, botErrorMessage]);
-    }
-  };
-
-  const handleImageUpload = (e) => {
-    const file = e.target.files[0];
-    if (file) {
-      setImage(file);
+      setMessages((prev) => [
+        ...prev,
+        { sender: "bot", text: "An error occurred. Please try again." },
+      ]);
     }
   };
 
@@ -169,37 +125,13 @@ const ChatBot = () => {
                 key={index}
                 className={`chatbot-message ${
                   message.sender === "user" ? "user-message" : "bot-message"
-                }`}
-              >
+                }`}>
                 {message.text}
-                {message.image && (
-                  <img
-                    src={message.image}
-                    alt="Attached"
-                    className="chatbot-image"
-                  />
-                )}
               </div>
             ))}
-            {ocrLoading && (
-              <div className="ocr-loading">
-                <div className="spinner"></div>
-                <span>Processing image...</span>
-              </div>
-            )}
           </div>
 
           <div className="chatbot-input-container">
-            <input
-              type="file"
-              accept="image/*"
-              onChange={handleImageUpload}
-              style={{ display: "none" }}
-              id="image-upload"
-            />
-            <label htmlFor="image-upload" className="chatbot-upload-btn">
-              <RiImageAddLine className="upload-icon" />
-            </label>
             <input
               type="text"
               className="chatbot-input"

@@ -20,7 +20,8 @@
 }
 
 .card-overlay {
-  background: rgba(0, 0, 0, 0.3);
+  background: rgba(171, 170, 170, 0.3);
+  /* background: #ddd; */
   color: #fff;
   position: absolute;
   top: 0;
@@ -69,7 +70,7 @@
 }
 
 .view-club {
-  background: #ddd;
+  background: #fcfbfb;
   border-color: #a91d3a;
   color: #a91d3a;
 }

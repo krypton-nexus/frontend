@@ -1,4 +1,3 @@
-/* Define CSS variables for consistent styling */
 :root {
   --primary-color: #a91d3a;
   --primary-hover: #c62828;
@@ -11,7 +10,6 @@
   --shadow-light: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
-/* Chatbot Container */
 .chatbot-container {
   position: fixed;
   bottom: 150px;
@@ -26,7 +24,6 @@
   z-index: 1000;
 }
 
-/* Chatbot Header */
 .chatbot-header {
   background-color: var(--primary-color);
   color: #fff;
@@ -46,7 +43,6 @@
   cursor: pointer;
 }
 
-/* Chatbot Messages Area */
 .chatbot-messages {
   padding: 15px;
   flex: 1;
@@ -56,7 +52,6 @@
   gap: 10px;
 }
 
-/* Individual Chat Message */
 .chatbot-message {
   padding: 10px 15px;
   border-radius: 8px;
@@ -77,7 +72,6 @@
   color: var(--bot-text);
 }
 
-/* Styling for Uploaded/Attached Images in Chat */
 .chatbot-image {
   display: block;
   max-width: 100%;
@@ -87,7 +81,6 @@
   box-shadow: var(--shadow-light);
 }
 
-/* Chatbot Input Section */
 .chatbot-input-container {
   display: flex;
   align-items: center;
@@ -118,10 +111,9 @@
   background-color: var(--primary-hover);
 }
 
-/* Help Button Section */
 .help {
   position: fixed;
-  bottom: 70px;
+  bottom: -20px;
   right: 30px;
   display: flex;
   flex-direction: column;
@@ -130,8 +122,8 @@
 }
 
 .help h6 {
-  color: #fff;
-  margin-top: 5px;
+  color: #f0306b;
+  margin-top: -10px;
   cursor: pointer;
   font-size: 14px;
 }
@@ -142,7 +134,6 @@
   cursor: pointer;
 }
 
-/* Image Upload Button Styling */
 .chatbot-upload-btn {
   background: transparent;
   border: none;
@@ -162,7 +153,6 @@
   color: #000;
 }
 
-/* OCR/Upload Spinner and Animation */
 .ocr-loading {
   display: flex;
   align-items: center;
@@ -183,6 +173,10 @@
 }
 
 @keyframes spin {
-  0% { transform: rotate(0deg); }
-  100% { transform: rotate(360deg); }
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
 }

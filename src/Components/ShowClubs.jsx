@@ -3,6 +3,8 @@ import { jwtDecode } from "jwt-decode"; // Correct import
 import "../CSS/ShowClubs.css";
 import Sidebar from "./SideBar";
 import ClubCard from "./ClubCard";
+import { FaUserCircle } from "react-icons/fa";
+import { FaSearch } from "react-icons/fa";
 
 const ShowClubs = () => {
   const [clubs, setClubs] = useState([]);
@@ -74,6 +76,22 @@ const ShowClubs = () => {
     <div className="show-clubs-container">
       <Sidebar />
       <div className="main-content">
+        <div className="membership-header">
+          <div className="search-container">
+            <input
+              type="text"
+              placeholder="Search Clubs..."
+              className="membership-search"
+            />
+            <button className="search-icon">
+              <FaSearch />
+            </button>
+          </div>
+
+          <FaUserCircle className="membership-avatar" size={30} />
+        </div>
+
+        <hr className="section-divider" />
         <h1>Club List</h1>
         {loading ? (
           <div className="loading-message">Loading clubs...</div>

@@ -111,8 +111,7 @@ const Communication = ({ isOpen = true, onClose = () => {} }) => {
                   className={`tab ${
                     club.id === selectedClubId ? "active" : ""
                   }`}
-                  onClick={() => setSelectedClubId(club.id)}
-                >
+                  onClick={() => setSelectedClubId(club.id)}>
                   {club.title}
                 </div>
               ))}
@@ -125,7 +124,9 @@ const Communication = ({ isOpen = true, onClose = () => {} }) => {
                   <MessageForm clubId={selectedClubId} userEmail={userEmail} />
                 </>
               ) : (
-                <p>You must be a member of this club to access messages.</p>
+                <div className="messages-section-error">
+                  <h2>You must be a member of this club to access messages.</h2>
+                </div>
               )}
             </div>
           </>

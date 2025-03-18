@@ -4,6 +4,7 @@ import { addDoc, collection, serverTimestamp } from "firebase/firestore";
 import { db } from "../firebase";
 import { jwtDecode } from "jwt-decode";
 import "../CSS/MessageForm.css";
+import { FaPaperPlane, FaPlus, FaRegSmile } from "react-icons/fa";
 
 const MessageForm = ({ clubId, userEmail }) => {
   const [text, setText] = useState("");
@@ -26,7 +27,7 @@ const MessageForm = ({ clubId, userEmail }) => {
     };
 
     checkAuthorization();
-  }, [userEmail]); 
+  }, [userEmail]);
   const sendMessage = async (e) => {
     e.preventDefault();
     if (!text.trim()) {
@@ -70,9 +71,8 @@ const MessageForm = ({ clubId, userEmail }) => {
         <button
           type="submit"
           className="message-send-button"
-          disabled={!isAuthorized}
-        >
-          Send
+          disabled={!isAuthorized}>
+          <FaPaperPlane />
         </button>
       </form>
       {error && <p className="error-message">{error}</p>}
