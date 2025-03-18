@@ -21,6 +21,7 @@
     "axios": "^1.7.9",
     "cms": "file:",
     "crypto-js": "^4.2.0",
+    "lucide-react": "^0.479.0",
     "firebase": "^11.2.0",
     "jwt-decode": "^4.0.0",
     "notistack": "^3.0.1",
