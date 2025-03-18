@@ -1,52 +1,8 @@
-/* Container Layout */
 .show-clubs-container {
   display: flex;
   font-family: Arial, sans-serif;
   height: 100vh;
   overflow: hidden;
-}
-
-.sidebar {
-  width: 250px;
-  background: #1a1a1a;
-  color: #fff;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  padding: 20px;
-}
-
-.show-clubs-container .logo {
-  width: 200px;
-}
-
-.menu {
-  list-style: none;
-  padding: 0;
-  width: 100%;
-  margin-bottom: -20px;
-}
-
-.menu li {
-  padding: 10px 10px 10px 50px;
-  cursor: pointer;
-  text-align: center;
-  transition: background 0.3s;
-  display: flex;
-  align-items: left;
-  border-radius: 8px;
-}
-
-.menu li:hover {
-  background: #333;
-}
-
-.menu li.active {
-  background: #a91d3a; /* Active menu item background */
-}
-
-.menu li svg {
-  margin-right: 10px;
 }
 
 .notifications {
@@ -78,14 +34,13 @@
 }
 
 .show-clubs-container .logout svg {
-  margin-right: 10px; /* Space between icon and text */
+  margin-right: 10px;
 }
 
-/* Main Content Styling */
 .show-clubs-container .main-content {
   flex: 1;
-  padding: 10px 20px 0px 30px;
-  background: #f4f4f4;
+  padding: 10px 20px 0px 10px;
+  margin-left: 280px;
   overflow-y: auto;
 }
 
@@ -97,7 +52,6 @@
   border-radius: 5px;
 }
 
-/* Club Cards Styling */
 .show-clubs-container .clubs {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
@@ -108,6 +62,7 @@
 
 .show-clubs-container .club-card {
   background-size: cover;
+  /* background: #d698a4; */
   background-position: center;
   border-radius: 10px;
   overflow: hidden;
@@ -122,7 +77,7 @@
 }
 
 .show-clubs-container .card-overlay {
-  background: rgba(0, 0, 0, 0.3);
+  /* background: rgba(0, 0, 0, 0.3); */
   color: #fff;
   position: absolute;
   top: 0;
@@ -183,7 +138,7 @@
 .loading-message {
   justify-content: center;
   align-items: center;
-  height: 100%; 
-  font-size: 20px; 
-  color: red; 
+  height: 100%;
+  font-size: 20px;
+  color: red;
 }

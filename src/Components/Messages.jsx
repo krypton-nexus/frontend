@@ -10,7 +10,7 @@ const Messages = ({ clubId }) => {
   const [userNames, setUserNames] = useState({});
   const [isLoading, setIsLoading] = useState(true);
 
-  // Fetch and decode the JWT token
+  // Decode user email from JWT token
   useEffect(() => {
     const token = localStorage.getItem("access_token");
     if (token) {
@@ -23,14 +23,11 @@ const Messages = ({ clubId }) => {
     }
   }, []);
 
-  // Fetch user names based on emails, only when needed
+  // Fetch user names based on emails
   const fetchUserNames = useCallback(async (emails) => {
     const namesMapping = {};
     for (const email of emails) {
       if (!email) continue;
-
-      // Avoid unnecessary API calls for already fetched users
-      if (namesMapping[email]) continue;
 
       try {
         const token = localStorage.getItem("access_token");
@@ -45,7 +42,7 @@ const Messages = ({ clubId }) => {
             method: "GET",
             headers: {
               "Content-Type": "application/json",
-              Authorization: `Bearer ${token}`, // Pass token in the Authorization header
+              Authorization: `Bearer ${token}`,
             },
           }
         );
@@ -65,7 +62,7 @@ const Messages = ({ clubId }) => {
     return namesMapping;
   }, []);
 
-  // Fetch messages from Firebase and update user names
+  // Fetch messages from Firebase
   useEffect(() => {
     const q = query(
       collection(db, "messages", clubId, "messages"),
@@ -92,7 +89,6 @@ const Messages = ({ clubId }) => {
     return () => unsubscribe();
   }, [clubId, fetchUserNames]);
 
-  // If no messages, show the "No messages" message
   if (isLoading) {
     return (
       <div className="messages-container">
@@ -111,42 +107,39 @@ const Messages = ({ clubId }) => {
 
   return (
     <div className="messages-container">
-      {messages.map((msg) => (
-        <div
-          key={msg.id}
-          className={`message ${
-            msg.sendersEmail === userEmail ? "message-right" : "message-left"
-          }`}
-        >
-          <div className="message-sender">
-            {userNames[msg.sendersEmail] || "Loading..."}
-          </div>
-          {msg.sendersEmail !== userEmail && (
-            <div className="message-avatar">
+      {messages.map((msg) => {
+        const isSent = msg.sendersEmail === userEmail;
+        return (
+          <div
+            key={msg.id}
+            className={`message ${isSent ? "message-right" : "message-left"}`}>
+            {!isSent && (
               <img
+                className="message-avatar"
                 src={`https://ui-avatars.com/api/?name=${encodeURIComponent(
                   userNames[msg.sendersEmail] || "User"
                 )}&background=random`}
-                alt="avatar"
+                alt="Avatar"
               />
+            )}
+
+            <div className={`message-bubble ${isSent ? "sent" : "received"}`}>
+              <p className="message-text">{msg.text}</p>
+              <span className="message-timestamp">
+                {msg.timestamp?.seconds
+                  ? new Date(msg.timestamp.seconds * 1000).toLocaleTimeString(
+                      [],
+                      {
+                        hour: "2-digit",
+                        minute: "2-digit",
+                      }
+                    )
+                  : ""}
+              </span>
             </div>
-          )}
-          <div className="message-bubble">
-            <p className="message-text">{msg.text}</p>
-            <span className="message-timestamp">
-              {msg.timestamp?.seconds
-                ? new Date(msg.timestamp.seconds * 1000).toLocaleTimeString(
-                    [],
-                    {
-                      hour: "2-digit",
-                      minute: "2-digit",
-                    }
-                  )
-                : ""}
-            </span>
           </div>
-        </div>
-      ))}
+        );
+      })}
     </div>
   );
 };

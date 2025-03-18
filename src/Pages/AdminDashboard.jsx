@@ -4,6 +4,10 @@ import { ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import { jwtDecode } from "jwt-decode";
 import axios from "axios";
+import { Ban } from "lucide-react";
+import { FaUserCircle } from "react-icons/fa";
+import { FaSearch } from "react-icons/fa";
+
 import {
   FaUsers,
   FaTasks,
@@ -251,7 +255,35 @@ const AdminDashboard = () => {
 
   const MembershipTable = ({ title, data, isCurrentMembers }) => {
     if (!Array.isArray(data) || data.length === 0) {
-      return <div>No {title.toLowerCase()} available.</div>;
+      return (
+        <div>
+          <div className="membership-header">
+            <div className="search-container">
+              <input
+                type="text"
+                placeholder="Search members..."
+                className="membership-search"
+              />
+              <button className="search-icon">
+                <FaSearch />
+              </button>
+            </div>
+
+            <FaUserCircle className="membership-avatar" size={30} />
+          </div>
+
+          <hr className="section-divider" />
+
+          <div className="no-membership-request">
+            <h2>
+              <span className="ban-icon">
+                <Ban size={18} className="text-red-400" />
+              </span>
+              No {title.toLowerCase()} available.
+            </h2>
+          </div>
+        </div>
+      );
     }
 
     return (
@@ -281,16 +313,14 @@ const AdminDashboard = () => {
                     <>
                       <button
                         className="view-btn"
-                        onClick={() => handleViewDetails(member.student_email)}
-                      >
+                        onClick={() => handleViewDetails(member.student_email)}>
                         View
                       </button>
                       <button
                         className="delete-btn"
                         onClick={() =>
                           handleMemberDeletion(member.student_email)
-                        }
-                      >
+                        }>
                         Delete
                       </button>
                     </>
@@ -298,8 +328,7 @@ const AdminDashboard = () => {
                     <>
                       <button
                         className="view-btn"
-                        onClick={() => handleViewDetails(member.student_email)}
-                      >
+                        onClick={() => handleViewDetails(member.student_email)}>
                         View
                       </button>
                       <button
@@ -309,8 +338,7 @@ const AdminDashboard = () => {
                             "Approved",
                             member.student_email
                           )
-                        }
-                      >
+                        }>
                         Accept
                       </button>
                       <button
@@ -320,8 +348,7 @@ const AdminDashboard = () => {
                             "rejected",
                             member.student_email
                           )
-                        }
-                      >
+                        }>
                         Reject
                       </button>
                     </>
@@ -434,7 +461,12 @@ const AdminDashboard = () => {
     return (
       <div className="modal-overlay">
         <div className="modal-content">
-          <h2 className="modal-title">User Details</h2>
+          <button className="close-btn" onClick={onClose}>
+            ✖
+          </button>
+
+          <h2 className="modal-title">Member Details</h2>
+
           <div className="user-info">
             <div className="info-item">
               <strong>First Name:</strong>{" "}
@@ -451,7 +483,7 @@ const AdminDashboard = () => {
               <span>{user.phone_number || "N/A"}</span>
             </div>
             <div className="info-item">
-              <strong>Date of Birth:</strong>{" "}
+              <strong>Date of Birth:</strong>
               <span>
                 {user.dob
                   ? new Date(user.dob).toLocaleDateString("en-US", {
@@ -480,9 +512,6 @@ const AdminDashboard = () => {
               <strong>Faculty:</strong> <span>{user.faculty || "N/A"}</span>
             </div>
           </div>
-          <button className="close-btn" onClick={onClose}>
-            Close
-          </button>
         </div>
       </div>
     );
@@ -500,20 +529,35 @@ const AdminDashboard = () => {
             <FaUsers /> Membership
           </li>
           <li>
-            <FaCalendarAlt /> Event Management
+            <Link to="/adminevent">
+              <FaCalendarAlt /> Events
+            </Link>
           </li>
+
           <li>
-            <FaTasks /> Task Management
+            <Link to="/tasks">
+              <FaTasks /> Tasks
+            </Link>
           </li>
+
           <li>
-            <FaRss /> Feed Management
+            <Link to="/feed">
+              <FaRss /> Feed
+            </Link>
           </li>
+
           <li>
-            <FaWallet /> Finance Management
+            <Link to="/finance">
+              <FaWallet /> Finance
+            </Link>
           </li>
+
           <li>
-            <FaStore /> Marketplace
+            <Link to="/marketplace">
+              <FaStore /> Marketplace
+            </Link>
           </li>
+
           <li>
             <div className="notifications" onClick={toggleNotifications}>
               <FaRegBell /> Notification{" "}
@@ -535,10 +579,6 @@ const AdminDashboard = () => {
       />
 
       <main className="main-content-admin">
-        <header>
-          <input type="text" placeholder="Search..." className="search-bar" />
-        </header>
-
         <section className="membership-section">
           <MembershipTable
             title="New Membership Requests"

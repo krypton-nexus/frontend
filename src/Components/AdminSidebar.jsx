@@ -2,18 +2,20 @@ import React, { useState } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import {
   FaUsers,
+  FaTasks,
   FaRss,
-  FaCalendarAlt,
-  FaComment,
+  FaWallet,
+  FaStore,
   FaListAlt,
-  FaSignOutAlt,
   FaRegBell,
+  FaSignOutAlt,
+  FaCalendarAlt,
 } from "react-icons/fa";
 import logo1short from "../Images/logo1short.png";
 import "../CSS/SideBar.css";
 import CommunicationChannel from "./CommunicationChannel";
 
-const Sidebar = () => {
+const AdminSidebar = () => {
   const location = useLocation();
   const navigate = useNavigate();
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -25,10 +27,11 @@ const Sidebar = () => {
   };
 
   const menuItems = [
-    { path: "/viewclubs", label: "View Clubs", icon: <FaUsers /> },
-    { path: "/view-feed", label: "View Feed", icon: <FaRss /> },
-    { path: "/viewevents", label: "View Events", icon: <FaCalendarAlt /> },
-    { path: "/communication", label: "Communication", icon: <FaComment /> },
+    { path: "/admindashboard", label: "Membership", icon: <FaUsers /> },
+    { path: "/adminevent", label: "Events", icon: <FaCalendarAlt /> },
+    { path: "/addtask", label: "Tasks", icon: <FaTasks /> },
+    { path: "/feed", label: "Feed", icon: <FaRss /> },
+    { path: "/finance", label: "Finance", icon: <FaWallet /> },
     // {
     //   path: "/communication",
     //   label: "Communication",
@@ -82,4 +85,4 @@ const Sidebar = () => {
   );
 };
 
-export default Sidebar;
+export default AdminSidebar;

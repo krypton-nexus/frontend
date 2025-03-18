@@ -1,15 +1,13 @@
-/* General Layout */
 .view-clubs-container {
   display: flex;
-  font-family: 'Poppins', sans-serif;
+  font-family: "Poppins", sans-serif;
   height: 100vh;
   overflow: hidden;
   background-color: #f9fafc;
 }
 
-/* Sidebar Styling */
 .sidebar {
-  width: 250px;
+  width: 220px;
   background: linear-gradient(135deg, #1a1a1a, #333);
   color: #ffffff;
   display: flex;
@@ -21,13 +19,14 @@
 
 .sidebar .logo {
   width: 180px;
-  margin-bottom: 20px;
+  margin-bottom: 10px;
 }
 
 .menu {
   list-style: none;
   padding: 0;
   width: 100%;
+  gap: 2px;
 }
 
 .menu li {
@@ -38,12 +37,12 @@
   align-items: center;
   gap: 10px;
   border-radius: 8px;
-  transition: background 0.3s, transform 0.2s;
+  /* transition: background 0.3s, transform 0.2s; */
 }
 
 .menu li:hover {
   background: #a91d3a;
-  transform: scale(1.05);
+  /* transform: scale(1.05); */
 }
 
 .menu li.active {
@@ -89,16 +88,18 @@
   transform: scale(1.05);
 }
 
-/* Main Content Styling */
 .main-content-admin {
   flex: 1;
-  padding: 20px;
+  padding-left: 280px;
+  padding-right: 20px;
+  padding-bottom: 20px;
+  padding-top: 20px;
   background: #ffffff;
   overflow-y: auto;
   display: flex;
   flex-direction: row;
   gap: 20px;
-  }
+}
 
 header {
   display: flex;
@@ -121,11 +122,97 @@ header {
   box-shadow: 0 0 5px rgba(169, 29, 58, 0.5);
 }
 
-/* Membership Section */
 .membership-section {
   display: flex;
   flex-direction: column;
   gap: 30px;
+  width: 100%;
+}
+
+.membership-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 5px;
+  /* background: #ffffff; */
+  border-radius: 8px;
+  max-width: 100%;
+}
+
+.search-container {
+  display: flex;
+  align-items: center;
+  width: 95%;
+  /* border: 1px solid #ddd; */
+  /* border-radius: 5px; */
+  overflow: hidden;
+}
+
+.membership-search {
+  flex: 1;
+  padding: 8px;
+  border: none;
+  font-size: 14px;
+  outline: none;
+}
+
+.search-icon {
+  background: #a91d3a;
+  border: none;
+  padding: 8px 12px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.search-icon:hover {
+  background: #e1e1e1;
+}
+
+.membership-avatar {
+  color: #333;
+  cursor: pointer;
+  transition: transform 0.2s ease-in-out;
+}
+
+.membership-avatar:hover {
+  transform: scale(1.1);
+}
+
+.section-divider {
+  width: 100%;
+  border: none;
+  height: 1px;
+  background-color: #f6f7f8;
+  margin: 10px 0;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+}
+
+.no-membership-request {
+  text-align: left;
+  padding: 10px;
+  background: #ede9fe;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+  color: #a91d3a;
+  font-size: 0.5rem;
+  font-weight: bold;
+  max-width: 100%;
+}
+
+.no-membership-request h2 {
+  margin: 0;
+  display: flex;
+  padding: 10px;
+  font-size: 0.9rem;
+  color: #a91d3a;
+  text-transform: capitalize;
+}
+
+.ban-icon {
+  margin-right: 8px;
+  display: inline-flex;
+  align-items: center;
 }
 
 .membership-table-container {
@@ -147,7 +234,8 @@ header {
   border-collapse: collapse;
 }
 
-.membership-table th, .membership-table td {
+.membership-table th,
+.membership-table td {
   padding: 15px;
   text-align: left;
   border-bottom: 1px solid #ddd;
@@ -169,8 +257,11 @@ header {
   gap: 10px;
 }
 
-/* Buttons */
-.accept-btn, .reject-btn, .delete-btn, .view-btn, .close-btn {
+.accept-btn,
+.reject-btn,
+.delete-btn,
+.view-btn,
+.close-btn {
   border: none;
   border-radius: 8px;
   padding: 8px 16px;
@@ -190,12 +281,14 @@ header {
   transform: scale(1.05);
 }
 
-.reject-btn, .delete-btn {
+.reject-btn,
+.delete-btn {
   background-color: #dc3545;
   color: #fff;
 }
 
-.reject-btn:hover, .delete-btn:hover {
+.reject-btn:hover,
+.delete-btn:hover {
   background-color: #c82333;
   transform: scale(1.05);
 }
@@ -220,14 +313,13 @@ header {
   transform: scale(1.05);
 }
 
-/* Modal Overlay */
 .modal-overlay {
   position: fixed;
   top: 0;
   left: 0;
   width: 100%;
   height: 100%;
-  background-color: rgba(0, 0, 0, 0.7);
+  background: rgba(0, 0, 0, 0.5);
   display: flex;
   justify-content: center;
   align-items: center;
@@ -235,28 +327,57 @@ header {
 }
 
 .modal-content {
-  background-color: #fff;
-  border-radius: 12px;
+  background: white;
+  width: 650px;
+  max-width: 90%;
   padding: 30px;
-  width: 80%;
-  max-width: 500px;
-  box-shadow: 0 10px 20px rgba(0, 0, 0, 0.3);
-  display: flex;
-  flex-direction: column;
-  gap: 20px;
+  border-radius: 12px;
+  box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.2);
+  position: relative;
+  text-align: center;
+  font-family: "Arial", sans-serif;
+}
+
+.close-btn {
+  position: absolute;
+  top: 10px;
+  right: 15px;
+  font-size: 18px;
+  cursor: pointer;
+  border: none;
+  background: none;
+  color: red;
+}
+
+.close-btn:hover {
+  color: red;
+  background: none;
 }
 
 .modal-title {
-  font-size: 1.8em;
-  font-weight: bold;
+  font-size: 22px;
+  margin-bottom: 30px;
   color: #333;
-  text-align: center;
+  font-weight: bold;
 }
 
 .user-info {
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 15px;
+  text-align: left;
+}
+
+.info-item {
+  background: #f9f9f9;
+  padding: 10px;
+  border-radius: 6px;
+  font-size: 14px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+}
+
+.info-item strong {
+  color: #a91d3a;
 }
 
 .notification-popup {
@@ -270,8 +391,8 @@ header {
   z-index: 1000;
   padding: 20px;
   width: 400px;
-  max-height: 500px; /* Limit height */
-  overflow-y: auto; /* Enable scrolling */
+  max-height: 500px;
+  overflow-y: auto;
 }
 
 .notification-header {
@@ -295,7 +416,7 @@ header {
 .close-icon {
   position: fixed;
   right: 5px;
-  top:5px;
+  top: 5px;
   font-size: 24px;
   color: red;
   cursor: pointer;
@@ -332,7 +453,6 @@ header {
 .notification-list li:last-child {
   border-bottom: none;
 }
-
 
 .filter-menu {
   display: flex;

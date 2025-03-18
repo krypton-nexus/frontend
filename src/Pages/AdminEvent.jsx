@@ -2,11 +2,13 @@ import React, { useEffect, useState } from "react";
 import { jwtDecode } from "jwt-decode";
 import { Link } from "react-router-dom";
 import "../CSS/ViewEvents.css";
-import Sidebar from "../Components/SideBar";
+import "../CSS/AddEvent.css";
+import AdminSidebar from "../Components/AdminSidebar";
 import bannerImage from "../Images/bannerevent.png";
-import { FaUserCircle, FaSearch } from "react-icons/fa";
+import { FaSearch, FaEllipsisV, FaPen, FaTrash, FaTimes } from "react-icons/fa";
+import { useNavigate } from "react-router-dom";
 
-const ViewEvents = () => {
+const AdminEvent = () => {
   const [events, setEvents] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -16,6 +18,10 @@ const ViewEvents = () => {
   const [trendingImages, setTrendingImages] = useState([]); // Store event images for trending
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const [activeTab, setActiveTab] = useState("today");
+  const [menuOpen, setMenuOpen] = useState(null);
+  const [editModalOpen, setEditModalOpen] = useState(false);
+  const [editEvent, setEditEvent] = useState(null);
+  const navigate = useNavigate();
 
   useEffect(() => {
     const token = localStorage.getItem("access_token");
@@ -79,6 +85,30 @@ const ViewEvents = () => {
     fetchEvents();
   }, [token]);
 
+  const handleDelete = async (eventId) => {
+    if (!window.confirm("Are you sure you want to delete this event?")) return;
+
+    try {
+      const response = await fetch(
+        `http://43.205.202.255:5000/event/delete/${eventId}`,
+        {
+          method: "DELETE",
+          headers: { Authorization: `Bearer ${token}` },
+        }
+      );
+
+      if (!response.ok)
+        throw new Error(`Failed to delete event: ${response.status}`);
+
+      setEvents((prevEvents) =>
+        prevEvents.filter((event) => event.id !== eventId)
+      );
+      alert("Event deleted successfully!");
+    } catch (error) {
+      console.error("Error deleting event:", error);
+      alert("Failed to delete event.");
+    }
+  };
   // Auto change images every 4 seconds for the trending section
   useEffect(() => {
     if (trendingImages.length > 1) {
@@ -136,17 +166,61 @@ const ViewEvents = () => {
     }
   };
 
+  const handleEditClick = (event) => {
+    setEditEvent(event);
+    setEditModalOpen(true);
+  };
+
+  const handleEditChange = (e) => {
+    const { name, value } = e.target;
+    setEditEvent((prev) => ({
+      ...prev,
+      [name]: value,
+    }));
+  };
+
+  const handleEditSubmit = async () => {
+    try {
+      const response = await fetch(
+        `http://43.205.202.255:5000/event/update/${editEvent.id}`,
+        {
+          method: "PUT",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify(editEvent),
+        }
+      );
+
+      if (!response.ok)
+        throw new Error(`Failed to update event: ${response.status}`);
+
+      setEvents((prevEvents) =>
+        prevEvents.map((event) =>
+          event.id === editEvent.id ? editEvent : event
+        )
+      );
+
+      setEditModalOpen(false);
+      alert("Event updated successfully!");
+    } catch (error) {
+      console.error("Error updating event:", error);
+      alert("Failed to update event.");
+    }
+  };
+
   const todayDate = new Date().toDateString();
 
   const filteredEvents = events.filter((event) => {
     const eventDate = new Date(event.event_date);
 
-    if (activeTab === "all") {
-      return true; // Show all events
-    }
-    if (activeTab === "today") {
-      return eventDate.toDateString() === todayDate;
-    }
+    // if (activeTab === "all") {
+    //   return true; // Show all events
+    // }
+    // if (activeTab === "today") {
+    //   return eventDate.toDateString() === todayDate;
+    // }
     if (activeTab === "upcoming") {
       return eventDate > new Date();
     }
@@ -158,7 +232,7 @@ const ViewEvents = () => {
 
   return (
     <div className="view-events-container">
-      <Sidebar />
+      <AdminSidebar />
       <main className="main-content">
         <div className="membership-header">
           <div className="search-container">
@@ -171,29 +245,46 @@ const ViewEvents = () => {
               <FaSearch />
             </button>
           </div>
-          <FaUserCircle className="membership-avatar" size={30} />
+
+          <button
+            className="create-event"
+            onClick={() => navigate("/addevent")}>
+            Create Event
+          </button>
         </div>
-
-        <header className="banner">
-          <img src={bannerImage} alt="Events Banner" className="banner-image" />
-        </header>
-
         <div className="trending-my-events">
           <div className="trending-events">
-            <h2>Trending Events</h2>
-            {trendingImages.length > 0 && (
-              <div className="trending-image-container">
-                <img
-                  src={trendingImages[currentImageIndex]}
-                  alt="Trending Event"
-                  className="trending-image"
-                />
-              </div>
-            )}
+            <div className="participants-table">
+              <h2>Participants Count</h2>
+              <table>
+                <thead>
+                  <tr>
+                    <th>Event Name</th>
+                    <th>Venue</th>
+                    <th>Time</th>
+                    <th>Yes Count</th>
+                    <th>No Count</th>
+                    <th>Maybe Count</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {filteredEvents.map((event) => (
+                    <tr key={event.id}>
+                      <td>{event.event_name}</td>
+                      <td>{event.venue}</td>
+                      <td>{new Date(event.event_date).toLocaleTimeString()}</td>
+                      <td>{event.yes_count || 0}</td>
+                      <td>{event.no_count || 0}</td>
+                      <td>{event.maybe_count || 0}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
           </div>
 
           <div className="my-events">
-            <h2>My Events</h2>
+            <h2>Club Events</h2>
             <div className="event-tabs">
               <span
                 className={`event-tab ${
@@ -228,10 +319,10 @@ const ViewEvents = () => {
         </div>
 
         <div className="events-header">
-          <h2>Popular Events</h2>
+          <h2>Customize Your Events</h2>
         </div>
-        <div className="all-event-tabs">
-          <span
+        <div className="all-event-tabs2">
+          {/* <span
             className={`event-tab ${activeTab === "all" ? "active-tab" : ""}`}
             onClick={() => setActiveTab("all")}>
             All Events
@@ -240,7 +331,7 @@ const ViewEvents = () => {
             className={`event-tab ${activeTab === "today" ? "active-tab" : ""}`}
             onClick={() => setActiveTab("today")}>
             Today Events
-          </span>
+          </span> */}
           <span
             className={`event-tab ${
               activeTab === "upcoming" ? "active-tab" : ""
@@ -255,7 +346,6 @@ const ViewEvents = () => {
           </span>
         </div>
 
-        {/* 🔹 **Event Cards Based on Selected Tab** */}
         {loading ? (
           <div>Loading events...</div>
         ) : error ? (
@@ -263,24 +353,34 @@ const ViewEvents = () => {
         ) : filteredEvents.length > 0 ? (
           <div className="events-grid">
             {filteredEvents.map((event) => (
-              <div className="event-card" key={event.id}>
+              <div className="event-card2" key={event.id}>
                 <img
                   src={getImageUrl(event.images)}
                   alt={event.event_name}
-                  className="event-image"
+                  className="event-image2"
                 />
-                <div className="event-info">
+                <div className="event-info2">
                   <h3>{event.event_name}</h3>
                   <p>{new Date(event.event_date).toDateString()}</p>
                   <p>{event.venue}</p>
-                  <p className="event-participants">
-                    <strong>Participants:</strong>
-                  </p>
-                  <div className="event-buttons">
-                    <button className="yes-btn">Yes</button>
-                    <button className="no-btn">No</button>
-                    <button className="maybe-btn">Maybe</button>
-                  </div>
+                </div>
+                <div className="event-menu-container">
+                  <FaEllipsisV
+                    className="menu-icon"
+                    onClick={() =>
+                      setMenuOpen(menuOpen === event.id ? null : event.id)
+                    }
+                  />
+                  {menuOpen === event.id && (
+                    <div className="event-menu">
+                      <button onClick={() => handleEditClick(event)}>
+                        <FaPen /> Edit
+                      </button>
+                      <button onClick={() => handleDelete(event.id)}>
+                        <FaTrash /> Delete
+                      </button>
+                    </div>
+                  )}
                 </div>
               </div>
             ))}
@@ -291,8 +391,82 @@ const ViewEvents = () => {
           </div>
         )}
       </main>
+      {editModalOpen && (
+        <div className="modal-overlay2">
+          <div className="modal-content2">
+            <h2>Edit Event</h2>
+            <label>
+              Event Name:
+              <input
+                type="text"
+                name="event_name"
+                value={editEvent.event_name}
+                onChange={handleEditChange}
+              />
+            </label>
+            <label>
+              Event Date:
+              <input
+                type="date"
+                name="event_date"
+                value={editEvent.event_date}
+                onChange={handleEditChange}
+              />
+            </label>
+            <label>
+              Venue:
+              <input
+                type="text"
+                name="venue"
+                value={editEvent.venue}
+                onChange={handleEditChange}
+              />
+            </label>
+            <label>
+              Event Description:
+              <textarea
+                name="event_description"
+                value={editEvent.event_description}
+                onChange={handleEditChange}
+                requiredE
+              />
+            </label>
+
+            <label>
+              Mode:
+              <select
+                name="mode"
+                value={editEvent.mode}
+                onChange={handleEditChange}>
+                <option value="physical">Physical</option>
+                <option value="virtual">Virtual</option>
+              </select>
+            </label>
+            <label>
+              Category:
+              <select
+                name="category"
+                value={editEvent.category}
+                onChange={handleEditChange}>
+                <option value="Education">Education</option>
+                <option value="Entertainment">Entertainment</option>
+                <option value="Networking">Networking</option>
+                <option value="Volunteering">Volunteering</option>
+              </select>
+            </label>
+
+            <button className="update-btn" onClick={handleEditSubmit}>
+              Update Event
+            </button>
+            <FaTimes
+              className="close-modal"
+              onClick={() => setEditModalOpen(false)}
+            />
+          </div>
+        </div>
+      )}
     </div>
   );
 };
 
-export default ViewEvents;
+export default AdminEvent;

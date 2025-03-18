@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { Link } from "react-router-dom";
 import "../CSS/AddEvent.css";
-import Sidebar from "../Components/SideBar";
+import AdminSidebar from "../Components/AdminSidebar";
 import bannerImage from "../Images/events-banner.jpg";
 
 const AddEvent = () => {
@@ -12,7 +12,8 @@ const AddEvent = () => {
     venue: "",
     event_description: "",
     mode: "physical",
-    images: "",
+    category: "Education", // Default category
+    imageFile: null, // For storing the selected image file
   });
 
   const handleChange = (e) => {
@@ -23,15 +24,35 @@ const AddEvent = () => {
     }));
   };
 
+  const handleFileChange = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      setEventData((prevData) => ({
+        ...prevData,
+        imageFile: file,
+      }));
+    }
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
+
+    const formData = new FormData();
+    formData.append("event_name", eventData.event_name);
+    formData.append("event_date", eventData.event_date);
+    formData.append("event_time", eventData.event_time);
+    formData.append("venue", eventData.venue);
+    formData.append("event_description", eventData.event_description);
+    formData.append("mode", eventData.mode);
+    formData.append("category", eventData.category);
+    if (eventData.imageFile) {
+      formData.append("image", eventData.imageFile);
+    }
+
     try {
       const response = await fetch("http://43.205.202.255:5000/event/create", {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(eventData),
+        body: formData, // Send as FormData
       });
 
       if (response.ok) {
@@ -43,7 +64,8 @@ const AddEvent = () => {
           venue: "",
           event_description: "",
           mode: "physical",
-          images: "",
+          category: "Education",
+          imageFile: null,
         });
       } else {
         alert("Failed to create event. Please try again.");
@@ -56,16 +78,16 @@ const AddEvent = () => {
 
   return (
     <div className="view-events-container">
-      {/* <AdminSidebar /> */}
+      <AdminSidebar />
       <main className="main-content">
-        {/* <header className="banner">
-          <img src={bannerImage} alt="Events Banner" className="banner-image" />
-        </header> */}
         <div className="events-header">
           <h2>Create a New Event</h2>
         </div>
 
-        <form className="event-form" onSubmit={handleSubmit}>
+        <form
+          className="event-form"
+          onSubmit={handleSubmit}
+          encType="multipart/form-data">
           <label>
             Event Name:
             <input
@@ -129,12 +151,25 @@ const AddEvent = () => {
           </label>
 
           <label>
-            Event Images (URLs):
+            Category:
+            <select
+              name="category"
+              value={eventData.category}
+              onChange={handleChange}>
+              <option value="Education">Education</option>
+              <option value="Entertainment">Entertainment</option>
+              <option value="Networking">Networking</option>
+              <option value="Volunteering">Volunteering</option>
+            </select>
+          </label>
+
+          <label>
+            Upload Event Image:
             <input
-              type="text"
-              name="images"
-              value={eventData.images}
-              onChange={handleChange}
+              type="file"
+              name="image"
+              accept="image/*"
+              onChange={handleFileChange}
             />
           </label>
 
