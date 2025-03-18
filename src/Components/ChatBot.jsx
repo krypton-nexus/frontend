@@ -39,10 +39,6 @@ const ChatBot = () => {
     setIsChatbotOpen((prev) => !prev);
   };
 
-  const sendMessage = async () => {
-    const messageText = input.trim();
-    if (!messageText) return;
-
     const userMessage = { sender: "user", text: messageText };
     const updatedMessages = [...messages, userMessage];
     setMessages(updatedMessages);
@@ -61,32 +57,11 @@ const ChatBot = () => {
         },
         { headers: { "Content-Type": "application/json" } }
       );
-
-      console.log("Raw API Response:", response.data);
-
-      let botText = "I couldn't process your request. Please try again.";
-      let parsedData;
-
-      // ✅ Check if response is a string
-      if (typeof response.data === "string") {
-        try {
-          // ✅ Remove any invalid control characters before parsing
-          const sanitizedResponse = response.data.replace(
-            /[\u0000-\u001F]/g,
-            ""
-          );
           parsedData = JSON.parse(sanitizedResponse);
         } catch (parseError) {
           console.error("Error parsing response JSON:", parseError);
         }
       } else {
-        parsedData = response.data; // Already an object
-      }
-
-      // ✅ Extract text safely
-      if (parsedData && parsedData.text) {
-        botText = parsedData.text;
-      }
 
       setMessages((prev) => [...prev, { sender: "bot", text: botText }]);
     } catch (error) {
@@ -97,6 +72,7 @@ const ChatBot = () => {
       ]);
     }
   };
+  
 
   const clearChatHistory = () => {
     localStorage.removeItem("chatbotHistory");
@@ -125,7 +101,6 @@ const ChatBot = () => {
                 key={index}
                 className={`chatbot-message ${
                   message.sender === "user" ? "user-message" : "bot-message"
-                }`}>
                 {message.text}
               </div>
             ))}

@@ -1,0 +1,30 @@
+name: Deploy React App to EC2
+
+on:
+  push:
+    branches:
+      - main  # Change if your branch is different
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v3
+
+      - name: Set up SSH Key
+        run: |
+          echo "${{ secrets.EC2_SSH_KEY }}" > private_key.pem
+          chmod 600 private_key.pem
+
+      - name: Deploy and Restart App
+        run: |
+          ssh -o StrictHostKeyChecking=no -i private_key.pem ubuntu@13.247.207.132 << 'EOF'
+            cd "/home/ubuntu/Llama 3.1/Nexus/FrontEnd/frontend"
+            git pull origin main
+            npm install
+            npm run build
+            pm2 restart static-page-server-3000  # Restart the correct PM2 process
+          EOF
+
