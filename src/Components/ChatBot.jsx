@@ -4,6 +4,7 @@ import "../CSS/ChatBot.css";
 import logo2 from "../Images/logo2.png";
 import helpIcon from "../Images/help.png";
 import { FaTimes, FaTrash } from "react-icons/fa";
+import { FaPaperPlane } from "react-icons/fa";
 
 const ChatBot = () => {
   const [isChatbotOpen, setIsChatbotOpen] = useState(false);
@@ -156,9 +157,15 @@ const ChatBot = () => {
                 if (e.key === "Enter") sendMessage();
               }}
             />
-            <button className="chatbot-send-btn" onClick={sendMessage}>
-              Send
+            <button
+              type="submit"
+              className="message-send-button"
+              onClick={sendMessage}>
+              <FaPaperPlane />
             </button>
+            {/* <button className="chatbot-send-btn" onClick={sendMessage}>
+              Send
+            </button> */}
           </div>
 
           {/* <button className="clear-history-btn" onClick={clearChatHistory}>

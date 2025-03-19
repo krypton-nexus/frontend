@@ -255,7 +255,7 @@ const AdminEvent = () => {
         <div className="trending-my-events">
           <div className="trending-events">
             <div className="participants-table">
-              <h2>Participants Count</h2>
+              <h2>Event Summary</h2>
               <table>
                 <thead>
                   <tr>
@@ -291,14 +291,14 @@ const AdminEvent = () => {
                   activeTab === "today" ? "active-tab" : ""
                 }`}
                 onClick={() => setActiveTab("today")}>
-                Today’s Events
+                This Month
               </span>
               <span
                 className={`event-tab ${
                   activeTab === "upcoming" ? "active-tab" : ""
                 }`}
                 onClick={() => setActiveTab("upcoming")}>
-                Upcoming Events
+                Next Month
               </span>
             </div>
             <div className="event-list">
