@@ -114,7 +114,7 @@ const App = () => {
           }
         />
         <Route
-          path="/adminlogin"
+          path="admin"
           element={
             <NoButtonLayout>
               <AdminLogin />
