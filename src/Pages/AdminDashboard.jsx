@@ -1,14 +1,12 @@
-import React, { useState, useEffect, useMemo } from "react";
-import { useNavigate } from "react-router-dom";
+import React, { useState, useEffect } from "react";
+import { useNavigate, Link } from "react-router-dom";
 import { ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import { jwtDecode } from "jwt-decode";
-import axios from "axios";
 import { Ban } from "lucide-react";
-import { FaUserCircle } from "react-icons/fa";
-import { FaSearch } from "react-icons/fa";
-
 import {
+  FaUserCircle,
+  FaSearch,
   FaUsers,
   FaTasks,
   FaRss,
@@ -18,12 +16,84 @@ import {
   FaSignOutAlt,
   FaCalendarAlt,
 } from "react-icons/fa";
-import { Link } from "react-router-dom";
 import logo1short from "../Images/logo1short.png";
 import "../CSS/AdminDashboard.css";
 import { IoCloseCircleOutline } from "react-icons/io5";
 
-// AdminDashboard Component
+// Base URL for your backend
+const baseURL = "http://43.205.202.255:5000";
+
+// Helper functions for API calls using fetch
+const apiGet = async (endpoint, token) => {
+  const res = await fetch(`${baseURL}${endpoint}`, {
+    method: "GET",
+    headers: {
+      Authorization: `Bearer ${token}`,
+      "Content-Type": "application/json",
+      Accept: "application/json",
+    },
+  });
+  if (!res.ok) {
+    throw new Error(`GET ${endpoint} failed with status: ${res.status}`);
+  }
+  return await res.json();
+};
+
+const apiPut = async (endpoint, token, body) => {
+  const res = await fetch(`${baseURL}${endpoint}`, {
+    method: "PUT",
+    headers: {
+      Authorization: `Bearer ${token}`,
+      "Content-Type": "application/json",
+      Accept: "application/json",
+    },
+    body: JSON.stringify(body),
+  });
+  if (!res.ok) {
+    throw new Error(`PUT ${endpoint} failed with status: ${res.status}`);
+  }
+  return await res.json();
+};
+
+const apiPatch = async (endpoint, token, body) => {
+  const res = await fetch(`${baseURL}${endpoint}`, {
+    method: "PATCH",
+    headers: {
+      Authorization: `Bearer ${token}`,
+      "Content-Type": "application/json",
+      Accept: "application/json",
+    },
+    body: JSON.stringify(body),
+  });
+  if (!res.ok) {
+    throw new Error(`PATCH ${endpoint} failed with status: ${res.status}`);
+  }
+  return await res.json();
+};
+const apiDelete = async (endpoint, token, body) => {
+  const res = await fetch(`${baseURL}${endpoint}`, {
+    method: "DELETE",
+    headers: {
+      Authorization: `Bearer ${token}`,
+      "Content-Type": "application/json",
+      Accept: "application/json",
+    },
+    body: JSON.stringify(body),
+  });
+  if (!res.ok) {
+    let errorDetails = "";
+    try {
+      errorDetails = await res.text();
+    } catch (err) {
+      errorDetails = "No additional error info";
+    }
+    throw new Error(
+      `DELETE ${endpoint} failed with status: ${res.status}. Details: ${errorDetails}`
+    );
+  }
+  return await res.json();
+};
+
 const AdminDashboard = () => {
   // State variables
   const [unreadNotifications, setUnreadNotifications] = useState([]);
@@ -40,17 +110,9 @@ const AdminDashboard = () => {
   const navigate = useNavigate();
   const adminAccessToken = localStorage.getItem("admin_access_token");
 
-  // Axios instance
-  const axiosInstance = useMemo(() => {
-    return axios.create({
-      baseURL: "http://43.205.202.255:5000",
-      headers: {
-        Authorization: `Bearer ${adminAccessToken}`, // Include token in headers
-      },
-    });
-  }, [adminAccessToken]);
+  console.log("Admin Access Token:", adminAccessToken);
 
-  // Decode JWT Token
+  // Decode JWT token to extract admin email
   const getAdminEmailFromToken = (token) => {
     try {
       const decodedToken = jwtDecode(token);
@@ -64,20 +126,26 @@ const AdminDashboard = () => {
   const adminEmail = adminAccessToken
     ? getAdminEmailFromToken(adminAccessToken)
     : null;
+  console.log("Admin Email:", adminEmail);
 
-  // Fetch initial data
+  // Redirect to admin login if token/email is missing
   useEffect(() => {
     if (!adminEmail) {
       navigate("/adminlogin");
-      return;
     }
+  }, [adminEmail, navigate]);
+
+  // Fetch initial data: admin details & unread notifications
+  useEffect(() => {
+    if (!adminEmail) return;
 
     const fetchAdminDetails = async () => {
       try {
-        const response = await axiosInstance.get(
-          `/admin/email?email=${adminEmail}`
+        const data = await apiGet(
+          `/admin/email?email=${adminEmail}`,
+          adminAccessToken
         );
-        setClubId(response.data.club_id);
+        setClubId(data.club_id);
       } catch (error) {
         console.error("Failed to fetch admin's club ID:", error);
       }
@@ -85,10 +153,11 @@ const AdminDashboard = () => {
 
     const fetchUnreadNotifications = async () => {
       try {
-        const response = await axiosInstance.get(
-          `/notifications/unread?admin_email=${adminEmail}`
-        );
-        setUnreadNotifications(response.data.unread_notifications || []);
+        const endpoint = `/notification_admin/unread?admin_email=${adminEmail}`;
+        console.log("Fetching unread notifications from:", endpoint);
+        const data = await apiGet(endpoint, adminAccessToken);
+        console.log("Unread notifications response:", data);
+        setUnreadNotifications(data.unread_notifications || []);
       } catch (error) {
         console.error("Failed to fetch unread notifications:", error);
       }
@@ -96,24 +165,48 @@ const AdminDashboard = () => {
 
     fetchAdminDetails();
     fetchUnreadNotifications();
-  }, [adminEmail, navigate, axiosInstance]);
+  }, [adminEmail, adminAccessToken, navigate]);
+
+  // In your AdminDashboard component, add a new state for unread notification count:
+  const [unreadCount, setUnreadCount] = useState(0);
+
+  // Then add an effect to fetch the unread count:
+  useEffect(() => {
+    if (!adminEmail) return;
+    const fetchUnreadNotificationCount = async () => {
+      try {
+        const endpoint = `/notification_admin/unread/count?admin_email=${adminEmail}`;
+        console.log("Fetching unread notification count from:", endpoint);
+        const data = await apiGet(endpoint, adminAccessToken);
+        // Assuming your backend returns the count in data.unread_count or similar
+        setUnreadCount(data.unread_count || 0);
+        console.log("Unread notification count:", data.unread_count);
+      } catch (error) {
+        console.error("Failed to fetch unread notification count:", error);
+      }
+    };
+    fetchUnreadNotificationCount();
+  }, [adminEmail, adminAccessToken]);
 
   // Fetch all notifications
   useEffect(() => {
+    if (!adminEmail) return;
+
     const fetchNotifications = async () => {
       try {
-        const response = await axiosInstance.get(
-          `/notification_admin/all?admin_email=${adminEmail}`
+        const data = await apiGet(
+          `/notification_admin/all?admin_email=${adminEmail}`,
+          adminAccessToken
         );
-        setAllNotifications(response.data.all_notifications || []);
+        setAllNotifications(data.all_notifications || []);
       } catch (error) {
         console.error("Failed to fetch notifications:", error);
       }
     };
     fetchNotifications();
-  }, [adminEmail, axiosInstance]);
+  }, [adminEmail, adminAccessToken]);
 
-  // Filter notifications
+  // Filter notifications based on filter state
   useEffect(() => {
     const filtered =
       notificationFilter === "all"
@@ -126,18 +219,23 @@ const AdminDashboard = () => {
     setFilteredNotifications(filtered);
   }, [notificationFilter, allNotifications]);
 
-  // Fetch membership data
+  // Fetch membership data for the club
   useEffect(() => {
     if (!clubId) return;
 
     const fetchMembershipData = async () => {
       try {
-        const [membershipResponse, studentResponse] = await Promise.all([
-          axiosInstance.get(`/membership/list?club_id=${clubId}`),
-          axiosInstance.get("/student/list"),
+        const membershipPromise = apiGet(
+          `/membership/list?club_id=${clubId}`,
+          adminAccessToken
+        );
+        const studentPromise = apiGet("/student/list", adminAccessToken);
+        const [membershipData, studentData] = await Promise.all([
+          membershipPromise,
+          studentPromise,
         ]);
-        const memberships = membershipResponse.data?.memberships || [];
-        const allStudents = studentResponse.data.students || [];
+        const memberships = membershipData.memberships || [];
+        const allStudents = studentData.students || [];
 
         const emailToStudentDataMap = allStudents.reduce((acc, student) => {
           acc[student.email] = {
@@ -176,7 +274,7 @@ const AdminDashboard = () => {
     };
 
     fetchMembershipData();
-  }, [clubId, axiosInstance]);
+  }, [clubId, adminAccessToken]);
 
   // Handlers
   const handleLogout = () => {
@@ -188,8 +286,10 @@ const AdminDashboard = () => {
 
   const handleViewDetails = async (email) => {
     try {
-      const response = await axiosInstance.get(`/student/${email}`);
-      setModalUserData(response.data);
+      const data = await apiGet(`/student/${email}`, adminAccessToken);
+      console.log("sample:" + data.email);
+
+      setModalUserData(data);
       setIsModalOpen(true);
     } catch (error) {
       console.error("Failed to fetch user details:", error);
@@ -203,28 +303,25 @@ const AdminDashboard = () => {
         club_id: clubId,
         status: action,
       };
-
-      const response = await axiosInstance.put(
+      const data = await apiPut(
         `/membership/update/status`,
+        adminAccessToken,
         requestBody
       );
-
-      if (response.status === 200) {
+      if (data) {
         alert(
           `${
             action === "Approved" ? "Approved" : "Rejected"
           } membership request for ${email}.`
         );
-
-        setNewMembershipRequests((prevRequests) =>
-          prevRequests.filter((member) => member.student_email !== email)
+        setNewMembershipRequests((prev) =>
+          prev.filter((member) => member.student_email !== email)
         );
-
         if (action === "Approved") {
           const ApprovedMember = newMembershipRequests.find(
             (member) => member.student_email === email
           );
-          setCurrentMembers((prevMembers) => [...prevMembers, ApprovedMember]);
+          setCurrentMembers((prev) => [...prev, ApprovedMember]);
         }
       }
     } catch (error) {
@@ -234,16 +331,17 @@ const AdminDashboard = () => {
 
   const handleMemberDeletion = async (email) => {
     try {
-      const response = await axiosInstance.delete(`/membership/delete`, {
-        data: { student_email: email, club_id: clubId },
-      });
-
-      if (response.status === 200) {
-        alert(`Member ${email} has been removed from the club.`);
-        setCurrentMembers((prevMembers) =>
-          prevMembers.filter((member) => member.student_email !== email)
-        );
-      }
+      // Use the correct key as per your DB schema—here we use "email"
+      const requestBody = { student_id: email, club_id: clubId };
+      const data = await apiDelete(
+        `/membership/delete`,
+        adminAccessToken,
+        requestBody
+      );
+      alert(`Member ${email} has been removed from the club.`);
+      setCurrentMembers(
+        (prev) => prev.filter((member) => member.student_id !== email) // adjust filtering if needed
+      );
     } catch (error) {
       console.error("Failed to delete member:", error);
     }
@@ -253,6 +351,7 @@ const AdminDashboard = () => {
     setIsNotificationsVisible(!isNotificationsVisible);
   };
 
+  // Membership table component
   const MembershipTable = ({ title, data, isCurrentMembers }) => {
     if (!Array.isArray(data) || data.length === 0) {
       return (
@@ -268,12 +367,9 @@ const AdminDashboard = () => {
                 <FaSearch />
               </button>
             </div>
-
             <FaUserCircle className="membership-avatar" size={30} />
           </div>
-
           <hr className="section-divider" />
-
           <div className="no-membership-request">
             <h2>
               <span className="ban-icon">
@@ -313,14 +409,17 @@ const AdminDashboard = () => {
                     <>
                       <button
                         className="view-btn"
-                        onClick={() => handleViewDetails(member.student_email)}>
+                        onClick={() => handleViewDetails(member.student_email)}
+                      >
                         View
                       </button>
+
                       <button
                         className="delete-btn"
                         onClick={() =>
                           handleMemberDeletion(member.student_email)
-                        }>
+                        }
+                      >
                         Delete
                       </button>
                     </>
@@ -328,7 +427,8 @@ const AdminDashboard = () => {
                     <>
                       <button
                         className="view-btn"
-                        onClick={() => handleViewDetails(member.student_email)}>
+                        onClick={() => handleViewDetails(member.student_email)}
+                      >
                         View
                       </button>
                       <button
@@ -338,7 +438,8 @@ const AdminDashboard = () => {
                             "Approved",
                             member.student_email
                           )
-                        }>
+                        }
+                      >
                         Accept
                       </button>
                       <button
@@ -348,7 +449,8 @@ const AdminDashboard = () => {
                             "rejected",
                             member.student_email
                           )
-                        }>
+                        }
+                      >
                         Reject
                       </button>
                     </>
@@ -362,42 +464,47 @@ const AdminDashboard = () => {
     );
   };
 
+  // Notification popup component
   const NotificationPopup = () => {
+    // Function to mark all unread notifications as read and reset unread count
     const markAllAsRead = async () => {
       try {
         const unreadNotificationIds = filteredNotifications
           .filter((notification) => notification.is_read === 0)
           .map((notification) => notification.id);
-
         if (unreadNotificationIds.length > 0) {
-          await axiosInstance.patch("/notification_admin/mark-as-read", {
+          await apiPatch("/notification_admin/mark-as-read", adminAccessToken, {
             admin_email: adminEmail,
             notification_ids: unreadNotificationIds,
           });
-          // Update the notifications locally
-          setFilteredNotifications((prevNotifications) =>
-            prevNotifications.map((notif) => ({
-              ...notif,
-              is_read: 1,
-            }))
+          // Update notifications locally so they all become marked as read
+          setFilteredNotifications((prev) =>
+            prev.map((notif) => ({ ...notif, is_read: 1 }))
           );
+          // Reset the unread count to 0
+          setUnreadCount(0);
         }
       } catch (error) {
         console.error("Failed to mark notifications as read:", error);
       }
     };
 
-    const handleUnreadClick = () => {
+    // When the Unread button is clicked, set the filter to unread and mark all as read.
+    const handleUnreadClick = async () => {
       setNotificationFilter("unread");
+      await markAllAsRead();
     };
 
-    const handleClose = () => {
+    // When closing the popup, if the filter is unread, mark notifications as read
+    // and then toggle off the popup.
+    const handleClose = async () => {
       if (notificationFilter === "unread") {
-        markAllAsRead();
+        await markAllAsRead();
       }
       toggleNotifications();
     };
 
+    // Sort notifications by created_at (most recent first) and format the date.
     const sortedNotifications = filteredNotifications
       .slice()
       .sort((a, b) => new Date(b.created_at) - new Date(a.created_at))
@@ -439,7 +546,8 @@ const AdminDashboard = () => {
                       style={{
                         fontWeight:
                           notification.is_read === 0 ? "bold" : "normal",
-                      }}>
+                      }}
+                    >
                       <div>{notification.notification}</div>
                       <div>{notification.formattedDate}</div>
                     </li>
@@ -455,6 +563,7 @@ const AdminDashboard = () => {
     );
   };
 
+  // User detail modal component
   const UserDetailModal = ({ isOpen, onClose, user }) => {
     if (!isOpen || !user) return null;
 
@@ -464,9 +573,7 @@ const AdminDashboard = () => {
           <button className="close-btn" onClick={onClose}>
             ✖
           </button>
-
           <h2 className="modal-title">Member Details</h2>
-
           <div className="user-info">
             <div className="info-item">
               <strong>First Name:</strong>{" "}
@@ -533,35 +640,30 @@ const AdminDashboard = () => {
               <FaCalendarAlt /> Events
             </Link>
           </li>
-
           <li>
             <Link to="/tasks">
               <FaTasks /> Tasks
             </Link>
           </li>
-
           <li>
             <Link to="/feed">
               <FaRss /> Feed
             </Link>
           </li>
-
           <li>
             <Link to="/finance">
               <FaWallet /> Finance
             </Link>
           </li>
-
           <li>
             <Link to="/marketplace">
               <FaStore /> Marketplace
             </Link>
           </li>
-
           <li>
             <div className="notifications" onClick={toggleNotifications}>
               <FaRegBell /> Notification{" "}
-              <span className="badge">{unreadNotifications.length}</span>
+              <span className="badge">{unreadCount}</span>
             </div>
           </li>
         </ul>
@@ -571,7 +673,6 @@ const AdminDashboard = () => {
       </aside>
 
       <NotificationPopup />
-
       <UserDetailModal
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}

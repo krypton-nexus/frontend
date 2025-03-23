@@ -1,6 +1,5 @@
 import React, { useEffect, useState } from "react";
 import { jwtDecode } from "jwt-decode";
-import { Link } from "react-router-dom";
 import "../CSS/ViewEvents.css";
 import Sidebar from "../Components/SideBar";
 import bannerImage from "../Images/bannerevent.png";
@@ -12,17 +11,22 @@ const ViewEvents = () => {
   const [error, setError] = useState(null);
   const [studentEmail, setStudentEmail] = useState("");
   const [token, setToken] = useState(null);
+  const [clubId, setClubId] = useState("");
   const [participantCounts, setParticipantCounts] = useState({});
-  const [trendingImages, setTrendingImages] = useState([]); // Store event images for trending
+  const [trendingImages, setTrendingImages] = useState([]);
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const [activeTab, setActiveTab] = useState("today");
+  // Tracks the user's vote for each event ("yes" or "no")
+  const [userVotes, setUserVotes] = useState({});
 
+  // Decode token and set student email and clubId.
   useEffect(() => {
     const token = localStorage.getItem("access_token");
     if (token) {
       try {
         const decoded = jwtDecode(token);
         setStudentEmail(decoded.email);
+        setClubId(decoded.club_id || "club_sesa");
         setToken(token);
       } catch (err) {
         console.error("Invalid token", err);
@@ -34,13 +38,13 @@ const ViewEvents = () => {
     }
   }, []);
 
+  // Fetch events using the dynamic clubId and token.
   useEffect(() => {
-    if (!token) return;
-
+    if (!token || !clubId) return;
     const fetchEvents = async () => {
       try {
         const response = await fetch(
-          "http://43.205.202.255:5000/event/get_events?club_id=club_sesa",
+          `http://43.205.202.255:5000/event/get_events?club_id=${clubId}`,
           {
             method: "GET",
             headers: {
@@ -51,19 +55,17 @@ const ViewEvents = () => {
         );
         if (!response.ok)
           throw new Error(`HTTP error! Status: ${response.status}`);
-
         const data = await response.json();
         if (data.events && Array.isArray(data.events)) {
           setEvents(data.events);
-
-          // Extract event images for trending section
+          // Extract images for trending section.
           const images = data.events
             .map((event) => getImageUrl(event.images))
-            .filter((img) => img !== ""); // Remove empty images
+            .filter((img) => img !== "");
           setTrendingImages(images);
-
+          // For each event, fetch its participant count.
           data.events.forEach((event) => {
-            fetchParticipantCount(event.club_id, event.id);
+            fetchParticipantCount(event.club_id || clubId, event.id);
           });
         } else {
           console.error("Unexpected data format:", data);
@@ -75,11 +77,10 @@ const ViewEvents = () => {
         setLoading(false);
       }
     };
-
     fetchEvents();
-  }, [token]);
+  }, [token, clubId]);
 
-  // Auto change images every 4 seconds for the trending section
+  // Cycle trending images every 4 seconds.
   useEffect(() => {
     if (trendingImages.length > 1) {
       const interval = setInterval(() => {
@@ -91,9 +92,9 @@ const ViewEvents = () => {
     }
   }, [trendingImages]);
 
-  const fetchParticipantCount = async (clubId, eventId) => {
+  // Fetch the participant count for an event.
+  const fetchParticipantCount = async (clubIdParam, eventId) => {
     if (!token) return;
-
     try {
       const response = await fetch(
         "http://43.205.202.255:5000/event/get_participant_count",
@@ -104,7 +105,7 @@ const ViewEvents = () => {
             Authorization: `Bearer ${token}`,
           },
           body: JSON.stringify({
-            club_id: clubId,
+            club_id: clubIdParam,
             event_id: eventId,
           }),
         }
@@ -113,10 +114,9 @@ const ViewEvents = () => {
         throw new Error(
           `Failed to fetch participant count: ${response.status}`
         );
-
       const data = await response.json();
-      setParticipantCounts((prevCounts) => ({
-        ...prevCounts,
+      setParticipantCounts((prev) => ({
+        ...prev,
         [eventId]: data.participant_count || 0,
       }));
     } catch (error) {
@@ -124,6 +124,88 @@ const ViewEvents = () => {
     }
   };
 
+  // Handle "Yes" vote.
+  const handleYesVote = async (eventItem) => {
+    // If already participating, do nothing.
+    if (userVotes[eventItem.id] === "yes") {
+      alert("You are already participating in this event.");
+      return;
+    }
+    try {
+      const response = await fetch(
+        "http://43.205.202.255:5000/event/add_event_participant",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify({
+            club_id: eventItem.club_id || clubId,
+            event_id: eventItem.id,
+            student_email: studentEmail,
+          }),
+        }
+      );
+      if (!response.ok)
+        throw new Error(`Failed to add participant: ${response.status}`);
+      const data = await response.json();
+      // Update participant count from backend.
+      setParticipantCounts((prev) => ({
+        ...prev,
+        [eventItem.id]: data.participant_count,
+      }));
+      setUserVotes((prev) => ({ ...prev, [eventItem.id]: "yes" }));
+    } catch (error) {
+      console.error("Error adding participant:", error);
+      alert("Error updating your participation. Please try again.");
+    }
+  };
+
+  // Handle "No" vote.
+  const handleNoVote = async (eventItem) => {
+    // If the user is not participating, nothing to remove.
+    // if (userVotes[eventItem.id] !== "yes") {
+    //   alert("You are not currently participating in this event.");
+    //   return;
+    // }
+    try {
+      const response = await fetch(
+        "http://43.205.202.255:5000/event/delete_participant",
+        {
+          method: "DELETE",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify({
+            club_id: eventItem.club_id || clubId,
+            event_id: eventItem.id,
+            student_email: studentEmail,
+          }),
+        }
+      );
+      if (!response.ok)
+        throw new Error(`Failed to remove participant: ${response.status}`);
+      const data = await response.json();
+      // Update participant count from backend.
+      setParticipantCounts((prev) => ({
+        ...prev,
+        [eventItem.id]: data.participant_count,
+      }));
+      setUserVotes((prev) => ({ ...prev, [eventItem.id]: "no" }));
+    } catch (error) {
+      console.error("Error deleting participant:", error);
+      alert("Error updating your participation. Please try again.");
+    }
+  };
+
+  // (Optional) Handle "Maybe" vote.
+  const handleMaybeVote = (eventItem) => {
+    alert("Maybe functionality is not implemented yet.");
+  };
+
+  // Helper to extract image URL.
   const getImageUrl = (images) => {
     if (!images) return "";
     try {
@@ -137,22 +219,12 @@ const ViewEvents = () => {
   };
 
   const todayDate = new Date().toDateString();
-
   const filteredEvents = events.filter((event) => {
     const eventDate = new Date(event.event_date);
-
-    if (activeTab === "all") {
-      return true; // Show all events
-    }
-    if (activeTab === "today") {
-      return eventDate.toDateString() === todayDate;
-    }
-    if (activeTab === "upcoming") {
-      return eventDate > new Date();
-    }
-    if (activeTab === "past") {
-      return eventDate < new Date();
-    }
+    if (activeTab === "all") return true;
+    if (activeTab === "today") return eventDate.toDateString() === todayDate;
+    if (activeTab === "upcoming") return eventDate > new Date();
+    if (activeTab === "past") return eventDate < new Date();
     return false;
   });
 
@@ -173,11 +245,9 @@ const ViewEvents = () => {
           </div>
           <FaUserCircle className="membership-avatar" size={30} />
         </div>
-
         <header className="banner">
           <img src={bannerImage} alt="Events Banner" className="banner-image" />
         </header>
-
         <div className="trending-my-events">
           <div className="trending-events">
             <h2>Trending Events</h2>
@@ -191,7 +261,6 @@ const ViewEvents = () => {
               </div>
             )}
           </div>
-
           <div className="my-events">
             <h2>My Events</h2>
             <div className="event-tabs">
@@ -199,14 +268,16 @@ const ViewEvents = () => {
                 className={`event-tab ${
                   activeTab === "today" ? "active-tab" : ""
                 }`}
-                onClick={() => setActiveTab("today")}>
+                onClick={() => setActiveTab("today")}
+              >
                 Today’s Events
               </span>
               <span
                 className={`event-tab ${
                   activeTab === "upcoming" ? "active-tab" : ""
                 }`}
-                onClick={() => setActiveTab("upcoming")}>
+                onClick={() => setActiveTab("upcoming")}
+              >
                 Upcoming Events
               </span>
             </div>
@@ -226,36 +297,37 @@ const ViewEvents = () => {
             </div>
           </div>
         </div>
-
         <div className="events-header">
           <h2>Popular Events</h2>
         </div>
         <div className="all-event-tabs">
           <span
             className={`event-tab ${activeTab === "all" ? "active-tab" : ""}`}
-            onClick={() => setActiveTab("all")}>
+            onClick={() => setActiveTab("all")}
+          >
             All Events
           </span>
           <span
             className={`event-tab ${activeTab === "today" ? "active-tab" : ""}`}
-            onClick={() => setActiveTab("today")}>
+            onClick={() => setActiveTab("today")}
+          >
             Today Events
           </span>
           <span
             className={`event-tab ${
               activeTab === "upcoming" ? "active-tab" : ""
             }`}
-            onClick={() => setActiveTab("upcoming")}>
+            onClick={() => setActiveTab("upcoming")}
+          >
             Upcoming Events
           </span>
           <span
             className={`event-tab ${activeTab === "past" ? "active-tab" : ""}`}
-            onClick={() => setActiveTab("past")}>
+            onClick={() => setActiveTab("past")}
+          >
             Past Events
           </span>
         </div>
-
-        {/* 🔹 **Event Cards Based on Selected Tab** */}
         {loading ? (
           <div>Loading events...</div>
         ) : error ? (
@@ -274,12 +346,30 @@ const ViewEvents = () => {
                   <p>{new Date(event.event_date).toDateString()}</p>
                   <p>{event.venue}</p>
                   <p className="event-participants">
-                    <strong>Participants:</strong>
+                    <strong>Participants:</strong>{" "}
+                    {participantCounts[event.id] !== undefined
+                      ? participantCounts[event.id]
+                      : 0}
                   </p>
                   <div className="event-buttons">
-                    <button className="yes-btn">Yes</button>
-                    <button className="no-btn">No</button>
-                    <button className="maybe-btn">Maybe</button>
+                    <button
+                      className="yes-btn"
+                      onClick={() => handleYesVote(event)}
+                    >
+                      Yes
+                    </button>
+                    <button
+                      className="no-btn"
+                      onClick={() => handleNoVote(event)}
+                    >
+                      No
+                    </button>
+                    <button
+                      className="maybe-btn"
+                      onClick={() => handleMaybeVote(event)}
+                    >
+                      Maybe
+                    </button>
                   </div>
                 </div>
               </div>
@@ -287,7 +377,7 @@ const ViewEvents = () => {
           </div>
         ) : (
           <div className="no-membership-request">
-            <h2> No events yet! Check back later for upcoming activities.</h2>
+            <h2>No events yet! Check back later for upcoming activities.</h2>
           </div>
         )}
       </main>
