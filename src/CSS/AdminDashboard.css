@@ -189,6 +189,10 @@ header {
   box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
 }
 
+.year-analysis h2 {
+  color: #a91d3a !important;
+}
+
 .no-membership-request {
   text-align: left;
   padding: 10px;

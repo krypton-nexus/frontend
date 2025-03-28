@@ -3,6 +3,7 @@ import { Link } from "react-router-dom";
 import "../CSS/AddEvent.css";
 import AdminSidebar from "../Components/AdminSidebar";
 import bannerImage from "../Images/events-banner.jpg";
+import { useNavigate } from "react-router-dom";
 
 const AddEvent = () => {
   const [eventData, setEventData] = useState({
@@ -15,6 +16,8 @@ const AddEvent = () => {
     category: "Education", // Default category
     imageFile: null, // For storing the selected image file
   });
+
+  const navigate = useNavigate();
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -80,6 +83,11 @@ const AddEvent = () => {
     <div className="view-events-container">
       <AdminSidebar />
       <main className="main-content">
+        <button
+          className="close-event-btn"
+          onClick={() => navigate("/adminevent")}>
+          ✖
+        </button>
         <div className="events-header">
           <h2>Create a New Event</h2>
         </div>
@@ -171,6 +179,28 @@ const AddEvent = () => {
               accept="image/*"
               onChange={handleFileChange}
             />
+          </label>
+          <label className="toggle-switch-label">
+            Visibility:
+            <div className="toggle-row">
+              <div className="toggle-switch">
+                <input
+                  type="checkbox"
+                  id="visibilityToggle"
+                  checked={eventData.ispublic === "private"}
+                  onChange={(e) =>
+                    setEventData((prevData) => ({
+                      ...prevData,
+                      ispublic: e.target.checked ? "private" : "public",
+                    }))
+                  }
+                />
+                <span className="slider round"></span>
+              </div>
+              <span className="toggle-status">
+                {eventData.ispublic === "private" ? "Private" : "Public"}
+              </span>
+            </div>
           </label>
 
           <button type="submit" className="create-event-btn">

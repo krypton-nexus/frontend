@@ -382,8 +382,27 @@ const AdminDashboard = () => {
       );
     }
 
+    // Group members by year for analysis
+    const yearCounts = data.reduce((acc, member) => {
+      const year = member.year || "Unknown";
+      acc[year] = (acc[year] || 0) + 1;
+      return acc;
+    }, {});
+
     return (
       <div className="membership-table-container">
+        {/* Year-based analysis section */}
+        <div className="year-analysis">
+          <h2>Year-wise Analysis</h2>
+          <ul>
+            {Object.entries(yearCounts).map(([year, count]) => (
+              <li key={year}>
+                Year {year}: {count} student{count > 1 ? "s" : ""}
+              </li>
+            ))}
+          </ul>
+        </div>
+        <br />
         <h2>{title}</h2>
         <table className="membership-table">
           <thead>
@@ -409,8 +428,7 @@ const AdminDashboard = () => {
                     <>
                       <button
                         className="view-btn"
-                        onClick={() => handleViewDetails(member.student_email)}
-                      >
+                        onClick={() => handleViewDetails(member.student_email)}>
                         View
                       </button>
 
@@ -418,8 +436,7 @@ const AdminDashboard = () => {
                         className="delete-btn"
                         onClick={() =>
                           handleMemberDeletion(member.student_email)
-                        }
-                      >
+                        }>
                         Delete
                       </button>
                     </>
@@ -427,8 +444,7 @@ const AdminDashboard = () => {
                     <>
                       <button
                         className="view-btn"
-                        onClick={() => handleViewDetails(member.student_email)}
-                      >
+                        onClick={() => handleViewDetails(member.student_email)}>
                         View
                       </button>
                       <button
@@ -438,8 +454,7 @@ const AdminDashboard = () => {
                             "Approved",
                             member.student_email
                           )
-                        }
-                      >
+                        }>
                         Accept
                       </button>
                       <button
@@ -449,8 +464,7 @@ const AdminDashboard = () => {
                             "rejected",
                             member.student_email
                           )
-                        }
-                      >
+                        }>
                         Reject
                       </button>
                     </>
@@ -546,8 +560,7 @@ const AdminDashboard = () => {
                       style={{
                         fontWeight:
                           notification.is_read === 0 ? "bold" : "normal",
-                      }}
-                    >
+                      }}>
                       <div>{notification.notification}</div>
                       <div>{notification.formattedDate}</div>
                     </li>

@@ -19,6 +19,8 @@
   text-align: center;
   margin: 20px 0 10px;
   position: relative;
+  color: #555;
+  font-size: 0.8rem;
 }
 .messages-container::-webkit-scrollbar {
   width: 5px;
@@ -87,16 +89,31 @@
   border-radius: 8px 8px 3px 8px;
   color: #000;
   gap: 10px;
+  min-width: 35px;
 }
-/* Flex container for message text and timestamp */
+
 .message-text {
   display: flex;
-  justify-content: space-between; /* Pushes content to the edges */
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 4px;
+  position: relative;
+  display: flex;
+  justify-content: space-between;
   align-items: baseline;
   margin: 9px 0;
 }
+.message-timestamp {
+  font-size: 10px;
+  color: #999;
+  position: absolute;
+  right: 3px;
+  font-size: 10px;
+  font-weight: 200;
+  text-align: right;
+  margin-top: 17px;
+}
 
-/* Message content: left-aligned by default */
 .message-content {
   color: #000;
   font-size: 14px;
@@ -104,19 +121,11 @@
   text-align: left;
 }
 
-/* Timestamp: right-aligned */
-.message-timestamp {
-  font-size: 10px;
-  color: #bbb;
-  font-weight: 200;
-  text-align: right;
-}
-
-.message-sender-name{
+.message-sender-name {
   font-size: 10px;
   font-weight: 100;
 }
-/* Input Section */
+
 .message-form-section {
   display: flex;
   align-items: center;
@@ -150,7 +159,7 @@
 
 .typing-indicator {
   font-size: 16px;
-  color:red;
+  color: red;
   background-color: #f1f0f0;
   padding: 6px 12px;
   margin: 8px 0;
