@@ -24,7 +24,7 @@ const AdminEvent = () => {
   const navigate = useNavigate();
 
   useEffect(() => {
-    const token = localStorage.getItem("access_token");
+    const token = localStorage.getItem("admin_access_token");
     if (token) {
       try {
         const decoded = jwtDecode(token);
