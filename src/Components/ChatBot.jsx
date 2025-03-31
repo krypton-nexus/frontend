@@ -133,8 +133,7 @@ const ChatBot = () => {
         className="help"
         onClick={toggleChatbot}
         role="button"
-        aria-label="Open Chatbot"
-      >
+        aria-label="Open Chatbot">
         <img src={helpIcon} alt="Help Icon" className="helpImage" />
         <h6>Get Help</h6>
       </div>
@@ -145,8 +144,7 @@ const ChatBot = () => {
           <div
             className="chatbot-overlay"
             onClick={toggleChatbot}
-            aria-hidden="true"
-          ></div>
+            aria-hidden="true"></div>
           {/* Chatbot container */}
           <aside className="chatbot-container" aria-label="Chatbot">
             <header className="chatbot-header">
@@ -157,16 +155,14 @@ const ChatBot = () => {
                   className="chatbot-btn chatbot-bin-icon"
                   onClick={clearChatHistory}
                   title="Clear Chat"
-                  aria-label="Clear Chat"
-                >
+                  aria-label="Clear Chat">
                   <FaTrash />
                 </button>
                 <button
                   className="chatbot-btn chatbot-close-btn"
                   onClick={toggleChatbot}
                   title="Close"
-                  aria-label="Close Chatbot"
-                >
+                  aria-label="Close Chatbot">
                   <FaTimes />
                 </button>
               </div>
@@ -179,8 +175,7 @@ const ChatBot = () => {
                   className={`chatbot-message ${
                     message.sender === "user" ? "user-message" : "bot-message"
                   }`}
-                  style={{ whiteSpace: "pre-wrap" }}
-                >
+                  style={{ whiteSpace: "normal" }}>
                   {message.sender === "bot" ? (
                     <ReactMarkdown>
                       {typeof message.text === "string"
@@ -195,8 +190,7 @@ const ChatBot = () => {
               {loading && (
                 <div
                   className="chatbot-message bot-message"
-                  style={{ whiteSpace: "pre-wrap" }}
-                >
+                  style={{ whiteSpace: "normal" }}>
                   <ReactMarkdown>thinking.....</ReactMarkdown>
                 </div>
               )}
@@ -218,8 +212,7 @@ const ChatBot = () => {
                 className="message-send-button"
                 onClick={sendMessage}
                 disabled={loading}
-                aria-label="Send message"
-              >
+                aria-label="Send message">
                 <FaPaperPlane />
               </button>
             </footer>

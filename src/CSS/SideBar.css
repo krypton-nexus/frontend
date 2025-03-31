@@ -8,6 +8,7 @@
   padding: 20px;
   height: 100vh;
   box-shadow: 2px 0 5px rgba(0, 0, 0, 0.2);
+  position: relative; /* Ensure absolute elements inside are positioned relative to sidebar */
 }
 
 .sidebar .logo {
@@ -31,7 +32,6 @@
   text-align: left;
   transition: background 0.3s;
   border-radius: 8px;
-  display: flex;
   align-items: center;
 }
 
@@ -70,6 +70,64 @@
   font-size: 18px;
 }
 
+/* Notification Dropdown Styling */
+.notification-dropdown {
+  position: absolute;
+  right: -10px; /* Adjust as needed */
+  z-index: 9999;
+  background-color: #fff;
+  color: #000;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+  width: 300px;
+  padding: 10px;
+  border-radius: 5px;
+}
+
+.notification-dropdown ul {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.notification-dropdown li {
+  border-bottom: 1px solid #ccc;
+  padding: 5px 0;
+}
+
+.notification-dropdown li:last-child {
+  border-bottom: none;
+}
+
+.notification-dropdown-header {
+  display: flex;
+  justify-content: flex-end;
+  margin-bottom: 10px;
+}
+
+.notification-dropdown-header button {
+  background: #1a1a1a;
+  color: #fff;
+  border: none;
+  padding: 5px 10px;
+  cursor: pointer;
+  border-radius: 3px;
+}
+
+.notification-filters {
+  margin-top: 10px;
+  text-align: center;
+}
+
+.notification-filters button {
+  background: #1a1a1a;
+  color: #fff;
+  border: none;
+  padding: 5px 10px;
+  cursor: pointer;
+  border-radius: 3px;
+  margin: 0 5px;
+}
+
 /* Logout Button Styling */
 .logout {
   margin-bottom: 1cm;
@@ -79,9 +137,9 @@
   padding: 10px 20px;
   cursor: pointer;
   border-radius: 5px;
+  width: 100%;
   display: flex;
   align-items: center;
-  width: 100%;
   justify-content: center;
   transition: background 0.3s;
 }
@@ -92,4 +150,8 @@
 
 .logout svg {
   font-size: 18px;
+}
+
+.notification-popup{
+  margin-top: 200px;
 }

@@ -1,29 +1,17 @@
 import React, { useState, useEffect } from "react";
-import { useNavigate, Link } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import { ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import { jwtDecode } from "jwt-decode";
-import { Ban } from "lucide-react";
-import {
-  FaUserCircle,
-  FaSearch,
-  FaUsers,
-  FaTasks,
-  FaRss,
-  FaWallet,
-  FaStore,
-  FaRegBell,
-  FaSignOutAlt,
-  FaCalendarAlt,
-} from "react-icons/fa";
-import logo1short from "../Images/logo1short.png";
+import AdminSidebar from "../Components/AdminSidebar"; // External sidebar component
 import "../CSS/AdminDashboard.css";
-import { IoCloseCircleOutline } from "react-icons/io5";
+import "../CSS/SideBar.css";
+import { FaSearch, FaUserCircle } from "react-icons/fa"; // Corrected import for FaBan
+import { Ban } from "lucide-react";
 
-// Base URL for your backend
+// ------------------ Helper API Functions ------------------
 const baseURL = "http://43.205.202.255:5000";
 
-// Helper functions for API calls using fetch
 const apiGet = async (endpoint, token) => {
   const res = await fetch(`${baseURL}${endpoint}`, {
     method: "GET",
@@ -70,6 +58,7 @@ const apiPatch = async (endpoint, token, body) => {
   }
   return await res.json();
 };
+
 const apiDelete = async (endpoint, token, body) => {
   const res = await fetch(`${baseURL}${endpoint}`, {
     method: "DELETE",
@@ -94,25 +83,337 @@ const apiDelete = async (endpoint, token, body) => {
   return await res.json();
 };
 
+// ------------------ NotificationPopup Component ------------------
+const NotificationPopup = ({
+  notifications,
+  filter,
+  setFilter,
+  markAllAsRead,
+  onClose,
+}) => {
+  const sortedNotifications = notifications
+    .slice()
+    .sort((a, b) => new Date(b.created_at) - new Date(a.created_at))
+    .map((notif) => ({
+      ...notif,
+      formattedDate: new Date(notif.created_at).toLocaleString(),
+    }));
+
+  return (
+    <div
+      className="notification-popup"
+      style={{
+        position: "fixed",
+        top: "60px", // Adjust as needed
+        left: "250px", // Adjust based on sidebar width + margin
+        zIndex: 99999,
+        backgroundColor: "#fff",
+        color: "#000",
+        boxShadow: "0 2px 8px rgba(0, 0, 0, 0.25)",
+        width: "320px",
+        padding: "10px",
+        borderRadius: "5px",
+      }}>
+      <div
+        className="notification-dropdown-header"
+        style={{
+          marginBottom: "10px",
+          display: "flex",
+          justifyContent: "space-between",
+          alignItems: "center",
+        }}>
+        <button
+          onClick={markAllAsRead}
+          style={{
+            background: "#1a1a1a",
+            color: "#fff",
+            border: "none",
+            padding: "5px 10px",
+            cursor: "pointer",
+            borderRadius: "3px",
+          }}>
+          Mark All as Read
+        </button>
+        <button
+          onClick={onClose}
+          style={{
+            background: "transparent",
+            border: "none",
+            fontSize: "24px",
+            cursor: "pointer",
+          }}>
+          &times;
+        </button>
+      </div>
+      {sortedNotifications.length > 0 ? (
+        <ul style={{ listStyle: "none", margin: 0, padding: 0 }}>
+          {sortedNotifications.map((notif) => (
+            <li
+              key={notif.id}
+              style={{
+                fontWeight: notif.is_read ? "normal" : "bold",
+                borderBottom: "1px solid #ccc",
+                padding: "5px 0",
+              }}>
+              <div>{notif.notification}</div>
+              <div style={{ fontSize: "0.8em", color: "#666" }}>
+                {notif.formattedDate}
+              </div>
+            </li>
+          ))}
+        </ul>
+      ) : (
+        <div>No notifications available.</div>
+      )}
+      <div
+        className="notification-filters"
+        style={{ marginTop: "10px", textAlign: "center" }}>
+        <button onClick={() => setFilter("all")} style={{ margin: "0 5px" }}>
+          All
+        </button>
+        <button onClick={() => setFilter("unread")} style={{ margin: "0 5px" }}>
+          Unread
+        </button>
+        <button onClick={() => setFilter("read")} style={{ margin: "0 5px" }}>
+          Read
+        </button>
+      </div>
+    </div>
+  );
+};
+
+// ------------------ UserDetailModal Component ------------------
+const UserDetailModal = ({ isOpen, onClose, user }) => {
+  if (!isOpen || !user) return null;
+  return (
+    <div className="modal-overlay">
+      <div className="modal-content">
+        <button className="close-btn" onClick={onClose}>
+          ✖
+        </button>
+        <h2 className="modal-title">Member Details</h2>
+        <div className="user-info">
+          <div className="info-item">
+            <strong>First Name:</strong> <span>{user.first_name || "N/A"}</span>
+          </div>
+          <div className="info-item">
+            <strong>Last Name:</strong> <span>{user.last_name || "N/A"}</span>
+          </div>
+          <div className="info-item">
+            <strong>Email:</strong> <span>{user.email || "N/A"}</span>
+          </div>
+          <div className="info-item">
+            <strong>Phone Number:</strong>{" "}
+            <span>{user.phone_number || "N/A"}</span>
+          </div>
+          <div className="info-item">
+            <strong>Date of Birth:</strong>{" "}
+            <span>
+              {user.dob
+                ? new Date(user.dob).toLocaleDateString("en-US", {
+                    timeZone: "Asia/Colombo",
+                    dateStyle: "long",
+                  })
+                : "N/A"}
+            </span>
+          </div>
+          <div className="info-item">
+            <strong>Student Number:</strong>{" "}
+            <span>{user.student_number || "N/A"}</span>
+          </div>
+          <div className="info-item">
+            <strong>Year:</strong> <span>{user.year || "N/A"}</span>
+          </div>
+          <div className="info-item">
+            <strong>Course Name:</strong>{" "}
+            <span>{user.course_name || "N/A"}</span>
+          </div>
+          <div className="info-item">
+            <strong>Department:</strong> <span>{user.department || "N/A"}</span>
+          </div>
+          <div className="info-item">
+            <strong>Faculty:</strong> <span>{user.faculty || "N/A"}</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+// ------------------ MembershipTable Component ------------------
+const MembershipTable = ({
+  title,
+  data,
+  isCurrentMembers,
+  onViewDetails,
+  onStatusChange,
+  onMemberDeletion,
+}) => {
+  if (!Array.isArray(data) || data.length === 0) {
+    return (
+      <div>
+        <div className="membership-header">
+          <div className="search-container">
+            <input
+              type="text"
+              placeholder="Search members..."
+              className="membership-search"
+            />
+            <button className="search-icon">
+              <FaSearch />
+            </button>
+          </div>
+          <FaUserCircle className="membership-avatar" size={30} />
+        </div>
+        <hr className="section-divider" />
+        <div className="no-membership-request">
+          <h2>
+            <span className="ban-icon">
+              <Ban size={18} className="text-red-400" />
+            </span>
+            No {title.toLowerCase()} available.
+          </h2>
+        </div>
+      </div>
+    );
+  }
+
+  // Group members by year for analysis
+  const yearCounts = data.reduce((acc, member) => {
+    const year = member.year || "Unknown";
+    acc[year] = (acc[year] || 0) + 1;
+    return acc;
+  }, {});
+
+  const total = Object.values(yearCounts).reduce(
+    (sum, count) => sum + count,
+    0
+  );
+
+  const colors = ["#a91d3a", "#007bff", "#28a745", "#ffc107", "#6610f2"];
+  const getColor = (index) => colors[index % colors.length];
+
+  return (
+    <div className="membership-table-container">
+      {/* <div className="bar-analysis-container">
+        <h3>🎓 Year-wise Member Distribution</h3>
+        <div className="bars-wrapper">
+          {Object.entries(yearCounts).map(([year, count], index) => {
+            const percent = total === 0 ? 0 : Math.round((count / total) * 100);
+            return (
+              <div key={year} className="bar-item">
+                <div className="bar-label">Year {year}</div>
+                <div className="bar-track">
+                  <div
+                    className="bar-fill"
+                    style={{
+                      width: `${percent}%`,
+                      backgroundColor: getColor(index),
+                    }}>
+                    <span className="bar-percent">{percent}%</span>
+                  </div>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      </div> */}
+      <div className="year-analysis">
+        <h2>Year-wise Analysis</h2>
+        <ul>
+          {Object.entries(yearCounts).map(([year, count]) => (
+            <li key={year}>
+              Year {year}: {count} student{count > 1 ? "s" : ""}
+            </li>
+          ))}
+        </ul>
+      </div>
+      <br />
+      <h2>{title}</h2>
+      <table className="membership-table">
+        <thead>
+          <tr>
+            <th>Name</th>
+            <th>Last Name</th>
+            <th>Course Name</th>
+            <th>Year</th>
+            <th>Faculty</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          {data.map((member) => (
+            <tr key={member.student_email}>
+              <td>{member.firstName}</td>
+              <td>{member.lastName}</td>
+              <td>{member.courseName}</td>
+              <td>{member.year}</td>
+              <td>{member.faculty}</td>
+              <td>
+                {isCurrentMembers ? (
+                  <>
+                    <button
+                      className="view-btn"
+                      onClick={() => onViewDetails(member.student_email)}>
+                      View
+                    </button>
+                    <button
+                      className="delete-btn"
+                      onClick={() => onMemberDeletion(member.student_email)}>
+                      Delete
+                    </button>
+                  </>
+                ) : (
+                  <>
+                    <button
+                      className="view-btn"
+                      onClick={() => onViewDetails(member.student_email)}>
+                      View
+                    </button>
+                    <button
+                      className="accept-btn"
+                      onClick={() =>
+                        onStatusChange("Approved", member.student_email)
+                      }>
+                      Accept
+                    </button>
+                    <button
+                      className="reject-btn"
+                      onClick={() =>
+                        onStatusChange("rejected", member.student_email)
+                      }>
+                      Reject
+                    </button>
+                  </>
+                )}
+              </td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
+  );
+};
+
+// ------------------ Main AdminDashboard Component ------------------
 const AdminDashboard = () => {
-  // State variables
+  // Dashboard states
   const [unreadNotifications, setUnreadNotifications] = useState([]);
   const [allNotifications, setAllNotifications] = useState([]);
   const [filteredNotifications, setFilteredNotifications] = useState([]);
   const [newMembershipRequests, setNewMembershipRequests] = useState([]);
   const [currentMembers, setCurrentMembers] = useState([]);
   const [clubId, setClubId] = useState(null);
+  const [notificationFilter, setNotificationFilter] = useState("all");
+  const [unreadCount, setUnreadCount] = useState(0);
   const [isNotificationsVisible, setIsNotificationsVisible] = useState(false);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [modalUserData, setModalUserData] = useState(null);
-  const [notificationFilter, setNotificationFilter] = useState("all");
 
   const navigate = useNavigate();
   const adminAccessToken = localStorage.getItem("admin_access_token");
-
   console.log("Admin Access Token:", adminAccessToken);
 
-  // Decode JWT token to extract admin email
   const getAdminEmailFromToken = (token) => {
     try {
       const decodedToken = jwtDecode(token);
@@ -122,23 +423,21 @@ const AdminDashboard = () => {
       return null;
     }
   };
-
   const adminEmail = adminAccessToken
     ? getAdminEmailFromToken(adminAccessToken)
     : null;
   console.log("Admin Email:", adminEmail);
 
-  // Redirect to admin login if token/email is missing
+  // Redirect if token/email missing
   useEffect(() => {
     if (!adminEmail) {
       navigate("/adminlogin");
     }
   }, [adminEmail, navigate]);
 
-  // Fetch initial data: admin details & unread notifications
+  // Fetch admin details and unread notifications
   useEffect(() => {
     if (!adminEmail) return;
-
     const fetchAdminDetails = async () => {
       try {
         const data = await apiGet(
@@ -150,7 +449,6 @@ const AdminDashboard = () => {
         console.error("Failed to fetch admin's club ID:", error);
       }
     };
-
     const fetchUnreadNotifications = async () => {
       try {
         const endpoint = `/notification_admin/unread?admin_email=${adminEmail}`;
@@ -162,15 +460,11 @@ const AdminDashboard = () => {
         console.error("Failed to fetch unread notifications:", error);
       }
     };
-
     fetchAdminDetails();
     fetchUnreadNotifications();
   }, [adminEmail, adminAccessToken, navigate]);
 
-  // In your AdminDashboard component, add a new state for unread notification count:
-  const [unreadCount, setUnreadCount] = useState(0);
-
-  // Then add an effect to fetch the unread count:
+  // Fetch unread notification count
   useEffect(() => {
     if (!adminEmail) return;
     const fetchUnreadNotificationCount = async () => {
@@ -178,7 +472,6 @@ const AdminDashboard = () => {
         const endpoint = `/notification_admin/unread/count?admin_email=${adminEmail}`;
         console.log("Fetching unread notification count from:", endpoint);
         const data = await apiGet(endpoint, adminAccessToken);
-        // Assuming your backend returns the count in data.unread_count or similar
         setUnreadCount(data.unread_count || 0);
         console.log("Unread notification count:", data.unread_count);
       } catch (error) {
@@ -191,7 +484,6 @@ const AdminDashboard = () => {
   // Fetch all notifications
   useEffect(() => {
     if (!adminEmail) return;
-
     const fetchNotifications = async () => {
       try {
         const data = await apiGet(
@@ -222,7 +514,6 @@ const AdminDashboard = () => {
   // Fetch membership data for the club
   useEffect(() => {
     if (!clubId) return;
-
     const fetchMembershipData = async () => {
       try {
         const membershipPromise = apiGet(
@@ -236,7 +527,6 @@ const AdminDashboard = () => {
         ]);
         const memberships = membershipData.memberships || [];
         const allStudents = studentData.students || [];
-
         const emailToStudentDataMap = allStudents.reduce((acc, student) => {
           acc[student.email] = {
             firstName: student.first_name,
@@ -247,7 +537,6 @@ const AdminDashboard = () => {
           };
           return acc;
         }, {});
-
         const enrichedMemberships = memberships.map((member) => ({
           ...member,
           firstName:
@@ -261,7 +550,6 @@ const AdminDashboard = () => {
           faculty:
             emailToStudentDataMap[member.student_email]?.faculty || "Unknown",
         }));
-
         setNewMembershipRequests(
           enrichedMemberships.filter((m) => m.status === "Pending")
         );
@@ -272,11 +560,10 @@ const AdminDashboard = () => {
         console.error("Failed to fetch membership data:", error);
       }
     };
-
     fetchMembershipData();
   }, [clubId, adminAccessToken]);
 
-  // Handlers
+  // Handlers for membership actions
   const handleLogout = () => {
     localStorage.removeItem("admin_access_token");
     sessionStorage.clear();
@@ -287,8 +574,7 @@ const AdminDashboard = () => {
   const handleViewDetails = async (email) => {
     try {
       const data = await apiGet(`/student/${email}`, adminAccessToken);
-      console.log("sample:" + data.email);
-
+      console.log("User details:", data);
       setModalUserData(data);
       setIsModalOpen(true);
     } catch (error) {
@@ -318,10 +604,10 @@ const AdminDashboard = () => {
           prev.filter((member) => member.student_email !== email)
         );
         if (action === "Approved") {
-          const ApprovedMember = newMembershipRequests.find(
+          const approvedMember = newMembershipRequests.find(
             (member) => member.student_email === email
           );
-          setCurrentMembers((prev) => [...prev, ApprovedMember]);
+          setCurrentMembers((prev) => [...prev, approvedMember]);
         }
       }
     } catch (error) {
@@ -331,7 +617,6 @@ const AdminDashboard = () => {
 
   const handleMemberDeletion = async (email) => {
     try {
-      // Use the correct key as per your DB schema—here we use "email"
       const requestBody = { student_id: email, club_id: clubId };
       const data = await apiDelete(
         `/membership/delete`,
@@ -339,357 +624,88 @@ const AdminDashboard = () => {
         requestBody
       );
       alert(`Member ${email} has been removed from the club.`);
-      setCurrentMembers(
-        (prev) => prev.filter((member) => member.student_id !== email) // adjust filtering if needed
+      setCurrentMembers((prev) =>
+        prev.filter((member) => member.student_id !== email)
       );
     } catch (error) {
       console.error("Failed to delete member:", error);
     }
   };
 
+  // Toggle notification popup
   const toggleNotifications = () => {
     setIsNotificationsVisible(!isNotificationsVisible);
   };
 
-  // Membership table component
-  const MembershipTable = ({ title, data, isCurrentMembers }) => {
-    if (!Array.isArray(data) || data.length === 0) {
-      return (
-        <div>
-          <div className="membership-header">
-            <div className="search-container">
-              <input
-                type="text"
-                placeholder="Search members..."
-                className="membership-search"
-              />
-              <button className="search-icon">
-                <FaSearch />
-              </button>
-            </div>
-            <FaUserCircle className="membership-avatar" size={30} />
-          </div>
-          <hr className="section-divider" />
-          <div className="no-membership-request">
-            <h2>
-              <span className="ban-icon">
-                <Ban size={18} className="text-red-400" />
-              </span>
-              No {title.toLowerCase()} available.
-            </h2>
-          </div>
-        </div>
-      );
-    }
-
-    return (
-      <div className="membership-table-container">
-        <h2>{title}</h2>
-        <table className="membership-table">
-          <thead>
-            <tr>
-              <th>Name</th>
-              <th>Last Name</th>
-              <th>Course Name</th>
-              <th>Year</th>
-              <th>Faculty</th>
-              <th>Actions</th>
-            </tr>
-          </thead>
-          <tbody>
-            {data.map((member) => (
-              <tr key={member.student_email}>
-                <td>{member.firstName}</td>
-                <td>{member.lastName}</td>
-                <td>{member.courseName}</td>
-                <td>{member.year}</td>
-                <td>{member.faculty}</td>
-                <td>
-                  {isCurrentMembers ? (
-                    <>
-                      <button
-                        className="view-btn"
-                        onClick={() => handleViewDetails(member.student_email)}
-                      >
-                        View
-                      </button>
-
-                      <button
-                        className="delete-btn"
-                        onClick={() =>
-                          handleMemberDeletion(member.student_email)
-                        }
-                      >
-                        Delete
-                      </button>
-                    </>
-                  ) : (
-                    <>
-                      <button
-                        className="view-btn"
-                        onClick={() => handleViewDetails(member.student_email)}
-                      >
-                        View
-                      </button>
-                      <button
-                        className="accept-btn"
-                        onClick={() =>
-                          handleMembershipStatus(
-                            "Approved",
-                            member.student_email
-                          )
-                        }
-                      >
-                        Accept
-                      </button>
-                      <button
-                        className="reject-btn"
-                        onClick={() =>
-                          handleMembershipStatus(
-                            "rejected",
-                            member.student_email
-                          )
-                        }
-                      >
-                        Reject
-                      </button>
-                    </>
-                  )}
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
-    );
-  };
-
-  // Notification popup component
-  const NotificationPopup = () => {
-    // Function to mark all unread notifications as read and reset unread count
-    const markAllAsRead = async () => {
-      try {
-        const unreadNotificationIds = filteredNotifications
-          .filter((notification) => notification.is_read === 0)
-          .map((notification) => notification.id);
-        if (unreadNotificationIds.length > 0) {
-          await apiPatch("/notification_admin/mark-as-read", adminAccessToken, {
-            admin_email: adminEmail,
-            notification_ids: unreadNotificationIds,
-          });
-          // Update notifications locally so they all become marked as read
-          setFilteredNotifications((prev) =>
-            prev.map((notif) => ({ ...notif, is_read: 1 }))
-          );
-          // Reset the unread count to 0
-          setUnreadCount(0);
+  // Function to mark all notifications as read
+  const markAllAsRead = async () => {
+    try {
+      const unreadIds = allNotifications
+        .filter((n) => n.is_read === 0)
+        .map((n) => n.id);
+      if (unreadIds.length === 0) return;
+      const res = await apiPatch(
+        `/notification_admin/mark-as-read`,
+        adminAccessToken,
+        {
+          admin_email: adminEmail,
+          notification_ids: unreadIds,
         }
-      } catch (error) {
-        console.error("Failed to mark notifications as read:", error);
+      );
+      if (!res) {
+        throw new Error("Failed to mark notifications as read");
       }
-    };
-
-    // When the Unread button is clicked, set the filter to unread and mark all as read.
-    const handleUnreadClick = async () => {
-      setNotificationFilter("unread");
-      await markAllAsRead();
-    };
-
-    // When closing the popup, if the filter is unread, mark notifications as read
-    // and then toggle off the popup.
-    const handleClose = async () => {
-      if (notificationFilter === "unread") {
-        await markAllAsRead();
-      }
-      toggleNotifications();
-    };
-
-    // Sort notifications by created_at (most recent first) and format the date.
-    const sortedNotifications = filteredNotifications
-      .slice()
-      .sort((a, b) => new Date(b.created_at) - new Date(a.created_at))
-      .map((notification) => {
-        const gmtDate = new Date(notification.created_at);
-        const gmtPlus530Date = new Date(
-          gmtDate.getTime() + 5.5 * 60 * 60 * 1000
-        );
-        const formattedDate = gmtPlus530Date
-          .toUTCString()
-          .replace("GMT", "SLT");
-        return { ...notification, formattedDate };
-      });
-
-    return (
-      <div>
-        {isNotificationsVisible && (
-          <div className="notification-popup">
-            <div className="notification-header">
-              <h2>Notifications</h2>
-              <IoCloseCircleOutline
-                className="close-icon"
-                onClick={handleClose}
-              />
-            </div>
-            <div className="filter-menu">
-              <button onClick={() => setNotificationFilter("all")}>All</button>
-              <button onClick={handleUnreadClick}>Unread</button>
-              <button onClick={() => setNotificationFilter("read")}>
-                Read
-              </button>
-            </div>
-            <div className="notification-list">
-              <ul>
-                {sortedNotifications.length > 0 ? (
-                  sortedNotifications.map((notification) => (
-                    <li
-                      key={notification.id}
-                      style={{
-                        fontWeight:
-                          notification.is_read === 0 ? "bold" : "normal",
-                      }}
-                    >
-                      <div>{notification.notification}</div>
-                      <div>{notification.formattedDate}</div>
-                    </li>
-                  ))
-                ) : (
-                  <li>No notifications available</li>
-                )}
-              </ul>
-            </div>
-          </div>
-        )}
-      </div>
-    );
-  };
-
-  // User detail modal component
-  const UserDetailModal = ({ isOpen, onClose, user }) => {
-    if (!isOpen || !user) return null;
-
-    return (
-      <div className="modal-overlay">
-        <div className="modal-content">
-          <button className="close-btn" onClick={onClose}>
-            ✖
-          </button>
-          <h2 className="modal-title">Member Details</h2>
-          <div className="user-info">
-            <div className="info-item">
-              <strong>First Name:</strong>{" "}
-              <span>{user.first_name || "N/A"}</span>
-            </div>
-            <div className="info-item">
-              <strong>Last Name:</strong> <span>{user.last_name || "N/A"}</span>
-            </div>
-            <div className="info-item">
-              <strong>Email:</strong> <span>{user.email || "N/A"}</span>
-            </div>
-            <div className="info-item">
-              <strong>Phone Number:</strong>{" "}
-              <span>{user.phone_number || "N/A"}</span>
-            </div>
-            <div className="info-item">
-              <strong>Date of Birth:</strong>
-              <span>
-                {user.dob
-                  ? new Date(user.dob).toLocaleDateString("en-US", {
-                      timeZone: "Asia/Colombo",
-                      dateStyle: "long",
-                    })
-                  : "N/A"}
-              </span>
-            </div>
-            <div className="info-item">
-              <strong>Student Number:</strong>{" "}
-              <span>{user.student_number || "N/A"}</span>
-            </div>
-            <div className="info-item">
-              <strong>Year:</strong> <span>{user.year || "N/A"}</span>
-            </div>
-            <div className="info-item">
-              <strong>Course Name:</strong>{" "}
-              <span>{user.course_name || "N/A"}</span>
-            </div>
-            <div className="info-item">
-              <strong>Department:</strong>{" "}
-              <span>{user.department || "N/A"}</span>
-            </div>
-            <div className="info-item">
-              <strong>Faculty:</strong> <span>{user.faculty || "N/A"}</span>
-            </div>
-          </div>
-        </div>
-      </div>
-    );
+      const updatedNotifications = allNotifications.map((n) => ({
+        ...n,
+        is_read: 1,
+      }));
+      setAllNotifications(updatedNotifications);
+      setUnreadCount(0);
+    } catch (error) {
+      console.error("Failed to mark notifications as read:", error);
+    }
   };
 
   return (
     <div className="view-clubs-container">
       <ToastContainer />
-      <aside className="sidebar">
-        <Link to="/home">
-          <img src={logo1short} alt="Nexus Logo" className="logo" />
-        </Link>
-        <ul className="menu">
-          <li className="active">
-            <FaUsers /> Membership
-          </li>
-          <li>
-            <Link to="/adminevent">
-              <FaCalendarAlt /> Events
-            </Link>
-          </li>
-          <li>
-            <Link to="/tasks">
-              <FaTasks /> Tasks
-            </Link>
-          </li>
-          <li>
-            <Link to="/feed">
-              <FaRss /> Feed
-            </Link>
-          </li>
-          <li>
-            <Link to="/finance">
-              <FaWallet /> Finance
-            </Link>
-          </li>
-          <li>
-            <Link to="/marketplace">
-              <FaStore /> Marketplace
-            </Link>
-          </li>
-          <li>
-            <div className="notifications" onClick={toggleNotifications}>
-              <FaRegBell /> Notification{" "}
-              <span className="badge">{unreadCount}</span>
-            </div>
-          </li>
-        </ul>
-        <button className="logout" onClick={handleLogout}>
-          <FaSignOutAlt /> Logout
-        </button>
-      </aside>
-
-      <NotificationPopup />
+      {/* Render the integrated AdminSidebar component */}
+      <AdminSidebar
+        unreadCount={unreadCount}
+        notifications={filteredNotifications}
+        toggleNotifications={toggleNotifications}
+        handleLogout={handleLogout}
+      />
       <UserDetailModal
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
         user={modalUserData}
       />
-
+      {/* Render NotificationPopup if visible */}
+      {isNotificationsVisible && (
+        <NotificationPopup
+          notifications={filteredNotifications}
+          filter={notificationFilter}
+          setFilter={setNotificationFilter}
+          markAllAsRead={markAllAsRead}
+          onClose={toggleNotifications}
+        />
+      )}
       <main className="main-content-admin">
         <section className="membership-section">
           <MembershipTable
             title="New Membership Requests"
             data={newMembershipRequests}
             isCurrentMembers={false}
+            onViewDetails={handleViewDetails}
+            onStatusChange={handleMembershipStatus}
           />
           <MembershipTable
             title="Current Members List"
             data={currentMembers}
             isCurrentMembers={true}
+            onViewDetails={handleViewDetails}
+            onMemberDeletion={handleMemberDeletion}
           />
         </section>
       </main>

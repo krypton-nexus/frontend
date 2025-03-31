@@ -11,23 +11,23 @@ const ViewEvents = () => {
   const [error, setError] = useState(null);
   const [studentEmail, setStudentEmail] = useState("");
   const [token, setToken] = useState(null);
-  const [clubId, setClubId] = useState("");
   const [participantCounts, setParticipantCounts] = useState({});
   const [trendingImages, setTrendingImages] = useState([]);
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const [activeTab, setActiveTab] = useState("today");
-  // Tracks the user's vote for each event ("yes" or "no")
   const [userVotes, setUserVotes] = useState({});
+  const [clubs, setClubs] = useState([]);
 
-  // Decode token and set student email and clubId.
+  // Decode token and set student email.
   useEffect(() => {
     const token = localStorage.getItem("access_token");
+
     if (token) {
       try {
         const decoded = jwtDecode(token);
         setStudentEmail(decoded.email);
-        setClubId(decoded.club_id || "club_sesa");
         setToken(token);
+        console.debug("Token decoded successfully", decoded); // Debugging: token decoded
       } catch (err) {
         console.error("Invalid token", err);
         setError("Failed to decode token. Please log in again.");
@@ -38,13 +38,14 @@ const ViewEvents = () => {
     }
   }, []);
 
-  // Fetch events using the dynamic clubId and token.
+  // Fetch clubs the user follows.
   useEffect(() => {
-    if (!token || !clubId) return;
-    const fetchEvents = async () => {
+    if (!token) return;
+    const fetchClubs = async () => {
       try {
+        console.debug("Fetching clubs for the user..."); // Debugging: Before API call
         const response = await fetch(
-          `http://43.205.202.255:5000/event/get_events?club_id=${clubId}`,
+          `http://43.205.202.255:5000/student/clubs/${studentEmail}`,
           {
             method: "GET",
             headers: {
@@ -53,32 +54,68 @@ const ViewEvents = () => {
             },
           }
         );
-        if (!response.ok)
-          throw new Error(`HTTP error! Status: ${response.status}`);
-        const data = await response.json();
-        if (data.events && Array.isArray(data.events)) {
-          setEvents(data.events);
-          // Extract images for trending section.
-          const images = data.events
-            .map((event) => getImageUrl(event.images))
-            .filter((img) => img !== "");
-          setTrendingImages(images);
-          // For each event, fetch its participant count.
-          data.events.forEach((event) => {
-            fetchParticipantCount(event.club_id || clubId, event.id);
-          });
-        } else {
-          console.error("Unexpected data format:", data);
+        if (!response.ok) {
+          throw new Error(`Failed to fetch clubs: ${response.status}`);
         }
+        const data = await response.json();
+        console.debug("Clubs fetched successfully", data); // Debugging: Clubs data fetched
+        setClubs(data.clubs || []);
       } catch (error) {
-        console.error("Error fetching events:", error);
+        console.error("Error fetching clubs:", error);
+        setError("Failed to load clubs.");
+      }
+    };
+    fetchClubs();
+  }, [token, studentEmail]);
+
+  // Fetch events from all clubs the user is part of.
+  useEffect(() => {
+    if (!token || clubs.length === 0) return;
+    const fetchAllEvents = async () => {
+      try {
+        console.debug("Fetching events from all clubs..."); // Debugging: Before event fetching
+        const allEvents = [];
+        for (let club of clubs) {
+          const response = await fetch(
+            `http://43.205.202.255:5000/event/get_events?club_id=${club}`,
+            {
+              method: "GET",
+              headers: {
+                "Content-Type": "application/json",
+                Authorization: `Bearer ${token}`,
+              },
+            }
+          );
+          if (!response.ok)
+            throw new Error(`Failed to fetch events for ${club}`);
+          const data = await response.json();
+          console.debug(`Events for club ${club}:`, data); // Debugging: Events data
+          if (data.events && Array.isArray(data.events)) {
+            allEvents.push(...data.events);
+            // Extract images for trending section.
+            const images = data.events
+              .map((event) => getImageUrl(event.images))
+              .filter((img) => img !== "");
+            setTrendingImages((prev) => [...prev, ...images]);
+
+            // For each event, fetch its participant count.
+            data.events.forEach((event) => {
+              fetchParticipantCount(event.club_id, event.id);
+            });
+          }
+        }
+        setEvents(allEvents);
+        console.debug("All events fetched successfully", allEvents); // Debugging: All events fetched
+      } catch (error) {
+        console.error("Error fetching all events:", error);
         setError("Failed to load events.");
       } finally {
         setLoading(false);
+        console.debug("Event loading complete."); // Debugging: Loading complete
       }
     };
-    fetchEvents();
-  }, [token, clubId]);
+    fetchAllEvents();
+  }, [token, clubs]);
 
   // Cycle trending images every 4 seconds.
   useEffect(() => {
@@ -96,6 +133,7 @@ const ViewEvents = () => {
   const fetchParticipantCount = async (clubIdParam, eventId) => {
     if (!token) return;
     try {
+      console.debug(`Fetching participant count for event ${eventId}`); // Debugging: Before API call
       const response = await fetch(
         "http://43.205.202.255:5000/event/get_participant_count",
         {
@@ -110,6 +148,7 @@ const ViewEvents = () => {
           }),
         }
       );
+
       if (!response.ok)
         throw new Error(
           `Failed to fetch participant count: ${response.status}`
@@ -119,6 +158,7 @@ const ViewEvents = () => {
         ...prev,
         [eventId]: data.participant_count || 0,
       }));
+      console.debug(`Participant count for event ${eventId}:`, data); // Debugging: Participant count data
     } catch (error) {
       console.error("Error fetching participant count:", error);
     }
@@ -126,12 +166,12 @@ const ViewEvents = () => {
 
   // Handle "Yes" vote.
   const handleYesVote = async (eventItem) => {
-    // If already participating, do nothing.
     if (userVotes[eventItem.id] === "yes") {
       alert("You are already participating in this event.");
       return;
     }
     try {
+      console.debug(`Handling "Yes" vote for event ${eventItem.id}`); // Debugging: Yes vote action
       const response = await fetch(
         "http://43.205.202.255:5000/event/add_event_participant",
         {
@@ -141,7 +181,7 @@ const ViewEvents = () => {
             Authorization: `Bearer ${token}`,
           },
           body: JSON.stringify({
-            club_id: eventItem.club_id || clubId,
+            club_id: eventItem.club_id,
             event_id: eventItem.id,
             student_email: studentEmail,
           }),
@@ -150,7 +190,6 @@ const ViewEvents = () => {
       if (!response.ok)
         throw new Error(`Failed to add participant: ${response.status}`);
       const data = await response.json();
-      // Update participant count from backend.
       setParticipantCounts((prev) => ({
         ...prev,
         [eventItem.id]: data.participant_count,
@@ -164,12 +203,12 @@ const ViewEvents = () => {
 
   // Handle "No" vote.
   const handleNoVote = async (eventItem) => {
-    // If the user is not participating, nothing to remove.
-    // if (userVotes[eventItem.id] !== "yes") {
-    //   alert("You are not currently participating in this event.");
-    //   return;
-    // }
+    if (userVotes[eventItem.id] !== "yes") {
+      alert("You are not currently participating in this event.");
+      return;
+    }
     try {
+      console.debug(`Handling "No" vote for event ${eventItem.id}`); // Debugging: No vote action
       const response = await fetch(
         "http://43.205.202.255:5000/event/delete_participant",
         {
@@ -179,7 +218,7 @@ const ViewEvents = () => {
             Authorization: `Bearer ${token}`,
           },
           body: JSON.stringify({
-            club_id: eventItem.club_id || clubId,
+            club_id: eventItem.club_id,
             event_id: eventItem.id,
             student_email: studentEmail,
           }),
@@ -188,7 +227,6 @@ const ViewEvents = () => {
       if (!response.ok)
         throw new Error(`Failed to remove participant: ${response.status}`);
       const data = await response.json();
-      // Update participant count from backend.
       setParticipantCounts((prev) => ({
         ...prev,
         [eventItem.id]: data.participant_count,
@@ -268,16 +306,14 @@ const ViewEvents = () => {
                 className={`event-tab ${
                   activeTab === "today" ? "active-tab" : ""
                 }`}
-                onClick={() => setActiveTab("today")}
-              >
+                onClick={() => setActiveTab("today")}>
                 Today’s Events
               </span>
               <span
                 className={`event-tab ${
                   activeTab === "upcoming" ? "active-tab" : ""
                 }`}
-                onClick={() => setActiveTab("upcoming")}
-              >
+                onClick={() => setActiveTab("upcoming")}>
                 Upcoming Events
               </span>
             </div>
@@ -303,28 +339,24 @@ const ViewEvents = () => {
         <div className="all-event-tabs">
           <span
             className={`event-tab ${activeTab === "all" ? "active-tab" : ""}`}
-            onClick={() => setActiveTab("all")}
-          >
+            onClick={() => setActiveTab("all")}>
             All Events
           </span>
           <span
             className={`event-tab ${activeTab === "today" ? "active-tab" : ""}`}
-            onClick={() => setActiveTab("today")}
-          >
+            onClick={() => setActiveTab("today")}>
             Today Events
           </span>
           <span
             className={`event-tab ${
               activeTab === "upcoming" ? "active-tab" : ""
             }`}
-            onClick={() => setActiveTab("upcoming")}
-          >
+            onClick={() => setActiveTab("upcoming")}>
             Upcoming Events
           </span>
           <span
             className={`event-tab ${activeTab === "past" ? "active-tab" : ""}`}
-            onClick={() => setActiveTab("past")}
-          >
+            onClick={() => setActiveTab("past")}>
             Past Events
           </span>
         </div>
@@ -354,20 +386,17 @@ const ViewEvents = () => {
                   <div className="event-buttons">
                     <button
                       className="yes-btn"
-                      onClick={() => handleYesVote(event)}
-                    >
+                      onClick={() => handleYesVote(event)}>
                       Yes
                     </button>
                     <button
                       className="no-btn"
-                      onClick={() => handleNoVote(event)}
-                    >
+                      onClick={() => handleNoVote(event)}>
                       No
                     </button>
                     <button
                       className="maybe-btn"
-                      onClick={() => handleMaybeVote(event)}
-                    >
+                      onClick={() => handleMaybeVote(event)}>
                       Maybe
                     </button>
                   </div>

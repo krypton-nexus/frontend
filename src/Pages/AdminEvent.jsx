@@ -13,6 +13,7 @@ const AdminEvent = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [studentEmail, setStudentEmail] = useState("");
+  const [clubId, setClubId] = useState("");
   const [token, setToken] = useState(null);
   const [participantCounts, setParticipantCounts] = useState({});
   const [trendingImages, setTrendingImages] = useState([]); // Store event images for trending
@@ -24,11 +25,13 @@ const AdminEvent = () => {
   const navigate = useNavigate();
 
   useEffect(() => {
-    const token = localStorage.getItem("access_token");
+    const token = localStorage.getItem("admin_access_token");
     if (token) {
       try {
         const decoded = jwtDecode(token);
+
         setStudentEmail(decoded.email);
+        setClubId(decoded.club_id);
         setToken(token);
       } catch (err) {
         console.error("Invalid token", err);
@@ -46,7 +49,7 @@ const AdminEvent = () => {
     const fetchEvents = async () => {
       try {
         const response = await fetch(
-          "http://43.205.202.255:5000/event/get_events?club_id=club_sesa",
+          `http://43.205.202.255:5000/event/get_events?club_id=${clubId}`,
           {
             method: "GET",
             headers: {
@@ -351,7 +354,7 @@ const AdminEvent = () => {
         ) : error ? (
           <div className="error-message">{error}</div>
         ) : filteredEvents.length > 0 ? (
-          <div className="events-grid">
+          <div className="events-grid2">
             {filteredEvents.map((event) => (
               <div className="event-card2" key={event.id}>
                 <img
@@ -363,6 +366,7 @@ const AdminEvent = () => {
                   <h3>{event.event_name}</h3>
                   <p>{new Date(event.event_date).toDateString()}</p>
                   <p>{event.venue}</p>
+                  <p>{event.event_description}</p>
                 </div>
                 <div className="event-menu-container">
                   <FaEllipsisV
