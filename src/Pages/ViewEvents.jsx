@@ -306,16 +306,14 @@ const ViewEvents = () => {
                 className={`event-tab ${
                   activeTab === "today" ? "active-tab" : ""
                 }`}
-                onClick={() => setActiveTab("today")}
-              >
+                onClick={() => setActiveTab("today")}>
                 Today’s Events
               </span>
               <span
                 className={`event-tab ${
                   activeTab === "upcoming" ? "active-tab" : ""
                 }`}
-                onClick={() => setActiveTab("upcoming")}
-              >
+                onClick={() => setActiveTab("upcoming")}>
                 Upcoming Events
               </span>
             </div>
@@ -341,28 +339,24 @@ const ViewEvents = () => {
         <div className="all-event-tabs">
           <span
             className={`event-tab ${activeTab === "all" ? "active-tab" : ""}`}
-            onClick={() => setActiveTab("all")}
-          >
+            onClick={() => setActiveTab("all")}>
             All Events
           </span>
           <span
             className={`event-tab ${activeTab === "today" ? "active-tab" : ""}`}
-            onClick={() => setActiveTab("today")}
-          >
+            onClick={() => setActiveTab("today")}>
             Today Events
           </span>
           <span
             className={`event-tab ${
               activeTab === "upcoming" ? "active-tab" : ""
             }`}
-            onClick={() => setActiveTab("upcoming")}
-          >
+            onClick={() => setActiveTab("upcoming")}>
             Upcoming Events
           </span>
           <span
             className={`event-tab ${activeTab === "past" ? "active-tab" : ""}`}
-            onClick={() => setActiveTab("past")}
-          >
+            onClick={() => setActiveTab("past")}>
             Past Events
           </span>
         </div>
@@ -392,20 +386,17 @@ const ViewEvents = () => {
                   <div className="event-buttons">
                     <button
                       className="yes-btn"
-                      onClick={() => handleYesVote(event)}
-                    >
+                      onClick={() => handleYesVote(event)}>
                       Yes
                     </button>
                     <button
                       className="no-btn"
-                      onClick={() => handleNoVote(event)}
-                    >
+                      onClick={() => handleNoVote(event)}>
                       No
                     </button>
                     <button
                       className="maybe-btn"
-                      onClick={() => handleMaybeVote(event)}
-                    >
+                      onClick={() => handleMaybeVote(event)}>
                       Maybe
                     </button>
                   </div>

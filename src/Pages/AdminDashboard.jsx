@@ -2,14 +2,12 @@ import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
-import {jwtDecode} from "jwt-decode";
+import { jwtDecode } from "jwt-decode";
 import AdminSidebar from "../Components/AdminSidebar"; // External sidebar component
 import "../CSS/AdminDashboard.css";
 import "../CSS/SideBar.css";
 import { FaSearch, FaUserCircle } from "react-icons/fa"; // Corrected import for FaBan
 import { Ban } from "lucide-react";
-
-
 
 // ------------------ Helper API Functions ------------------
 const baseURL = "http://43.205.202.255:5000";
@@ -115,8 +113,7 @@ const NotificationPopup = ({
         width: "320px",
         padding: "10px",
         borderRadius: "5px",
-      }}
-    >
+      }}>
       <div
         className="notification-dropdown-header"
         style={{
@@ -124,8 +121,7 @@ const NotificationPopup = ({
           display: "flex",
           justifyContent: "space-between",
           alignItems: "center",
-        }}
-      >
+        }}>
         <button
           onClick={markAllAsRead}
           style={{
@@ -135,8 +131,7 @@ const NotificationPopup = ({
             padding: "5px 10px",
             cursor: "pointer",
             borderRadius: "3px",
-          }}
-        >
+          }}>
           Mark All as Read
         </button>
         <button
@@ -146,8 +141,7 @@ const NotificationPopup = ({
             border: "none",
             fontSize: "24px",
             cursor: "pointer",
-          }}
-        >
+          }}>
           &times;
         </button>
       </div>
@@ -160,8 +154,7 @@ const NotificationPopup = ({
                 fontWeight: notif.is_read ? "normal" : "bold",
                 borderBottom: "1px solid #ccc",
                 padding: "5px 0",
-              }}
-            >
+              }}>
               <div>{notif.notification}</div>
               <div style={{ fontSize: "0.8em", color: "#666" }}>
                 {notif.formattedDate}
@@ -174,8 +167,7 @@ const NotificationPopup = ({
       )}
       <div
         className="notification-filters"
-        style={{ marginTop: "10px", textAlign: "center" }}
-      >
+        style={{ marginTop: "10px", textAlign: "center" }}>
         <button onClick={() => setFilter("all")} style={{ margin: "0 5px" }}>
           All
         </button>
@@ -293,8 +285,39 @@ const MembershipTable = ({
     return acc;
   }, {});
 
+  const total = Object.values(yearCounts).reduce(
+    (sum, count) => sum + count,
+    0
+  );
+
+  const colors = ["#a91d3a", "#007bff", "#28a745", "#ffc107", "#6610f2"];
+  const getColor = (index) => colors[index % colors.length];
+
   return (
     <div className="membership-table-container">
+      {/* <div className="bar-analysis-container">
+        <h3>🎓 Year-wise Member Distribution</h3>
+        <div className="bars-wrapper">
+          {Object.entries(yearCounts).map(([year, count], index) => {
+            const percent = total === 0 ? 0 : Math.round((count / total) * 100);
+            return (
+              <div key={year} className="bar-item">
+                <div className="bar-label">Year {year}</div>
+                <div className="bar-track">
+                  <div
+                    className="bar-fill"
+                    style={{
+                      width: `${percent}%`,
+                      backgroundColor: getColor(index),
+                    }}>
+                    <span className="bar-percent">{percent}%</span>
+                  </div>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      </div> */}
       <div className="year-analysis">
         <h2>Year-wise Analysis</h2>
         <ul>
@@ -331,14 +354,12 @@ const MembershipTable = ({
                   <>
                     <button
                       className="view-btn"
-                      onClick={() => onViewDetails(member.student_email)}
-                    >
+                      onClick={() => onViewDetails(member.student_email)}>
                       View
                     </button>
                     <button
                       className="delete-btn"
-                      onClick={() => onMemberDeletion(member.student_email)}
-                    >
+                      onClick={() => onMemberDeletion(member.student_email)}>
                       Delete
                     </button>
                   </>
@@ -346,24 +367,21 @@ const MembershipTable = ({
                   <>
                     <button
                       className="view-btn"
-                      onClick={() => onViewDetails(member.student_email)}
-                    >
+                      onClick={() => onViewDetails(member.student_email)}>
                       View
                     </button>
                     <button
                       className="accept-btn"
                       onClick={() =>
                         onStatusChange("Approved", member.student_email)
-                      }
-                    >
+                      }>
                       Accept
                     </button>
                     <button
                       className="reject-btn"
                       onClick={() =>
                         onStatusChange("rejected", member.student_email)
-                      }
-                    >
+                      }>
                       Reject
                     </button>
                   </>
