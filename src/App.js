@@ -18,6 +18,7 @@ import ClubChannel from "./Components/ClubChannel";
 import Home from "./Pages/Home";
 import ShowClubs from "./Components/ShowClubs";
 import ViewEvents from "./Pages/ViewEvents";
+import Finance from "./Pages/Finance";
 import SesaPage from "./Pages/SesaPage";
 import GavelPage from "./Pages/GavelPage";
 import Login from "./Components/Login";
@@ -68,6 +69,14 @@ const App = () => {
           element={
             <NoButtonLayout>
               <ViewEvents />
+            </NoButtonLayout>
+          }
+        />
+        <Route
+          path="/finance"
+          element={
+            <NoButtonLayout>
+              <Finance />
             </NoButtonLayout>
           }
         />
