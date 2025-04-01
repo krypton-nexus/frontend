@@ -399,5 +399,16 @@
     color: white;
   }
   
-
+/* Responsive */
+@media (max-width: 1024px) {
+    .data-visualization,
+    .transactions-categories {
+      flex-direction: column;
+    }
+  
+    .summary-cards {
+      flex-direction: column;
+    }
+  }
+  
   
