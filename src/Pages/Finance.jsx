@@ -73,7 +73,9 @@ const Finance = () => {
       }
     }, []);
     useEffect(() => {
-        if (!token) return;
+      if (!token) return;
+      // rest of your effect code here
+  }, [token]);
   
     
     // // Generate mock data on component mount
@@ -122,76 +124,56 @@ const Finance = () => {
   
     //   setTransactions(mockTransactions);
     // };
-    const fetchTransaction = async () => {
-      try {
-        console.log(clubId);
-        const response = await fetch(
-          `http://43.205.202.255:5000/finance/get_transactions?club_id=${clubId}`,
-          {
-            method: "GET",
-            headers: {
-              "Content-Type": "application/json",
-              // Authorization: `Bearer ${token}`,
-            },
-          }
-        );
-    
-        if (!response.ok) throw new Error(`HTTP error! Status: ${response.status}`);
-    
-        const data = await response.json();
-    
-        if (data.transactions && Array.isArray(data.transactions)) {
-          // Map API response to your transactions format
-          const fetchedTransactions = data.transactions.map((transaction, index) => ({
-            id: `transaction-${index}`,
-            date: new Date(transaction.Date).toISOString().split('T')[0], // Format date
-            name: transaction.Name,
-            description: transaction.Description,
-            category: transaction["Category Name"], // Directly use category from API
-            amount: parseFloat(transaction.Amount), // Convert amount to number
-            type: transaction["Transaction Type"].toLowerCase(), // Normalize transaction type (income/expense)
-          }));
-    
-          setTransactions(fetchedTransactions);
-          console.log(fetchedTransactions);
-    
-          // Extract unique categories dynamically based on fetched transactions
-          const incomeCategories = [
-            ...new Set(
-              fetchedTransactions
-                .filter((transaction) => transaction.type === "income")
-                .map((transaction) => transaction.category)
-            ),
-          ];
-    
-          const expenseCategories = [
-            ...new Set(
-              fetchedTransactions
-                .filter((transaction) => transaction.type === "expense")
-                .map((transaction) => transaction.category)
-            ),
-          ];
-    
-          // Set categories dynamically in the state
-          setCategories({
-            income: incomeCategories,
-            expense: expenseCategories,
-          });
-    
-        } else {
-          console.error("Unexpected data format:", data);
+    // ✅ Move fetchTransaction outside useEffect
+  const fetchTransaction = async () => {
+    try {
+      const response = await fetch(
+        `http://43.205.202.255:5000/finance/get_transactions?club_id=${clubId}`,
+        {
+          method: "GET",
+          headers: { "Content-Type": "application/json" },
         }
-      } catch (error) {
-        console.error("Error fetching transactions:", error);
-        setError("Failed to load transactions.");
-      } finally {
-        setLoading(false);
+      );
+      if (!response.ok) throw new Error(`HTTP error! Status: ${response.status}`);
+      const data = await response.json();
+      
+      if (data.transactions) {
+        const fetchedTransactions = data.transactions.map((t, index) => ({
+          id: `transaction-${index}`,
+          date: new Date(t.Date).toISOString().split("T")[0],
+          name: t.Name,
+          description: t.Description,
+          category: t["Category Name"],
+          amount: parseFloat(t.Amount),
+          type: t["Transaction Type"].toLowerCase(),
+        }));
+        setTransactions(fetchedTransactions);
+
+        // Update categories
+        const incomeCategories = [...new Set(
+          fetchedTransactions
+            .filter((t) => t.type === "income")
+            .map((t) => t.category)
+        )];
+        const expenseCategories = [...new Set(
+          fetchedTransactions
+            .filter((t) => t.type === "expense")
+            .map((t) => t.category)
+        )];
+        setCategories({ income: incomeCategories, expense: expenseCategories });
       }
-    };
-    
-    fetchTransaction();
-    }, [token, clubId]); // Adding clubId and token as dependencies to fetch when they change
-    
+    } catch (error) {
+      console.error("Fetch error:", error);
+      setError("Failed to load transactions.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // ✅ Fetch data when token/clubId changes
+  useEffect(() => {
+    if (token && clubId) fetchTransaction();
+  },[token, clubId]);
   
     // Filter transactions based on selected time period
     const getFilteredTransactions = () => {
@@ -290,20 +272,48 @@ const Finance = () => {
   
       return data;
     };
-  
-    // Add new category
-    const handleAddCategory = () => {
-      if (!newCategory.trim()) return;
-  
-      if (!categories[newCategoryType].includes(newCategory)) {
-        setCategories({
-          ...categories,
-          [newCategoryType]: [...categories[newCategoryType], newCategory],
+    const handleAddCategory = async () => {
+      if (!newCategory.trim()) return;  // Check if the new category is not empty
+    
+      // Prepare the payload for the API request
+      const payload = {
+        transaction_type: newCategoryType, // Assuming `newCategoryType` is 'Income' or 'Expense'
+        club_id: clubId,  // Replace this with the actual club_id, or pass it dynamically
+        category_name: newCategory
+      };
+    
+      try {
+        // Make the POST request to the API
+        const response = await fetch('http://43.205.202.255:5000/finance/insert_category', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(payload),
         });
+    
+        // Handle the response
+        const result = await response.json();
+        if (1) {
+          // If the request is successful, add the category to the local state
+          if (!categories[newCategoryType].includes(newCategory)) {
+            setCategories({
+              ...categories,
+              [newCategoryType]: [...categories[newCategoryType], newCategory],
+            });
+          }
+          alert('Category added successfully:');
+        } else {
+          console.error('Error adding category:', result.error);
+        }
+      } catch (error) {
+        console.error('Error making API request:', error);
       }
-  
+    
+      // Clear the input field after the operation
       setNewCategory("");
     };
+    
   
     // Handle new transaction input
     const handleTransactionChange = (e) => {
@@ -358,7 +368,7 @@ const Finance = () => {
     
         const result = await response.json();
        
-        if (1) {
+        if (result.message === "Transaction successfully inserted.") {
           // If the transaction is successfully added, update the state
           setTransactions([transactionData, ...transactions]);
     
@@ -374,6 +384,7 @@ const Finance = () => {
     
           setShowAddTransaction(false); // Close the add transaction form
           alert("Succesfully to add transaction");
+          fetchTransaction();
         } else {
           alert("Failed to add transaction");
         }
