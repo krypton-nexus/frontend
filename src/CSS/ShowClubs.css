@@ -142,3 +142,13 @@
   font-size: 20px;
   color: red;
 }
+
+.no-clubs-message {
+  padding: 15px;
+  background: #ede9fe;
+  color: #a91d3a;
+  font-weight: bold;
+  text-align: center;
+  border-radius: 8px;
+  margin-top: 20px;
+}
