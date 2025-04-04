@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import { jwtDecode } from "jwt-decode";
 import {
   BarChart,
   Bar,
@@ -30,12 +31,14 @@ import {
 
 const Finance = () => {
     // State management
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState(null);
     const [timeFilter, setTimeFilter] = useState("month");
     const [showAddTransaction, setShowAddTransaction] = useState(false);
     const [transactionType, setTransactionType] = useState("income");
     const [categories, setCategories] = useState({
-      income: ["Salary", "Freelance", "Investments", "Gifts"],
-      expense: ["Food", "Transport", "Utilities", "Entertainment", "Shopping"],
+      income: [],  // Initially empty
+      expense: [], // Initially empty
     });
     const [newCategory, setNewCategory] = useState("");
     const [newCategoryType, setNewCategoryType] = useState("income");
@@ -48,53 +51,129 @@ const Finance = () => {
       category: "",
       type: "income",
     });
-  
-    // Generate mock data on component mount
+    const [studentEmail, setStudentEmail] = useState("");
+    const [clubId, setClubId] = useState("");
+    const [token, setToken] = useState(null);
     useEffect(() => {
-      generateMockData();
+      const token = localStorage.getItem("admin_access_token");
+      if (token) {
+        try {
+          const decoded = jwtDecode(token);
+  
+          setStudentEmail(decoded.email);
+          setClubId(decoded.club_id);
+          setToken(token);
+        } catch (err) {
+          console.error("Invalid token", err);
+          setError("Failed to decode token. Please log in again.");
+        }
+      } else {
+        console.error("No token found");
+        setError("User is not authenticated. Please log in.");
+      }
     }, []);
+    useEffect(() => {
+      if (!token) return;
+      // rest of your effect code here
+  }, [token]);
   
-    // Mock data generation
-    const generateMockData = () => {
-      const mockTransactions = [];
-      const today = new Date();
+    
+    // // Generate mock data on component mount
+    // useEffect(() => {
+    //   generateMockData();
+    // }, []);
   
-      // Generate income transactions
-      for (let i = 0; i < 15; i++) {
-        const date = subMonths(today, Math.floor(Math.random() * 6));
-        const category =
-          categories.income[Math.floor(Math.random() * categories.income.length)];
-        mockTransactions.push({
-          id: `inc-${i}`,
-          date: format(date, "yyyy-MM-dd"),
-          name: `${category} Income`,
-          description: `Monthly ${category.toLowerCase()}`,
-          category,
-          amount: Math.floor(Math.random() * 3000) + 1000,
-          type: "income",
-        });
+    // // Mock data generation
+    // const generateMockData = () => {
+    //   const mockTransactions = [];
+    //   const today = new Date();
+  
+    //   // Generate income transactions
+    //   for (let i = 0; i < 15; i++) {
+    //     const date = subMonths(today, Math.floor(Math.random() * 6));
+    //     const category =
+    //       categories.income[Math.floor(Math.random() * categories.income.length)];
+    //     mockTransactions.push({
+    //       id: `inc-${i}`,
+    //       date: format(date, "yyyy-MM-dd"),
+    //       name: `${category} Income`,
+    //       description: `Monthly ${category.toLowerCase()}`,
+    //       category,
+    //       amount: Math.floor(Math.random() * 3000) + 1000,
+    //       type: "income",
+    //     });
+    //   }
+  
+    //   // Generate expense transactions
+    //   for (let i = 0; i < 25; i++) {
+    //     const date = subMonths(today, Math.floor(Math.random() * 6));
+    //     const category =
+    //       categories.expense[
+    //         Math.floor(Math.random() * categories.expense.length)
+    //       ];
+    //     mockTransactions.push({
+    //       id: `exp-${i}`,
+    //       date: format(date, "yyyy-MM-dd"),
+    //       name: `${category} Expense`,
+    //       description: `${category} payment`,
+    //       category,
+    //       amount: Math.floor(Math.random() * 500) + 50,
+    //       type: "expense",
+    //     });
+    //   }
+  
+    //   setTransactions(mockTransactions);
+    // };
+    // ✅ Move fetchTransaction outside useEffect
+  const fetchTransaction = async () => {
+    try {
+      const response = await fetch(
+        `http://43.205.202.255:5000/finance/get_transactions?club_id=${clubId}`,
+        {
+          method: "GET",
+          headers: { "Content-Type": "application/json" },
+        }
+      );
+      if (!response.ok) throw new Error(`HTTP error! Status: ${response.status}`);
+      const data = await response.json();
+      
+      if (data.transactions) {
+        const fetchedTransactions = data.transactions.map((t, index) => ({
+          id: `transaction-${index}`,
+          date: new Date(t.Date).toISOString().split("T")[0],
+          name: t.Name,
+          description: t.Description,
+          category: t["Category Name"],
+          amount: parseFloat(t.Amount),
+          type: t["Transaction Type"].toLowerCase(),
+        }));
+        setTransactions(fetchedTransactions);
+
+        // Update categories
+        const incomeCategories = [...new Set(
+          fetchedTransactions
+            .filter((t) => t.type === "income")
+            .map((t) => t.category)
+        )];
+        const expenseCategories = [...new Set(
+          fetchedTransactions
+            .filter((t) => t.type === "expense")
+            .map((t) => t.category)
+        )];
+        setCategories({ income: incomeCategories, expense: expenseCategories });
       }
-  
-      // Generate expense transactions
-      for (let i = 0; i < 25; i++) {
-        const date = subMonths(today, Math.floor(Math.random() * 6));
-        const category =
-          categories.expense[
-            Math.floor(Math.random() * categories.expense.length)
-          ];
-        mockTransactions.push({
-          id: `exp-${i}`,
-          date: format(date, "yyyy-MM-dd"),
-          name: `${category} Expense`,
-          description: `${category} payment`,
-          category,
-          amount: Math.floor(Math.random() * 500) + 50,
-          type: "expense",
-        });
-      }
-  
-      setTransactions(mockTransactions);
-    };
+    } catch (error) {
+      console.error("Fetch error:", error);
+      setError("Failed to load transactions.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // ✅ Fetch data when token/clubId changes
+  useEffect(() => {
+    if (token && clubId) fetchTransaction();
+  },[token, clubId]);
   
     // Filter transactions based on selected time period
     const getFilteredTransactions = () => {
@@ -127,7 +206,7 @@ const Finance = () => {
     const formatCurrency = (value) => {
       return new Intl.NumberFormat("en-US", {
         style: "currency",
-        currency: "USD",
+        currency: "LKR",
         minimumFractionDigits: 0,
       }).format(value);
     };
@@ -193,20 +272,48 @@ const Finance = () => {
   
       return data;
     };
-  
-    // Add new category
-    const handleAddCategory = () => {
-      if (!newCategory.trim()) return;
-  
-      if (!categories[newCategoryType].includes(newCategory)) {
-        setCategories({
-          ...categories,
-          [newCategoryType]: [...categories[newCategoryType], newCategory],
+    const handleAddCategory = async () => {
+      if (!newCategory.trim()) return;  // Check if the new category is not empty
+    
+      // Prepare the payload for the API request
+      const payload = {
+        transaction_type: newCategoryType, // Assuming `newCategoryType` is 'Income' or 'Expense'
+        club_id: clubId,  // Replace this with the actual club_id, or pass it dynamically
+        category_name: newCategory
+      };
+    
+      try {
+        // Make the POST request to the API
+        const response = await fetch('http://43.205.202.255:5000/finance/insert_category', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(payload),
         });
+    
+        // Handle the response
+        const result = await response.json();
+        if (1) {
+          // If the request is successful, add the category to the local state
+          if (!categories[newCategoryType].includes(newCategory)) {
+            setCategories({
+              ...categories,
+              [newCategoryType]: [...categories[newCategoryType], newCategory],
+            });
+          }
+          alert('Category added successfully:');
+        } else {
+          console.error('Error adding category:', result.error);
+        }
+      } catch (error) {
+        console.error('Error making API request:', error);
       }
-  
+    
+      // Clear the input field after the operation
       setNewCategory("");
     };
+    
   
     // Handle new transaction input
     const handleTransactionChange = (e) => {
@@ -219,7 +326,7 @@ const Finance = () => {
     };
   
     // Add new transaction
-    const handleAddTransaction = () => {
+    const handleAddTransaction = async () => {
       if (
         !newTransaction.amount ||
         !newTransaction.name ||
@@ -228,24 +335,65 @@ const Finance = () => {
         alert("Please fill in all required fields");
         return;
       }
-  
-      const transaction = {
-        ...newTransaction,
-        id: `${transactionType}-${Date.now()}`,
-        date: newTransaction.date || format(new Date(), "yyyy-MM-dd"),
+    
+      const transactionData = {
+        "Date": newTransaction.date || format(new Date(), "yyyy-MM-dd"), // Use new transaction date or today's date
+        "Name": newTransaction.name,
+        "Description": newTransaction.description,
+        "Amount": parseFloat(newTransaction.amount), // Ensure the amount is a number
+        "Transaction Type": newTransaction.type, // Transaction type (income or expense)
+        "Category Name": newTransaction.category, // Category name (from user input)
+        "club_id": clubId,
       };
-  
-      setTransactions([transaction, ...transactions]);
-      setNewTransaction({
-        amount: "",
-        name: "",
-        date: format(new Date(), "yyyy-MM-dd"),
-        description: "",
-        category: "",
-        type: transactionType,
-      });
-      setShowAddTransaction(false);
+      console.log(transactionData);
+      try {
+        // Send the transaction data to the API
+        const response = await fetch(
+          "http://43.205.202.255:5000/finance/insert_transaction",
+          {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              // Add Authorization header if required
+              // Authorization: `Bearer ${token}`,
+            },
+            body: JSON.stringify(transactionData), // Send the transaction data in the request body
+          }
+        );
+    
+        console.log(response);
+        if (!response.ok) {
+          throw new Error(`HTTP error! Status: ${response.status}`);
+        }
+    
+        const result = await response.json();
+       
+        if (result.message === "Transaction successfully inserted.") {
+          // If the transaction is successfully added, update the state
+          setTransactions([transactionData, ...transactions]);
+    
+          // Reset the form fields after the transaction is added
+          setNewTransaction({
+            amount: "",
+            name: "",
+            date: format(new Date(), "yyyy-MM-dd"),
+            description: "",
+            category: "",
+            type: transactionType,
+          });
+    
+          setShowAddTransaction(false); // Close the add transaction form
+          alert("Succesfully to add transaction");
+          fetchTransaction();
+        } else {
+          alert("Failed to add transaction");
+        }
+      } catch (error) {
+        console.error("Error adding transaction:", error);
+        alert("Failed to add transaction.");
+      }
     };
+    
   
     // PieChart colors
     const INCOME_COLORS = ["#4CAF50", "#8BC34A", "#CDDC39", "#FFC107", "#03A9F4"];
