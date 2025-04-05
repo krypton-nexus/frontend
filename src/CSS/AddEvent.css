@@ -11,13 +11,6 @@
   height: 100vh;
 }
 
-.main-content {
-  flex: 1;
-  padding: 20px;
-  overflow-y: auto;
-  background-color: #f9f9f9;
-}
-
 .create-event {
   padding: 8px 15px;
   background-color: #a91d3a;

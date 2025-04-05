@@ -222,7 +222,7 @@ const AdminSidebar = () => {
     { path: "/addtask", label: "Tasks", icon: <FaTasks /> },
     { path: "/feed", label: "Feed", icon: <FaRss /> },
     { path: "/finance", label: "Finance", icon: <FaWallet /> },
-    { path: "/merchandise", label: "Merchandise", icon: <FaListAlt /> },
+    { path: "/addmerchandise", label: "Merchandise", icon: <FaListAlt /> },
   ];
 
   const filteredNotifications = notifications.filter((n) => {

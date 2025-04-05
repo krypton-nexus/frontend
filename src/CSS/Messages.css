@@ -5,13 +5,14 @@
   gap: 0px;
   padding: 15px 15px 70px 15px;
   overflow-y: auto;
-  height: 500px;
+  height: 700px;
   /* background-color: #ede9fe; */
   background-color: #fadadd;
   border-radius: 10px;
   border: 1px solid #e0e0e0;
   scrollbar-width: thin;
   scrollbar-color: #ccc #f9f9f9;
+  position: relative;
 }
 
 /* Date separator style */

@@ -6,11 +6,20 @@ body {
   background: #f8f8f8;
 }
 
+.temp{
+  width: 100%;
+  display: flex;
+  flex-direction: row;
+  height: 100vh;
+}
+
 /* Container Styling */
 .merchandise-container {
+  display: flex;
+  flex-direction: column;
   padding: 20px;
-  max-width: 1200px;
-  margin: 0 auto;
+  width: 80%;
+  margin: 0 0;
   background: #fff;
 }
 

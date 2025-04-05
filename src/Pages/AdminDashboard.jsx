@@ -1,17 +1,17 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
-import { ToastContainer } from "react-toastify";
+import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import { jwtDecode } from "jwt-decode";
-import AdminSidebar from "../Components/AdminSidebar"; // External sidebar component
+import AdminSidebar from "../Components/AdminSidebar";
 import "../CSS/AdminDashboard.css";
 import "../CSS/SideBar.css";
-import { FaSearch, FaUserCircle } from "react-icons/fa"; // Corrected import for FaBan
+import { FaSearch, FaUserCircle } from "react-icons/fa";
 import { Ban } from "lucide-react";
 
-// ------------------ Helper API Functions ------------------
 const baseURL = "http://43.205.202.255:5000";
 
+// ------------------ Helper API Functions ------------------
 const apiGet = async (endpoint, token) => {
   const res = await fetch(`${baseURL}${endpoint}`, {
     method: "GET",
@@ -21,10 +21,9 @@ const apiGet = async (endpoint, token) => {
       Accept: "application/json",
     },
   });
-  if (!res.ok) {
+  if (!res.ok)
     throw new Error(`GET ${endpoint} failed with status: ${res.status}`);
-  }
-  return await res.json();
+  return res.json();
 };
 
 const apiPut = async (endpoint, token, body) => {
@@ -37,10 +36,9 @@ const apiPut = async (endpoint, token, body) => {
     },
     body: JSON.stringify(body),
   });
-  if (!res.ok) {
+  if (!res.ok)
     throw new Error(`PUT ${endpoint} failed with status: ${res.status}`);
-  }
-  return await res.json();
+  return res.json();
 };
 
 const apiPatch = async (endpoint, token, body) => {
@@ -53,10 +51,9 @@ const apiPatch = async (endpoint, token, body) => {
     },
     body: JSON.stringify(body),
   });
-  if (!res.ok) {
+  if (!res.ok)
     throw new Error(`PATCH ${endpoint} failed with status: ${res.status}`);
-  }
-  return await res.json();
+  return res.json();
 };
 
 const apiDelete = async (endpoint, token, body) => {
@@ -73,17 +70,17 @@ const apiDelete = async (endpoint, token, body) => {
     let errorDetails = "";
     try {
       errorDetails = await res.text();
-    } catch (err) {
+    } catch {
       errorDetails = "No additional error info";
     }
     throw new Error(
       `DELETE ${endpoint} failed with status: ${res.status}. Details: ${errorDetails}`
     );
   }
-  return await res.json();
+  return res.json();
 };
 
-// ------------------ NotificationPopup Component ------------------
+// ------------------ NotificationPopup with Overlay ------------------
 const NotificationPopup = ({
   notifications,
   filter,
@@ -100,85 +97,110 @@ const NotificationPopup = ({
     }));
 
   return (
-    <div
-      className="notification-popup"
-      style={{
-        position: "fixed",
-        top: "60px", // Adjust as needed
-        left: "250px", // Adjust based on sidebar width + margin
-        zIndex: 99999,
-        backgroundColor: "#fff",
-        color: "#000",
-        boxShadow: "0 2px 8px rgba(0, 0, 0, 0.25)",
-        width: "320px",
-        padding: "10px",
-        borderRadius: "5px",
-      }}>
+    <>
+      {/* Overlay: clicking outside triggers onClose */}
       <div
-        className="notification-dropdown-header"
+        onClick={onClose}
         style={{
-          marginBottom: "10px",
-          display: "flex",
-          justifyContent: "space-between",
-          alignItems: "center",
-        }}>
-        <button
-          onClick={markAllAsRead}
-          style={{
-            background: "#1a1a1a",
-            color: "#fff",
-            border: "none",
-            padding: "5px 10px",
-            cursor: "pointer",
-            borderRadius: "3px",
-          }}>
-          Mark All as Read
-        </button>
-        <button
-          onClick={onClose}
-          style={{
-            background: "transparent",
-            border: "none",
-            fontSize: "24px",
-            cursor: "pointer",
-          }}>
-          &times;
-        </button>
-      </div>
-      {sortedNotifications.length > 0 ? (
-        <ul style={{ listStyle: "none", margin: 0, padding: 0 }}>
-          {sortedNotifications.map((notif) => (
-            <li
-              key={notif.id}
-              style={{
-                fontWeight: notif.is_read ? "normal" : "bold",
-                borderBottom: "1px solid #ccc",
-                padding: "5px 0",
-              }}>
-              <div>{notif.notification}</div>
-              <div style={{ fontSize: "0.8em", color: "#666" }}>
-                {notif.formattedDate}
-              </div>
-            </li>
-          ))}
-        </ul>
-      ) : (
-        <div>No notifications available.</div>
-      )}
+          position: "fixed",
+          top: 0,
+          left: 0,
+          right: 0,
+          bottom: 0,
+          zIndex: 99998,
+          backgroundColor: "transparent",
+        }}
+      />
       <div
-        className="notification-filters"
-        style={{ marginTop: "10px", textAlign: "center" }}>
-        <button onClick={() => setFilter("all")} style={{ margin: "0 5px" }}>
-          All
-        </button>
-        <button onClick={() => setFilter("unread")} style={{ margin: "0 5px" }}>
-          Unread
-        </button>
-        <button onClick={() => setFilter("read")} style={{ margin: "0 5px" }}>
-          Read
-        </button>
+        className="notification-popup"
+        style={{
+          position: "fixed",
+          top: "60px",
+          left: "250px",
+          zIndex: 99999,
+          backgroundColor: "#fff",
+          color: "#000",
+          boxShadow: "0 2px 8px rgba(0,0,0,0.25)",
+          width: "320px",
+          padding: "10px",
+          borderRadius: "5px",
+        }}
+        onClick={(e) => e.stopPropagation()}
+      >
+        <div
+          className="notification-dropdown-header"
+          style={{
+            marginBottom: "10px",
+            display: "flex",
+            justifyContent: "space-between",
+            alignItems: "center",
+          }}
+        >
+          <button
+            onClick={markAllAsRead}
+            style={{
+              background: "#1a1a1a",
+              color: "#fff",
+              border: "none",
+              padding: "5px 10px",
+              cursor: "pointer",
+              borderRadius: "3px",
+            }}
+          >
+            Mark All as Read
+          </button>
+          <button
+            onClick={onClose}
+            style={{
+              background: "transparent",
+              border: "none",
+              fontSize: "24px",
+              cursor: "pointer",
+            }}
+          >
+            &times;
+          </button>
+        </div>
+        {sortedNotifications.length > 0 ? (
+          <ul style={{ listStyle: "none", margin: 0, padding: 0 }}>
+            {sortedNotifications.map((notif) => (
+              <li
+                key={notif.id}
+                style={{
+                  fontWeight: notif.is_read ? "normal" : "bold",
+                  borderBottom: "1px solid #ccc",
+                  padding: "5px 0",
+                }}
+              >
+                <div>{notif.notification}</div>
+                <div style={{ fontSize: "0.8em", color: "#666" }}>
+                  {notif.formattedDate}
+                </div>
+              </li>
+            ))}
+          </ul>
+        ) : (
+          <div>No notifications available.</div>
+        )}
+        <div
+          className="notification-filters"
+          style={{ marginTop: "10px", textAlign: "center" }}
+        >
+          <button onClick={() => setFilter("all")} style={{ margin: "0 5px" }}>
+            All
+          </button>
+          <button
+            onClick={() => setFilter("unread")}
+            style={{ margin: "0 5px" }}
+          >
+            Unread
+          </button>
+          <button onClick={() => setFilter("read")} style={{ margin: "0 5px" }}>
+            Read
+          </button>
+        </div>
       </div>
-    </div>
+    </>
   );
 };
 
@@ -278,7 +300,6 @@ const MembershipTable = ({
     );
   }
 
-  // Group members by year for analysis
   const yearCounts = data.reduce((acc, member) => {
     const year = member.year || "Unknown";
     acc[year] = (acc[year] || 0) + 1;
@@ -289,35 +310,11 @@ const MembershipTable = ({
     (sum, count) => sum + count,
     0
   );
-
   const colors = ["#a91d3a", "#007bff", "#28a745", "#ffc107", "#6610f2"];
   const getColor = (index) => colors[index % colors.length];
 
   return (
     <div className="membership-table-container">
-      {/* <div className="bar-analysis-container">
-        <h3>🎓 Year-wise Member Distribution</h3>
-        <div className="bars-wrapper">
-          {Object.entries(yearCounts).map(([year, count], index) => {
-            const percent = total === 0 ? 0 : Math.round((count / total) * 100);
-            return (
-              <div key={year} className="bar-item">
-                <div className="bar-label">Year {year}</div>
-                <div className="bar-track">
-                  <div
-                    className="bar-fill"
-                    style={{
-                      width: `${percent}%`,
-                      backgroundColor: getColor(index),
-                    }}>
-                    <span className="bar-percent">{percent}%</span>
-                  </div>
-                </div>
-              </div>
-            );
-          })}
-        </div>
-      </div> */}
       <div className="year-analysis">
         <h2>Year-wise Analysis</h2>
         <ul>
@@ -354,12 +351,14 @@ const MembershipTable = ({
                   <>
                     <button
                       className="view-btn"
-                      onClick={() => onViewDetails(member.student_email)}>
+                      onClick={() => onViewDetails(member.student_email)}
+                    >
                       View
                     </button>
                     <button
                       className="delete-btn"
-                      onClick={() => onMemberDeletion(member.student_email)}>
+                      onClick={() => onMemberDeletion(member.student_email)}
+                    >
                       Delete
                     </button>
                   </>
@@ -367,21 +366,24 @@ const MembershipTable = ({
                   <>
                     <button
                       className="view-btn"
-                      onClick={() => onViewDetails(member.student_email)}>
+                      onClick={() => onViewDetails(member.student_email)}
+                    >
                       View
                     </button>
                     <button
                       className="accept-btn"
                       onClick={() =>
                         onStatusChange("Approved", member.student_email)
-                      }>
+                      }
+                    >
                       Accept
                     </button>
                     <button
                       className="reject-btn"
                       onClick={() =>
                         onStatusChange("rejected", member.student_email)
-                      }>
+                      }
+                    >
                       Reject
                     </button>
                   </>
@@ -397,7 +399,6 @@ const MembershipTable = ({
 
 // ------------------ Main AdminDashboard Component ------------------
 const AdminDashboard = () => {
-  // Dashboard states
   const [unreadNotifications, setUnreadNotifications] = useState([]);
   const [allNotifications, setAllNotifications] = useState([]);
   const [filteredNotifications, setFilteredNotifications] = useState([]);
@@ -409,12 +410,14 @@ const AdminDashboard = () => {
   const [isNotificationsVisible, setIsNotificationsVisible] = useState(false);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [modalUserData, setModalUserData] = useState(null);
+  const [editModalOpen, setEditModalOpen] = useState(false);
+  const [editEvent, setEditEvent] = useState(null);
+  const [activeTab, setActiveTab] = useState("today");
 
   const navigate = useNavigate();
   const adminAccessToken = localStorage.getItem("admin_access_token");
-  console.log("Admin Access Token:", adminAccessToken);
 
-  const getAdminEmailFromToken = (token) => {
+  const getAdminEmailFromToken = useCallback((token) => {
     try {
       const decodedToken = jwtDecode(token);
       return decodedToken.email;
@@ -422,83 +425,124 @@ const AdminDashboard = () => {
       console.error("Failed to decode token:", error);
       return null;
     }
-  };
+  }, []);
+
   const adminEmail = adminAccessToken
     ? getAdminEmailFromToken(adminAccessToken)
     : null;
-  console.log("Admin Email:", adminEmail);
 
-  // Redirect if token/email missing
   useEffect(() => {
-    if (!adminEmail) {
-      navigate("/adminlogin");
-    }
+    if (!adminEmail) navigate("/admin");
   }, [adminEmail, navigate]);
 
-  // Fetch admin details and unread notifications
+  // ------------------ Notification Fetching Functions ------------------
+  const fetchAdminDetails = async () => {
+    try {
+      const data = await apiGet(
+        `/admin/email?email=${adminEmail}`,
+        adminAccessToken
+      );
+      setClubId(data.club_id);
+    } catch (error) {
+      console.error("Failed to fetch admin's club ID:", error);
+    }
+  };
+
+  const fetchUnreadNotifications = async () => {
+    try {
+      const endpoint = `/notification_admin/unread?admin_email=${adminEmail}`;
+      const data = await apiGet(endpoint, adminAccessToken);
+      setUnreadNotifications(data.unread_notifications || []);
+    } catch (error) {
+      console.error("Failed to fetch unread notifications:", error);
+    }
+  };
+
+  const fetchUnreadNotificationCount = async () => {
+    try {
+      const endpoint = `/notification_admin/unread/count?admin_email=${adminEmail}`;
+      const data = await apiGet(endpoint, adminAccessToken);
+      setUnreadCount(data.unread_count || 0);
+    } catch (error) {
+      console.error("Failed to fetch unread notification count:", error);
+    }
+  };
+
+  const fetchNotifications = async () => {
+    try {
+      const data = await apiGet(
+        `/notification_admin/all?admin_email=${adminEmail}`,
+        adminAccessToken
+      );
+      setAllNotifications(data.all_notifications || []);
+    } catch (error) {
+      console.error("Failed to fetch notifications:", error);
+    }
+  };
+
+  // ------------------ Membership Data Fetching ------------------
+  const fetchMembershipData = async () => {
+    if (!clubId) return;
+    try {
+      const membershipPromise = apiGet(
+        `/membership/list?club_id=${clubId}`,
+        adminAccessToken
+      );
+      const studentPromise = apiGet("/student/list", adminAccessToken);
+      const [membershipData, studentData] = await Promise.all([
+        membershipPromise,
+        studentPromise,
+      ]);
+      const memberships = membershipData.memberships || [];
+      const allStudents = studentData.students || [];
+      const emailToStudentDataMap = allStudents.reduce((acc, student) => {
+        acc[student.email] = {
+          firstName: student.first_name,
+          lastName: student.last_name,
+          courseName: student.course_name,
+          year: student.year,
+          faculty: student.faculty,
+        };
+        return acc;
+      }, {});
+      const enrichedMemberships = memberships.map((member) => ({
+        ...member,
+        firstName:
+          emailToStudentDataMap[member.student_email]?.firstName || "Unknown",
+        lastName:
+          emailToStudentDataMap[member.student_email]?.lastName || "Unknown",
+        courseName:
+          emailToStudentDataMap[member.student_email]?.courseName || "Unknown",
+        year: emailToStudentDataMap[member.student_email]?.year || "Unknown",
+        faculty:
+          emailToStudentDataMap[member.student_email]?.faculty || "Unknown",
+      }));
+      setNewMembershipRequests(
+        enrichedMemberships.filter((m) => m.status === "Pending")
+      );
+      setCurrentMembers(
+        enrichedMemberships.filter((m) => m.status === "Approved")
+      );
+    } catch (error) {
+      console.error("Failed to fetch membership data:", error);
+    }
+  };
+
+  // ------------------ Initial Data Fetching ------------------
   useEffect(() => {
     if (!adminEmail) return;
-    const fetchAdminDetails = async () => {
-      try {
-        const data = await apiGet(
-          `/admin/email?email=${adminEmail}`,
-          adminAccessToken
-        );
-        setClubId(data.club_id);
-      } catch (error) {
-        console.error("Failed to fetch admin's club ID:", error);
-      }
-    };
-    const fetchUnreadNotifications = async () => {
-      try {
-        const endpoint = `/notification_admin/unread?admin_email=${adminEmail}`;
-        console.log("Fetching unread notifications from:", endpoint);
-        const data = await apiGet(endpoint, adminAccessToken);
-        console.log("Unread notifications response:", data);
-        setUnreadNotifications(data.unread_notifications || []);
-      } catch (error) {
-        console.error("Failed to fetch unread notifications:", error);
-      }
-    };
     fetchAdminDetails();
     fetchUnreadNotifications();
-  }, [adminEmail, adminAccessToken, navigate]);
-
-  // Fetch unread notification count
-  useEffect(() => {
-    if (!adminEmail) return;
-    const fetchUnreadNotificationCount = async () => {
-      try {
-        const endpoint = `/notification_admin/unread/count?admin_email=${adminEmail}`;
-        console.log("Fetching unread notification count from:", endpoint);
-        const data = await apiGet(endpoint, adminAccessToken);
-        setUnreadCount(data.unread_count || 0);
-        console.log("Unread notification count:", data.unread_count);
-      } catch (error) {
-        console.error("Failed to fetch unread notification count:", error);
-      }
-    };
     fetchUnreadNotificationCount();
-  }, [adminEmail, adminAccessToken]);
-
-  // Fetch all notifications
-  useEffect(() => {
-    if (!adminEmail) return;
-    const fetchNotifications = async () => {
-      try {
-        const data = await apiGet(
-          `/notification_admin/all?admin_email=${adminEmail}`,
-          adminAccessToken
-        );
-        setAllNotifications(data.all_notifications || []);
-      } catch (error) {
-        console.error("Failed to fetch notifications:", error);
-      }
-    };
     fetchNotifications();
   }, [adminEmail, adminAccessToken]);
 
-  // Filter notifications based on filter state
+  useEffect(() => {
+    if (clubId) {
+      fetchMembershipData();
+    }
+  }, [clubId, adminAccessToken]);
+
   useEffect(() => {
     const filtered =
       notificationFilter === "all"
@@ -511,74 +555,22 @@ const AdminDashboard = () => {
     setFilteredNotifications(filtered);
   }, [notificationFilter, allNotifications]);
 
-  // Fetch membership data for the club
-  useEffect(() => {
-    if (!clubId) return;
-    const fetchMembershipData = async () => {
-      try {
-        const membershipPromise = apiGet(
-          `/membership/list?club_id=${clubId}`,
-          adminAccessToken
-        );
-        const studentPromise = apiGet("/student/list", adminAccessToken);
-        const [membershipData, studentData] = await Promise.all([
-          membershipPromise,
-          studentPromise,
-        ]);
-        const memberships = membershipData.memberships || [];
-        const allStudents = studentData.students || [];
-        const emailToStudentDataMap = allStudents.reduce((acc, student) => {
-          acc[student.email] = {
-            firstName: student.first_name,
-            lastName: student.last_name,
-            courseName: student.course_name,
-            year: student.year,
-            faculty: student.faculty,
-          };
-          return acc;
-        }, {});
-        const enrichedMemberships = memberships.map((member) => ({
-          ...member,
-          firstName:
-            emailToStudentDataMap[member.student_email]?.firstName || "Unknown",
-          lastName:
-            emailToStudentDataMap[member.student_email]?.lastName || "Unknown",
-          courseName:
-            emailToStudentDataMap[member.student_email]?.courseName ||
-            "Unknown",
-          year: emailToStudentDataMap[member.student_email]?.year || "Unknown",
-          faculty:
-            emailToStudentDataMap[member.student_email]?.faculty || "Unknown",
-        }));
-        setNewMembershipRequests(
-          enrichedMemberships.filter((m) => m.status === "Pending")
-        );
-        setCurrentMembers(
-          enrichedMemberships.filter((m) => m.status === "Approved")
-        );
-      } catch (error) {
-        console.error("Failed to fetch membership data:", error);
-      }
-    };
-    fetchMembershipData();
-  }, [clubId, adminAccessToken]);
-
-  // Handlers for membership actions
+  // ------------------ Handlers for Membership Actions ------------------
   const handleLogout = () => {
     localStorage.removeItem("admin_access_token");
     sessionStorage.clear();
     navigate("/home", { replace: true });
-    alert("You have logged out successfully.");
+    toast.success("You have logged out successfully.");
   };
 
   const handleViewDetails = async (email) => {
     try {
       const data = await apiGet(`/student/${email}`, adminAccessToken);
-      console.log("User details:", data);
       setModalUserData(data);
       setIsModalOpen(true);
     } catch (error) {
       console.error("Failed to fetch user details:", error);
+      toast.error("Failed to load user details.");
     }
   };
 
@@ -595,7 +587,7 @@ const AdminDashboard = () => {
         requestBody
       );
       if (data) {
-        alert(
+        toast.success(
           `${
             action === "Approved" ? "Approved" : "Rejected"
           } membership request for ${email}.`
@@ -612,32 +604,27 @@ const AdminDashboard = () => {
       }
     } catch (error) {
       console.error("Failed to update membership status:", error);
+      toast.error("Failed to update membership status.");
     }
   };
 
   const handleMemberDeletion = async (email) => {
+    if (!window.confirm("Are you sure you want to delete this member?")) return;
     try {
       const requestBody = { student_id: email, club_id: clubId };
-      const data = await apiDelete(
-        `/membership/delete`,
-        adminAccessToken,
-        requestBody
-      );
-      alert(`Member ${email} has been removed from the club.`);
-      setCurrentMembers((prev) =>
-        prev.filter((member) => member.student_id !== email)
-      );
+      await apiDelete(`/membership/delete`, adminAccessToken, requestBody);
+      toast.success(`Member ${email} has been removed from the club.`);
+      fetchMembershipData(); // Refresh membership data after deletion
     } catch (error) {
       console.error("Failed to delete member:", error);
+      toast.error("Failed to delete member.");
     }
   };
 
-  // Toggle notification popup
-  const toggleNotifications = () => {
-    setIsNotificationsVisible(!isNotificationsVisible);
-  };
+  // ------------------ Notification Popup Handlers ------------------
+  const openNotifications = () => setIsNotificationsVisible(true);
+  const closeNotifications = () => setIsNotificationsVisible(false);
 
-  // Function to mark all notifications as read
   const markAllAsRead = async () => {
     try {
       const unreadIds = allNotifications
@@ -652,28 +639,27 @@ const AdminDashboard = () => {
           notification_ids: unreadIds,
         }
       );
-      if (!res) {
-        throw new Error("Failed to mark notifications as read");
-      }
-      const updatedNotifications = allNotifications.map((n) => ({
-        ...n,
-        is_read: 1,
-      }));
-      setAllNotifications(updatedNotifications);
-      setUnreadCount(0);
+      if (!res) throw new Error("Failed to mark notifications as read");
+      toast.success("All notifications marked as read.");
+      // After marking as read, re-fetch notifications to update the state
+      fetchNotifications();
+      // Also update the unread count
+      fetchUnreadNotificationCount();
     } catch (error) {
       console.error("Failed to mark notifications as read:", error);
+      toast.error("Failed to mark notifications as read.");
     }
   };
+
+  // ------------------ End of Handlers ------------------
 
   return (
     <div className="view-clubs-container">
       <ToastContainer />
-      {/* Render the integrated AdminSidebar component */}
       <AdminSidebar
         unreadCount={unreadCount}
         notifications={filteredNotifications}
-        toggleNotifications={toggleNotifications}
+        toggleNotifications={openNotifications}
         handleLogout={handleLogout}
       />
       <UserDetailModal
@@ -681,14 +667,13 @@ const AdminDashboard = () => {
         onClose={() => setIsModalOpen(false)}
         user={modalUserData}
       />
-      {/* Render NotificationPopup if visible */}
       {isNotificationsVisible && (
         <NotificationPopup
           notifications={filteredNotifications}
           filter={notificationFilter}
           setFilter={setNotificationFilter}
           markAllAsRead={markAllAsRead}
-          onClose={toggleNotifications}
+          onClose={closeNotifications}
         />
       )}
       <main className="main-content-admin">
