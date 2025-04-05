@@ -41,6 +41,7 @@
   flex: 1;
   margin-left: 20px;
   overflow-y: auto;
+  padding: 20px;
 }
 
 .search-bar {

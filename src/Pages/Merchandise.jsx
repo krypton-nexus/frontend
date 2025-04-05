@@ -9,6 +9,7 @@ import cup1 from "../Images/cup.jpg";
 import handband1 from "../Images/handband.jpg";
 import handband2 from "../Images/handband2.jpg";
 import bg from "../Images/marketplacebg.png";
+import Sidebar from "../Components/SideBar";
 
 const products = [
   {
@@ -62,37 +63,43 @@ const Merchandise = () => {
   const navigate = useNavigate();
 
   return (
-    <div className="merchandise-container">
-      <header className="banner">
-        <FaArrowLeft
-          className="back-arrow"
-          onClick={() => navigate("/viewclubs")}
-        />
-        <img src={bg} alt="MarketPlace Banner" className="market-bg" />
-      </header>
-      <section
-        className="products"
-        style={{ overflowY: "scroll", maxHeight: "calc(100vh - 420px)" }}>
-        {products.map((product) => (
-          <div className="product-card" key={product.id}>
-            <div className="product-image">
-              <img src={product.image} alt={product.name} />
-            </div>
-            <div className="product-info">
-              <h3>{product.name}</h3>
-              <p>{product.description}</p>
-              <div className="pricing">
-                <span className="discounted-price">{product.price}</span>
-                <span className="original-price">{product.originalPrice}</span>
+    <div className="temp">
+      <Sidebar />
+      <div className="merchandise-container">
+        <header className="banner">
+          <FaArrowLeft
+            className="back-arrow"
+            onClick={() => navigate("/viewclubs")}
+          />
+          <img src={bg} alt="MarketPlace Banner" className="market-bg" />
+        </header>
+        <section
+          className="products"
+          style={{ overflowY: "scroll", maxHeight: "calc(100vh - 420px)" }}
+        >
+          {products.map((product) => (
+            <div className="product-card" key={product.id}>
+              <div className="product-image">
+                <img src={product.image} alt={product.name} />
               </div>
-              <div className="product-actions">
-                <button className="add-to-cart">Add to Cart</button>
-                <button className="wishlist">❤</button>
+              <div className="product-info">
+                <h3>{product.name}</h3>
+                <p>{product.description}</p>
+                <div className="pricing">
+                  <span className="discounted-price">{product.price}</span>
+                  <span className="original-price">
+                    {product.originalPrice}
+                  </span>
+                </div>
+                <div className="product-actions">
+                  <button className="add-to-cart">Add to Cart</button>
+                  <button className="wishlist">❤</button>
+                </div>
               </div>
             </div>
-          </div>
-        ))}
-      </section>
+          ))}
+        </section>
+      </div>
     </div>
   );
 };
