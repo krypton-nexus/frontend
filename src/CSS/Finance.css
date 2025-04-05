@@ -28,7 +28,7 @@
 .dashboard h1,
 .dashboard h2,
 .dashboard h3 {
-  /* color: #1f2937; */
+  color: #1f2937;
   margin-bottom: 15px;
 }
 
@@ -405,4 +405,79 @@
   .summary-cards {
     flex-direction: column;
   }
+}
+
+/* Pagination Styles */
+.pagination-controls {
+  display: flex;
+  gap: 8px;
+  justify-content: center;
+  margin-top: 16px;
+  padding: 10px 0;
+}
+
+.pagination-controls button {
+  padding: 6px 12px;
+  border: 1px solid #ddd;
+  background: #555;
+  cursor: pointer;
+  border-radius: 4px;
+  transition: all 0.2s;
+  font-size: 14px;
+}
+
+.pagination-controls button:hover:not(:disabled) {
+  background: #f0f0f0;
+}
+
+.pagination-controls button.active {
+  background: #4CAF50;
+  color: white;
+  border-color: #4CAF50;
+}
+
+.pagination-controls button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* Delete Button Styles */
+.delete-btn {
+  background: none;
+  border: none;
+  color: #f44336;
+  cursor: pointer;
+  padding: 5px;
+  border-radius: 4px;
+  transition: all 0.2s;
+}
+
+.delete-btn:hover {
+  background: #ffebee;
+}
+
+.delete-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* Transaction Header */
+.transaction-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 15px;
+}
+
+.toggle-transactions-btn {
+  padding: 6px 12px;
+  background: #e3f2fd;
+  border: 1px solid #bbdefb;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.toggle-transactions-btn:hover {
+  background: #bbdefb;
 }
