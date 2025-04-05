@@ -1,9 +1,11 @@
 import React, { useEffect, useState } from "react";
-import { jwtDecode } from "jwt-decode";
+import {jwtDecode} from "jwt-decode";
 import "../CSS/ViewEvents.css";
 import Sidebar from "../Components/SideBar";
 import bannerImage from "../Images/bannerevent.png";
 import { FaUserCircle, FaSearch } from "react-icons/fa";
+import Snackbar from "@mui/material/Snackbar";
+import Alert from "@mui/material/Alert";
 
 const ViewEvents = () => {
   const [events, setEvents] = useState([]);
@@ -18,23 +20,39 @@ const ViewEvents = () => {
   const [userVotes, setUserVotes] = useState({});
   const [clubs, setClubs] = useState([]);
 
+  // Snackbar state
+  const [snackbarOpen, setSnackbarOpen] = useState(false);
+  const [snackbarMessage, setSnackbarMessage] = useState("");
+  const [snackbarSeverity, setSnackbarSeverity] = useState("success");
+
+  // Snackbar close handler.
+  const handleSnackbarClose = (event, reason) => {
+    if (reason === "clickaway") return;
+    setSnackbarOpen(false);
+  };
+
   // Decode token and set student email.
   useEffect(() => {
     const token = localStorage.getItem("access_token");
-
     if (token) {
       try {
         const decoded = jwtDecode(token);
         setStudentEmail(decoded.email);
         setToken(token);
-        console.debug("Token decoded successfully", decoded); // Debugging: token decoded
+        console.debug("Token decoded successfully", decoded);
       } catch (err) {
         console.error("Invalid token", err);
         setError("Failed to decode token. Please log in again.");
+        setSnackbarMessage("Failed to decode token. Please log in again.");
+        setSnackbarSeverity("error");
+        setSnackbarOpen(true);
       }
     } else {
       console.error("No token found");
       setError("User is not authenticated. Please log in.");
+      setSnackbarMessage("User is not authenticated. Please log in.");
+      setSnackbarSeverity("error");
+      setSnackbarOpen(true);
     }
   }, []);
 
@@ -43,7 +61,7 @@ const ViewEvents = () => {
     if (!token) return;
     const fetchClubs = async () => {
       try {
-        console.debug("Fetching clubs for the user..."); // Debugging: Before API call
+        console.debug("Fetching clubs for the user...");
         const response = await fetch(
           `http://43.205.202.255:5000/student/clubs/${studentEmail}`,
           {
@@ -58,11 +76,14 @@ const ViewEvents = () => {
           throw new Error(`Failed to fetch clubs: ${response.status}`);
         }
         const data = await response.json();
-        console.debug("Clubs fetched successfully", data); // Debugging: Clubs data fetched
+        console.debug("Clubs fetched successfully", data);
         setClubs(data.clubs || []);
       } catch (error) {
         console.error("Error fetching clubs:", error);
         setError("Failed to load clubs.");
+        setSnackbarMessage("Failed to load clubs.");
+        setSnackbarSeverity("error");
+        setSnackbarOpen(true);
       }
     };
     fetchClubs();
@@ -73,7 +94,7 @@ const ViewEvents = () => {
     if (!token || clubs.length === 0) return;
     const fetchAllEvents = async () => {
       try {
-        console.debug("Fetching events from all clubs..."); // Debugging: Before event fetching
+        console.debug("Fetching events from all clubs...");
         const allEvents = [];
         for (let club of clubs) {
           const response = await fetch(
@@ -89,7 +110,7 @@ const ViewEvents = () => {
           if (!response.ok)
             throw new Error(`Failed to fetch events for ${club}`);
           const data = await response.json();
-          console.debug(`Events for club ${club}:`, data); // Debugging: Events data
+          console.debug(`Events for club ${club}:`, data);
           if (data.events && Array.isArray(data.events)) {
             allEvents.push(...data.events);
             // Extract images for trending section.
@@ -105,13 +126,16 @@ const ViewEvents = () => {
           }
         }
         setEvents(allEvents);
-        console.debug("All events fetched successfully", allEvents); // Debugging: All events fetched
+        console.debug("All events fetched successfully", allEvents);
       } catch (error) {
         console.error("Error fetching all events:", error);
         setError("Failed to load events.");
+        setSnackbarMessage("Failed to load events.");
+        setSnackbarSeverity("error");
+        setSnackbarOpen(true);
       } finally {
         setLoading(false);
-        console.debug("Event loading complete."); // Debugging: Loading complete
+        console.debug("Event loading complete.");
       }
     };
     fetchAllEvents();
@@ -133,7 +157,7 @@ const ViewEvents = () => {
   const fetchParticipantCount = async (clubIdParam, eventId) => {
     if (!token) return;
     try {
-      console.debug(`Fetching participant count for event ${eventId}`); // Debugging: Before API call
+      console.debug(`Fetching participant count for event ${eventId}`);
       const response = await fetch(
         "http://43.205.202.255:5000/event/get_participant_count",
         {
@@ -148,7 +172,6 @@ const ViewEvents = () => {
           }),
         }
       );
-
       if (!response.ok)
         throw new Error(
           `Failed to fetch participant count: ${response.status}`
@@ -158,20 +181,25 @@ const ViewEvents = () => {
         ...prev,
         [eventId]: data.participant_count || 0,
       }));
-      console.debug(`Participant count for event ${eventId}:`, data); // Debugging: Participant count data
+      console.debug(`Participant count for event ${eventId}:`, data);
     } catch (error) {
       console.error("Error fetching participant count:", error);
+      setSnackbarMessage("Error fetching participant count.");
+      setSnackbarSeverity("error");
+      setSnackbarOpen(true);
     }
   };
 
   // Handle "Yes" vote.
   const handleYesVote = async (eventItem) => {
     if (userVotes[eventItem.id] === "yes") {
-      alert("You are already participating in this event.");
+      setSnackbarMessage("You are already participating in this event.");
+      setSnackbarSeverity("warning");
+      setSnackbarOpen(true);
       return;
     }
     try {
-      console.debug(`Handling "Yes" vote for event ${eventItem.id}`); // Debugging: Yes vote action
+      console.debug(`Handling "Yes" vote for event ${eventItem.id}`);
       const response = await fetch(
         "http://43.205.202.255:5000/event/add_event_participant",
         {
@@ -195,20 +223,29 @@ const ViewEvents = () => {
         [eventItem.id]: data.participant_count,
       }));
       setUserVotes((prev) => ({ ...prev, [eventItem.id]: "yes" }));
+      setSnackbarMessage("You are now participating in the event.");
+      setSnackbarSeverity("success");
+      setSnackbarOpen(true);
     } catch (error) {
       console.error("Error adding participant:", error);
-      alert("Error updating your participation. Please try again.");
+      setSnackbarMessage(
+        "Error updating your participation. Please try again."
+      );
+      setSnackbarSeverity("error");
+      setSnackbarOpen(true);
     }
   };
 
   // Handle "No" vote.
   const handleNoVote = async (eventItem) => {
     if (userVotes[eventItem.id] !== "yes") {
-      alert("You are not currently participating in this event.");
+      setSnackbarMessage("You are not currently participating in this event.");
+      setSnackbarSeverity("warning");
+      setSnackbarOpen(true);
       return;
     }
     try {
-      console.debug(`Handling "No" vote for event ${eventItem.id}`); // Debugging: No vote action
+      console.debug(`Handling "No" vote for event ${eventItem.id}`);
       const response = await fetch(
         "http://43.205.202.255:5000/event/delete_participant",
         {
@@ -232,15 +269,24 @@ const ViewEvents = () => {
         [eventItem.id]: data.participant_count,
       }));
       setUserVotes((prev) => ({ ...prev, [eventItem.id]: "no" }));
+      setSnackbarMessage("Your participation has been removed.");
+      setSnackbarSeverity("info");
+      setSnackbarOpen(true);
     } catch (error) {
       console.error("Error deleting participant:", error);
-      alert("Error updating your participation. Please try again.");
+      setSnackbarMessage(
+        "Error updating your participation. Please try again."
+      );
+      setSnackbarSeverity("error");
+      setSnackbarOpen(true);
     }
   };
 
   // (Optional) Handle "Maybe" vote.
   const handleMaybeVote = (eventItem) => {
-    alert("Maybe functionality is not implemented yet.");
+    setSnackbarMessage("Maybe functionality is not implemented yet.");
+    setSnackbarSeverity("info");
+    setSnackbarOpen(true);
   };
 
   // Helper to extract image URL.
@@ -306,14 +352,16 @@ const ViewEvents = () => {
                 className={`event-tab ${
                   activeTab === "today" ? "active-tab" : ""
                 }`}
-                onClick={() => setActiveTab("today")}>
+                onClick={() => setActiveTab("today")}
+              >
                 Today’s Events
               </span>
               <span
                 className={`event-tab ${
                   activeTab === "upcoming" ? "active-tab" : ""
                 }`}
-                onClick={() => setActiveTab("upcoming")}>
+                onClick={() => setActiveTab("upcoming")}
+              >
                 Upcoming Events
               </span>
             </div>
@@ -339,24 +387,28 @@ const ViewEvents = () => {
         <div className="all-event-tabs">
           <span
             className={`event-tab ${activeTab === "all" ? "active-tab" : ""}`}
-            onClick={() => setActiveTab("all")}>
+            onClick={() => setActiveTab("all")}
+          >
             All Events
           </span>
           <span
             className={`event-tab ${activeTab === "today" ? "active-tab" : ""}`}
-            onClick={() => setActiveTab("today")}>
+            onClick={() => setActiveTab("today")}
+          >
             Today Events
           </span>
           <span
             className={`event-tab ${
               activeTab === "upcoming" ? "active-tab" : ""
             }`}
-            onClick={() => setActiveTab("upcoming")}>
+            onClick={() => setActiveTab("upcoming")}
+          >
             Upcoming Events
           </span>
           <span
             className={`event-tab ${activeTab === "past" ? "active-tab" : ""}`}
-            onClick={() => setActiveTab("past")}>
+            onClick={() => setActiveTab("past")}
+          >
             Past Events
           </span>
         </div>
@@ -386,17 +438,20 @@ const ViewEvents = () => {
                   <div className="event-buttons">
                     <button
                       className="yes-btn"
-                      onClick={() => handleYesVote(event)}>
+                      onClick={() => handleYesVote(event)}
+                    >
                       Yes
                     </button>
                     <button
                       className="no-btn"
-                      onClick={() => handleNoVote(event)}>
+                      onClick={() => handleNoVote(event)}
+                    >
                       No
                     </button>
                     <button
                       className="maybe-btn"
-                      onClick={() => handleMaybeVote(event)}>
+                      onClick={() => handleMaybeVote(event)}
+                    >
                       Maybe
                     </button>
                   </div>
@@ -410,6 +465,20 @@ const ViewEvents = () => {
           </div>
         )}
       </main>
+      <Snackbar
+        open={snackbarOpen}
+        autoHideDuration={4000}
+        onClose={handleSnackbarClose}
+        anchorOrigin={{ vertical: "bottom", horizontal: "center" }}
+      >
+        <Alert
+          onClose={handleSnackbarClose}
+          severity={snackbarSeverity}
+          sx={{ width: "100%" }}
+        >
+          {snackbarMessage}
+        </Alert>
+      </Snackbar>
     </div>
   );
 };
