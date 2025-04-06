@@ -155,3 +155,12 @@
 .notification-popup {
   margin-top: 200px;
 }
+
+.clickable {
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  padding: 8px 12px;
+  color: inherit;
+}
+

@@ -70,8 +70,21 @@
 /* Section Styling */
 .club-section h2 {
   font-size: 1.5rem;
+  font-weight: normal;
   color: #a91d3a;
   margin-bottom: 10px;
+}
+
+h3 {
+  font-size: 20px;
+  margin-bottom: 10px;
+  right: 50%;
+}
+
+.profile-details h2 {
+  font-size: 18px;
+  color: black;
+  margin-bottom: 15px;
 }
 
 /* Footer Styling */

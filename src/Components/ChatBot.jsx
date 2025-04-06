@@ -6,10 +6,13 @@ import helpIcon from "../Images/help.png";
 import { FaTimes, FaTrash, FaPaperPlane } from "react-icons/fa";
 import ReactMarkdown from "react-markdown";
 
+const BASE_URL = process.env.REACT_APP_BASE_URL;
+
 const INITIAL_BOT_MESSAGE = {
   sender: "bot",
   text: "Hi! How may I assist you?",
 };
+
 const parseBotResponse = (data) => {
   let result = typeof data === "string" ? data : JSON.stringify(data, null, 2);
   result = result.trim();
@@ -35,24 +38,24 @@ const ChatBot = () => {
   const [messages, setMessages] = useState(() => {
     const savedMessages = localStorage.getItem("chatbotHistory");
     const refreshed = sessionStorage.getItem("refreshed");
-    let initialMessages;
-    if (refreshed) {
-      sessionStorage.removeItem("refreshed");
-      initialMessages = [INITIAL_BOT_MESSAGE];
-    } else {
-      initialMessages = savedMessages
-        ? JSON.parse(savedMessages)
-        : [INITIAL_BOT_MESSAGE];
-    }
+
+    const initialMessages = refreshed
+      ? [INITIAL_BOT_MESSAGE]
+      : savedMessages
+      ? JSON.parse(savedMessages)
+      : [INITIAL_BOT_MESSAGE];
+
+    if (refreshed) sessionStorage.removeItem("refreshed");
+
     return initialMessages.map((msg) =>
       msg.sender === "bot" && typeof msg.text !== "string"
         ? { ...msg, text: parseBotResponse(msg.text) }
         : msg
     );
   });
+
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
-
   const messagesEndRef = useRef(null);
 
   useEffect(() => {
@@ -68,9 +71,7 @@ const ChatBot = () => {
   }, []);
 
   useEffect(() => {
-    if (messagesEndRef.current) {
-      messagesEndRef.current.scrollIntoView({ behavior: "smooth" });
-    }
+    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages]);
 
   const toggleChatbot = useCallback(() => {
@@ -84,68 +85,71 @@ const ChatBot = () => {
 
   const sendMessage = async () => {
     const trimmedInput = input.trim();
-    if (!trimmedInput) return;
+    if (!trimmedInput || loading) return;
 
     const userMessage = { sender: "user", text: trimmedInput };
     const updatedMessages = [...messages, userMessage];
+
     setMessages(updatedMessages);
     setInput("");
     setLoading(true);
 
     try {
-      const userMessagesOnly = updatedMessages.filter(
-        (msg) => msg.sender === "user"
-      );
       const response = await axios.post(
-        "http://43.205.202.255:5000/chat",
+        `${BASE_URL}/chat`,
         {
           question: trimmedInput,
-          history: userMessagesOnly,
+          history: updatedMessages.filter((msg) => msg.sender === "user"),
         },
         { headers: { "Content-Type": "application/json" } }
       );
-      const rawResponse = response.data.text
-        ? response.data.text
-        : response.data;
+
+      const rawResponse = response.data?.text || response.data;
       const botText = parseBotResponse(rawResponse || "Sorry, no response.");
       setMessages((prev) => [...prev, { sender: "bot", text: botText }]);
     } catch (error) {
-      console.error("Error fetching bot response:", error);
-      setMessages((prev) => [
-        ...prev,
-        { sender: "bot", text: "An error occurred. Please try again." },
-      ]);
+      console.error("ChatBot Error:", error);
+
+      let errorMsg = "An error occurred. Please try again.";
+
+      if (error.response) {
+        errorMsg =
+          error.response.data?.message ||
+          `Error ${error.response.status}: Something went wrong.`;
+      } else if (error.request) {
+        errorMsg = "Server unreachable. Please check your internet connection.";
+      }
+
+      setMessages((prev) => [...prev, { sender: "bot", text: errorMsg }]);
     } finally {
       setLoading(false);
     }
   };
 
   const handleKeyDown = (e) => {
-    if (e.key === "Enter") {
-      sendMessage();
-    }
+    if (e.key === "Enter") sendMessage();
   };
 
   return (
     <>
-      {/* Help button to toggle chatbot */}
       <div
         className="help"
         onClick={toggleChatbot}
         role="button"
-        aria-label="Open Chatbot">
+        aria-label="Open Chatbot"
+      >
         <img src={helpIcon} alt="Help Icon" className="helpImage" />
         <h6>Get Help</h6>
       </div>
 
       {isChatbotOpen && (
         <>
-          {/* Overlay */}
           <div
             className="chatbot-overlay"
             onClick={toggleChatbot}
-            aria-hidden="true"></div>
-          {/* Chatbot container */}
+            aria-hidden="true"
+          />
+
           <aside className="chatbot-container" aria-label="Chatbot">
             <header className="chatbot-header">
               <img src={logo2} alt="ChatBot Logo" className="chatbot-logo" />
@@ -155,14 +159,16 @@ const ChatBot = () => {
                   className="chatbot-btn chatbot-bin-icon"
                   onClick={clearChatHistory}
                   title="Clear Chat"
-                  aria-label="Clear Chat">
+                  aria-label="Clear Chat"
+                >
                   <FaTrash />
                 </button>
                 <button
                   className="chatbot-btn chatbot-close-btn"
                   onClick={toggleChatbot}
                   title="Close"
-                  aria-label="Close Chatbot">
+                  aria-label="Close Chatbot"
+                >
                   <FaTimes />
                 </button>
               </div>
@@ -175,7 +181,8 @@ const ChatBot = () => {
                   className={`chatbot-message ${
                     message.sender === "user" ? "user-message" : "bot-message"
                   }`}
-                  style={{ whiteSpace: "normal" }}>
+                  style={{ whiteSpace: "normal" }}
+                >
                   {message.sender === "bot" ? (
                     <ReactMarkdown>
                       {typeof message.text === "string"
@@ -190,8 +197,9 @@ const ChatBot = () => {
               {loading && (
                 <div
                   className="chatbot-message bot-message"
-                  style={{ whiteSpace: "normal" }}>
-                  <ReactMarkdown>thinking.....</ReactMarkdown>
+                  style={{ whiteSpace: "normal" }}
+                >
+                  <ReactMarkdown>Thinking...</ReactMarkdown>
                 </div>
               )}
               <div ref={messagesEndRef} />
@@ -206,13 +214,15 @@ const ChatBot = () => {
                 onChange={(e) => setInput(e.target.value)}
                 onKeyDown={handleKeyDown}
                 aria-label="Chat input"
+                disabled={loading}
               />
               <button
                 type="button"
                 className="message-send-button"
                 onClick={sendMessage}
                 disabled={loading}
-                aria-label="Send message">
+                aria-label="Send message"
+              >
                 <FaPaperPlane />
               </button>
             </footer>

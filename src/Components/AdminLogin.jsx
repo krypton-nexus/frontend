@@ -4,11 +4,23 @@ import { Link, useNavigate } from "react-router-dom";
 import { jwtDecode } from "jwt-decode";
 import "../CSS/Login.css";
 import logo1 from "../Images/logo1.png";
+import Snackbar from "@mui/material/Snackbar";
+import MuiAlert from "@mui/material/Alert";
+
+const BASE_URL = process.env.REACT_APP_BASE_URL; 
+
+const Alert = React.forwardRef(function Alert(props, ref) {
+  return <MuiAlert elevation={6} ref={ref} variant="filled" {...props} />;
+});
 
 const AdminLogin = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [error, setError] = useState("");
+  const [snackbar, setSnackbar] = useState({
+    open: false,
+    message: "",
+    severity: "info",
+  });
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -16,7 +28,7 @@ const AdminLogin = () => {
     if (adminAccessToken) {
       try {
         const decodedToken = jwtDecode(adminAccessToken);
-        const expiryTime = decodedToken.exp * 1000; // Convert to milliseconds
+        const expiryTime = decodedToken.exp * 1000;
         if (new Date().getTime() < expiryTime) {
           navigate("/admindashboard");
         } else {
@@ -29,62 +41,77 @@ const AdminLogin = () => {
     }
   }, [navigate]);
 
+  const showSnackbar = (message, severity = "info") => {
+    setSnackbar({ open: true, message, severity });
+  };
+
   const handleLogin = async (e) => {
     e.preventDefault();
-    setError("");
-
+    setSnackbar({ ...snackbar, open: false }); 
 
     try {
       const response = await axios.post(
-        "http://43.205.202.255:5000/auth/admin/login",
+        `${BASE_URL}/auth/admin/login`,
         { email, password },
         { headers: { "Content-Type": "application/json" } }
       );
 
-      if (response.data.token) {
-        const token = response.data.token;
-        localStorage.setItem("admin_access_token", token);
-console.log(token);
+      const { token, error: loginError, message } = response.data;
 
-        if (response.data.error === "Email is not verified.") {
-          alert(
-            "Your email is not verified. Please verify your email before logging in."
+      if (token) {
+        localStorage.setItem("admin_access_token", token);
+        if (loginError === "Email is not verified.") {
+          showSnackbar(
+            "Your email is not verified. Check your inbox.",
+            "warning"
           );
           localStorage.removeItem("admin_access_token");
           navigate("/verifyemail");
           return;
         }
-        navigate("/admindashboard"); 
+        showSnackbar("Login successful!", "success");
+        navigate("/admindashboard");
       } else {
-        setError(response.data.message || "Login failed!");
+        showSnackbar(message || "Login failed!", "error");
       }
     } catch (error) {
       console.error("Login Error:", error);
       if (error.response) {
         switch (error.response.status) {
           case 404:
-            setError("User not found. Please check your email.");
+            showSnackbar("User not found. Please check your email.", "error");
             break;
           case 401:
-            setError("Invalid email or password. Please try again.");
+            showSnackbar("Invalid email or password.", "error");
             break;
           case 400:
             if (error.response.data.error === "Email is not verified.") {
-              setError("Your email is not verified. Please check your inbox.");
+              showSnackbar(
+                "Your email is not verified. Check your inbox.",
+                "warning"
+              );
               navigate("/verifyemail");
             } else {
-              setError(error.response.data.message || "Login failed.");
+              showSnackbar(
+                error.response.data.message || "Login failed.",
+                "error"
+              );
             }
             break;
           default:
-            setError("An unexpected error occurred.");
+            showSnackbar("Unexpected error occurred. Try again.", "error");
         }
       } else if (error.request) {
-        setError("Unable to reach the server. Please check your connection.");
+        showSnackbar("Server is unreachable. Check your internet.", "error");
       } else {
-        setError("An unexpected error occurred. Please try again later.");
+        showSnackbar("An unexpected error occurred.", "error");
       }
     }
+  };
+
+  const handleCloseSnackbar = (_, reason) => {
+    if (reason === "clickaway") return;
+    setSnackbar((prev) => ({ ...prev, open: false }));
   };
 
   return (
@@ -124,9 +151,22 @@ console.log(token);
             Login
           </button>
         </form>
-
-        {error && <p className="error-message">{error}</p>}
       </div>
+
+      <Snackbar
+        open={snackbar.open}
+        autoHideDuration={4000}
+        onClose={handleCloseSnackbar}
+        anchorOrigin={{ vertical: "top", horizontal: "center" }}
+      >
+        <Alert
+          onClose={handleCloseSnackbar}
+          severity={snackbar.severity}
+          sx={{ width: "100%" }}
+        >
+          {snackbar.message}
+        </Alert>
+      </Snackbar>
     </div>
   );
 };

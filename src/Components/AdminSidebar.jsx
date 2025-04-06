@@ -15,9 +15,8 @@ import {
 import logo1short from "../Images/logo1short.png";
 import "../CSS/SideBar.css";
 
-const baseURL = "http://43.205.202.255:5000";
+const BASE_URL = process.env.REACT_APP_BASE_URL;
 
-// NotificationPopup sub-component
 const NotificationPopup = ({
   notifications,
   filter,
@@ -25,7 +24,6 @@ const NotificationPopup = ({
   markAllAsRead,
   onClose,
 }) => {
-  // Sort notifications (most recent first) and format date
   const sortedNotifications = notifications
     .slice()
     .sort((a, b) => new Date(b.created_at) - new Date(a.created_at))
@@ -48,7 +46,8 @@ const NotificationPopup = ({
         width: "320px",
         padding: "10px",
         borderRadius: "5px",
-      }}>
+      }}
+    >
       <div
         className="notification-dropdown-header"
         style={{
@@ -56,7 +55,8 @@ const NotificationPopup = ({
           display: "flex",
           justifyContent: "space-between",
           alignItems: "center",
-        }}>
+        }}
+      >
         <button
           onClick={markAllAsRead}
           style={{
@@ -66,7 +66,8 @@ const NotificationPopup = ({
             padding: "5px 10px",
             cursor: "pointer",
             borderRadius: "3px",
-          }}>
+          }}
+        >
           Mark All as Read
         </button>
         <button
@@ -76,7 +77,8 @@ const NotificationPopup = ({
             border: "none",
             fontSize: "24px",
             cursor: "pointer",
-          }}>
+          }}
+        >
           &times;
         </button>
       </div>
@@ -89,7 +91,8 @@ const NotificationPopup = ({
                 fontWeight: notif.is_read ? "normal" : "bold",
                 borderBottom: "1px solid #ccc",
                 padding: "5px 0",
-              }}>
+              }}
+            >
               <div>{notif.notification}</div>
               <div style={{ fontSize: "0.8em", color: "#666" }}>
                 {notif.formattedDate}
@@ -102,7 +105,8 @@ const NotificationPopup = ({
       )}
       <div
         className="notification-filters"
-        style={{ marginTop: "10px", textAlign: "center" }}>
+        style={{ marginTop: "10px", textAlign: "center" }}
+      >
         <button onClick={() => setFilter("all")} style={{ margin: "0 5px" }}>
           All
         </button>
@@ -134,7 +138,7 @@ const AdminSidebar = () => {
 
   // Helper GET function
   const apiGet = async (endpoint) => {
-    const res = await fetch(`${baseURL}${endpoint}`, {
+    const res = await fetch(`${BASE_URL}${endpoint}`, {
       method: "GET",
       headers: {
         Authorization: `Bearer ${adminAccessToken}`,
@@ -182,7 +186,7 @@ const AdminSidebar = () => {
         .filter((n) => n.is_read === 0)
         .map((n) => n.id);
       if (unreadIds.length === 0) return;
-      const res = await fetch(`${baseURL}/notification_admin/mark-as-read`, {
+      const res = await fetch(`${BASE_URL}/notification_admin/mark-as-read`, {
         method: "PATCH",
         headers: {
           Authorization: `Bearer ${adminAccessToken}`,
@@ -246,7 +250,8 @@ const AdminSidebar = () => {
           {menuItems.map(({ path, label, icon }) => (
             <li
               key={label}
-              className={location.pathname === path ? "active" : ""}>
+              className={location.pathname === path ? "active" : ""}
+            >
               <Link to={path}>
                 {icon} {label}
               </Link>
@@ -256,7 +261,8 @@ const AdminSidebar = () => {
             <div
               className="notifications"
               onClick={toggleNotificationsDropdown}
-              style={{ cursor: "pointer" }}>
+              style={{ cursor: "pointer" }}
+            >
               <FaRegBell /> Notification{" "}
               <span className="badge">{unreadCount}</span>
             </div>

@@ -19,11 +19,9 @@ import Home from "./Pages/Home";
 import ShowClubs from "./Components/ShowClubs";
 import ViewEvents from "./Pages/ViewEvents";
 import Finance from "./Pages/Finance";
-import SesaPage from "./Pages/SesaPage";
-import GavelPage from "./Pages/GavelPage";
 import Login from "./Components/Login";
 import Signup from "./Components/Signup";
-import UserProfile from "./Pages/UserProfile";
+import UserProfile from "./Components/UserProfile";
 import AdminDashboard from "./Pages/AdminDashboard";
 import AddEvent from "./Pages/AddEvent";
 import AdminEvent from "./Pages/AdminEvent";
@@ -96,23 +94,6 @@ const App = () => {
             </NoButtonLayout>
           }
         />
-        <Route
-          path="/sesapage"
-          element={
-            <NoButtonLayout>
-              <SesaPage />
-            </NoButtonLayout>
-          }
-        />
-        <Route
-          path="/gavelpage"
-          element={
-            <NoButtonLayout>
-              <GavelPage />
-            </NoButtonLayout>
-          }
-        />
-
         {/* Authentication Routes */}
         <Route
           path="/login"

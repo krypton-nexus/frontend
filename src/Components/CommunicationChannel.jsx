@@ -4,6 +4,8 @@ import Messages from "./Messages";
 import MessageForm from "./MessageForm";
 import "../CSS/CommunicationChannel.css";
 
+const BASE_URL = process.env.REACT_APP_BASE_URL;
+
 const CommunicationChannel = ({ isOpen, onClose }) => {
   const [clubs, setClubs] = useState([]);
   const [userClubs, setUserClubs] = useState([]);
@@ -14,7 +16,6 @@ const CommunicationChannel = ({ isOpen, onClose }) => {
   useEffect(() => {
     const initializeData = async () => {
       const token = localStorage.getItem("access_token");
-
       if (!token) {
         setIsLoading(false);
         return;
@@ -24,35 +25,36 @@ const CommunicationChannel = ({ isOpen, onClose }) => {
         const decoded = jwtDecode(token);
         setUserEmail(decoded.email);
 
-        // Fetch user clubs with Authorization token
-        const membershipRes = await fetch(
-          `http://43.205.202.255:5000/student/clubs/${decoded.email}`,
-          {
+        const [membershipRes, clubsRes] = await Promise.all([
+          fetch(`${BASE_URL}/student/clubs/${decoded.email}`, {
             method: "GET",
             headers: {
               "Content-Type": "application/json",
-              Authorization: `Bearer ${token}`, // Pass token in the Authorization header
+              Authorization: `Bearer ${token}`,
             },
-          }
-        );
-        const membershipData = await membershipRes.json();
-        setUserClubs(membershipData.clubs || []);
+          }),
+          fetch(`${BASE_URL}/club/list`, {
+            method: "GET",
+            headers: {
+              "Content-Type": "application/json",
+              Authorization: `Bearer ${token}`,
+            },
+          }),
+        ]);
 
-        // Fetch all clubs with Authorization token
-        const clubsRes = await fetch("http://43.205.202.255:5000/club/list", {
-          method: "GET",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${token}`, // Pass token in the Authorization header
-          },
-        });
+        const membershipData = await membershipRes.json();
         const clubsData = await clubsRes.json();
+
+        const userClubIds = membershipData.clubs || [];
+        setUserClubs(userClubIds);
         setClubs(clubsData.clubs || []);
 
-        // Set default selected club if available
-        if (clubsData.clubs.length > 0) {
-          setSelectedClubId(clubsData.clubs[0].id);
-        }
+        const firstUserClub = clubsData.clubs?.find((c) =>
+          userClubIds.includes(c.id)
+        );
+        setSelectedClubId(
+          firstUserClub?.id || clubsData.clubs?.[0]?.id || null
+        );
       } catch (error) {
         console.error("Error fetching data:", error);
       } finally {
@@ -61,14 +63,16 @@ const CommunicationChannel = ({ isOpen, onClose }) => {
     };
 
     initializeData();
-  }, []); // Runs only once when the component is mounted
+  }, []);
 
   if (!isOpen) return null;
+
+  const isUserInSelectedClub = userClubs.includes(selectedClubId);
 
   return (
     <div className="modal-overlay">
       <div className="modal-content">
-        <button className="close-button" onClick={onClose}>
+        <button className="close-button" onClick={onClose} aria-label="Close">
           ✖
         </button>
         <h2>Communication Channel</h2>
@@ -94,13 +98,15 @@ const CommunicationChannel = ({ isOpen, onClose }) => {
             </div>
 
             <div className="messages-section">
-              {selectedClubId && userClubs.includes(selectedClubId) ? (
+              {selectedClubId && isUserInSelectedClub ? (
                 <>
                   <Messages clubId={selectedClubId} />
                   <MessageForm clubId={selectedClubId} userEmail={userEmail} />
                 </>
               ) : (
-                <p>You must be a member of this club to access messages.</p>
+                <p className="not-authorized-message">
+                  You must be a member of this club to access messages.
+                </p>
               )}
             </div>
           </>

@@ -17,6 +17,8 @@ import {
   FaListAlt,
 } from "react-icons/fa";
 
+const BASE_URL = process.env.REACT_APP_BASE_URL;
+
 const Communication = ({ isOpen = true, onClose = () => {} }) => {
   const [clubs, setClubs] = useState([]);
   const [userClubs, setUserClubs] = useState([]);
@@ -55,7 +57,7 @@ const Communication = ({ isOpen = true, onClose = () => {} }) => {
       try {
         // Fetch user clubs if token is valid
         const membershipRes = await fetch(
-          `http://43.205.202.255:5000/student/clubs/${decoded.email}`,
+          `${BASE_URL}/student/clubs/${decoded.email}`,
           {
             method: "GET",
             headers: {
@@ -68,7 +70,7 @@ const Communication = ({ isOpen = true, onClose = () => {} }) => {
         setUserClubs(membershipData.clubs || []);
 
         // Fetch all clubs if token is valid
-        const clubsRes = await fetch("http://43.205.202.255:5000/club/list", {
+        const clubsRes = await fetch(`${BASE_URL}/club/list`, {
           method: "GET",
           headers: {
             "Content-Type": "application/json",

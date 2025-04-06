@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import {
   FaUsers,
@@ -11,12 +11,10 @@ import {
 } from "react-icons/fa";
 import logo1short from "../Images/logo1short.png";
 import "../CSS/SideBar.css";
-import CommunicationChannel from "./CommunicationChannel";
 
 const Sidebar = () => {
   const location = useLocation();
   const navigate = useNavigate();
-  const [isModalOpen, setIsModalOpen] = useState(false);
 
   const handleLogout = () => {
     localStorage.removeItem("access_token");
@@ -29,56 +27,33 @@ const Sidebar = () => {
     { path: "/view-feed", label: "View Feed", icon: <FaRss /> },
     { path: "/viewevents", label: "View Events", icon: <FaCalendarAlt /> },
     { path: "/communication", label: "Communication", icon: <FaComment /> },
-    // {
-    //   path: "/communication",
-    //   label: "Communication",
-    //   icon: <FaComment />,
-    //   action: () => setIsModalOpen(true),
-    // },
-    {
-      path: "/merchandise",
-      label: "Merchandise",
-      icon: <FaListAlt />,
-    },
+    { path: "/merchandise", label: "Merchandise", icon: <FaListAlt /> },
     { path: "/notifications", label: "Notification", icon: <FaRegBell /> },
   ];
 
   return (
-    <>
-      <aside className="sidebar">
-        <Link to="/home">
-          <img
-            src={logo1short}
-            alt="Nexus Club Platform Logo"
-            className="logo"
-          />
-        </Link>
-        <ul className="menu">
-          {menuItems.map(({ path, label, icon, action }) => (
-            <li
-              key={label}
-              className={location.pathname === path ? "active" : ""}
-              onClick={action ? action : null} // Calls the function if action exists
-            >
-              <Link to={path} className={action ? "no-link" : ""}>
-                {icon} {label}
-              </Link>
-            </li>
-          ))}
-        </ul>
-        <button className="logout" onClick={handleLogout}>
-          <FaSignOutAlt /> Logout
-        </button>
-      </aside>
+    <aside className="sidebar">
+      <Link to="/home">
+        <img src={logo1short} alt="Nexus Club Platform Logo" className="logo" />
+      </Link>
 
-      {/* Communication Modal */}
-      {/* {isModalOpen && (
-        <CommunicationChannel
-          isOpen={isModalOpen}
-          onClose={() => setIsModalOpen(false)}
-        />
-      )} */}
-    </>
+      <ul className="menu">
+        {menuItems.map(({ path, label, icon }) => (
+          <li
+            key={label}
+            className={location.pathname === path ? "active" : ""}
+          >
+            <Link to={path}>
+              {icon} {label}
+            </Link>
+          </li>
+        ))}
+      </ul>
+
+      <button className="logout" onClick={handleLogout}>
+        <FaSignOutAlt /> Logout
+      </button>
+    </aside>
   );
 };
 

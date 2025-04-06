@@ -3,6 +3,8 @@ import { Link } from "react-router-dom";
 import { jwtDecode } from "jwt-decode";
 import "../CSS/ChannelList.css"; 
 
+const BASE_URL = process.env.REACT_APP_BASE_URL;
+
 const ClubList = () => {
   const [clubs, setClubs] = useState([]);
   const [userClubs, setUserClubs] = useState([]);
@@ -23,7 +25,7 @@ const ClubList = () => {
   useEffect(() => {
     const fetchClubs = async () => {
       try {
-        const response = await fetch("http://43.205.202.255:5000/club/list");
+        const response = await fetch(`${BASE_URL}/club/list`);
         if (response.ok) {
           const data = await response.json();
           setClubs(data.clubs || []);
@@ -42,9 +44,7 @@ const ClubList = () => {
     if (!userEmail) return;
     const fetchUserClubs = async () => {
       try {
-        const response = await fetch(
-          `http://43.205.202.255:5000/student/clubs/${userEmail}`
-        );
+        const response = await fetch(`${BASE_URL}/student/clubs/${userEmail}`);
         if (response.ok) {
           const data = await response.json();
           setUserClubs(data.clubs || []);

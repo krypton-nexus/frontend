@@ -1,10 +1,11 @@
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useState, useEffect, useCallback, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import { jwtDecode } from "jwt-decode";
 import "../CSS/ClubCard.css";
 
-// Snackbar component for temporary notifications
-const Snackbar = ({ message, type, open, onClose }) => {
+const BASE_URL = process.env.REACT_APP_BASE_URL;
+
+const Snackbar = ({ message, type = "info", open, onClose }) => {
   useEffect(() => {
     if (open) {
       const timer = setTimeout(onClose, 3000);
@@ -15,13 +16,11 @@ const Snackbar = ({ message, type, open, onClose }) => {
   if (!open) return null;
 
   const backgroundColor =
-    type === "error"
-      ? "#f44336"
-      : type === "success"
-      ? "#4CAF50"
-      : type === "info"
-      ? "#2196F3"
-      : "#333";
+    {
+      error: "#f44336",
+      success: "#4CAF50",
+      info: "#2196F3",
+    }[type] || "#333";
 
   return (
     <div
@@ -34,8 +33,8 @@ const Snackbar = ({ message, type, open, onClose }) => {
         color: "#fff",
         padding: "16px 24px",
         borderRadius: "4px",
-        boxShadow: "0px 2px 8px rgba(0,0,0,0.2)",
-        zIndex: 10000,
+        boxShadow: "0 2px 8px rgba(0,0,0,0.3)",
+        zIndex: 9999,
       }}
     >
       {message}
@@ -43,7 +42,6 @@ const Snackbar = ({ message, type, open, onClose }) => {
   );
 };
 
-// Helper to perform API calls
 const apiCall = async (url, token, body) => {
   const response = await fetch(url, {
     method: "POST",
@@ -58,46 +56,45 @@ const apiCall = async (url, token, body) => {
 
 const ClubCard = ({ club }) => {
   const navigate = useNavigate();
-  const [studentEmail, setStudentEmail] = useState(null);
-  const [clubDescription, setClubDescription] = useState([]);
-  const [currentSentenceIndex, setCurrentSentenceIndex] = useState(0);
   const [snackbar, setSnackbar] = useState({
     open: false,
     message: "",
     type: "info",
   });
   const [isRequestInProgress, setIsRequestInProgress] = useState(false);
+  const [currentSentenceIndex, setCurrentSentenceIndex] = useState(0);
 
-  // Show snackbar message
+  const token = localStorage.getItem("access_token");
+
+  const studentEmail = useMemo(() => {
+    if (!token) return null;
+    try {
+      return jwtDecode(token)?.email;
+    } catch (error) {
+      console.error("Invalid token:", error);
+      return null;
+    }
+  }, [token]);
+
+  const isTokenValid = useMemo(() => {
+    if (!token) return false;
+    try {
+      const { exp } = jwtDecode(token);
+      return exp >= Math.floor(Date.now() / 1000);
+    } catch {
+      return false;
+    }
+  }, [token]);
+
   const showSnackbar = (message, type = "info") => {
     setSnackbar({ open: true, message, type });
   };
 
-  // Decode token to get student email
-  const getStudentEmailFromToken = useCallback(() => {
-    const token = localStorage.getItem("access_token");
-    if (token) {
-      try {
-        const decodedToken = jwtDecode(token);
-        return decodedToken.email;
-      } catch (error) {
-        console.error("Failed to decode token:", error);
-      }
-    }
-    return null;
-  }, []);
-
-  useEffect(() => {
-    const email = getStudentEmailFromToken();
-    setStudentEmail(email);
-
-    if (club.additional_information) {
-      const sentences = club.additional_information
-        .split(".")
-        .filter((sentence) => sentence.trim() !== "");
-      setClubDescription(sentences);
-    }
-  }, [club, getStudentEmailFromToken]);
+  const clubDescription = useMemo(() => {
+    return club.additional_information
+      ? club.additional_information.split(".").filter((s) => s.trim() !== "")
+      : [];
+  }, [club.additional_information]);
 
   useEffect(() => {
     const timer = setTimeout(() => {
@@ -106,22 +103,10 @@ const ClubCard = ({ club }) => {
       );
     }, 5000);
     return () => clearTimeout(timer);
-  }, [currentSentenceIndex, clubDescription.length]);
+  }, [currentSentenceIndex, clubDescription]);
 
-  const isTokenValid = (token) => {
-    if (!token) return false;
-    try {
-      const decodedToken = jwtDecode(token);
-      const currentTime = Math.floor(Date.now() / 1000);
-      return decodedToken.exp >= currentTime;
-    } catch (error) {
-      return false;
-    }
-  };
-
-  // Send admin notification separately
-  const sendAdminNotification = async (token) => {
-    const notifUrl = "http://43.205.202.255:5000/notification_admin/add";
+  const sendAdminNotification = async () => {
+    const notifUrl = `${BASE_URL}/notification_admin/add`;
     const notifBody = {
       admin_email: club.admin_email,
       message: `${studentEmail} has requested to join your club: ${club.title}. Please review and approve or reject the request.`,
@@ -131,53 +116,52 @@ const ClubCard = ({ club }) => {
 
   const handleJoinNow = async () => {
     if (isRequestInProgress) return;
-    const token = localStorage.getItem("access_token");
-    if (!token || !isTokenValid(token)) {
-      showSnackbar(
+
+    if (!token || !isTokenValid) {
+      return showSnackbar(
         "Authorization token is missing or expired. Please log in again.",
         "error"
       );
-      return;
     }
+
     if (!studentEmail) {
-      showSnackbar("Student email is missing. Please log in again.", "error");
-      return;
+      return showSnackbar(
+        "Student email not found. Please log in again.",
+        "error"
+      );
     }
 
     setIsRequestInProgress(true);
     try {
-      const membershipUrl = "http://43.205.202.255:5000/membership/add";
+      const membershipUrl = `${BASE_URL}/membership/add`;
       const membershipBody = { student_email: studentEmail, club_id: club.id };
       const response = await apiCall(membershipUrl, token, membershipBody);
 
       if (response.ok) {
-        const successData = await response.json();          
-        if (successData.message === "Current status: Pending") {
+        const result = await response.json();
+        const msg = result.message;
+        if (msg === "Current status: Pending") {
           showSnackbar(
             "Your membership request is already pending approval.",
             "info"
           );
-        } else if (successData.message === "Current status: Approved") {
+        } else if (msg === "Current status: Approved") {
           showSnackbar("You are already a member of this club.", "info");
         } else {
+          await sendAdminNotification();
           showSnackbar(
-            "Membership request processed successfully. Please wait for admin approval.",
+            "Membership request sent. Awaiting admin approval.",
             "success"
           );
         }
       } else {
-        const errorData = await response.json();
-        const errorMessage =
-          errorData.message ||
-          "Failed to send membership request. Please try again later.";
-        showSnackbar(errorMessage, "error");
+        const errData = await response.json();
+        const errMsg = errData.message || "Failed to send membership request.";
+        showSnackbar(errMsg, "error");
       }
     } catch (error) {
-      console.error("Error sending membership request:", error);
-      showSnackbar(
-        `An error occurred: ${error.message || "Unknown error"}`,
-        "error"
-      );
+      console.error("Membership Error:", error);
+      showSnackbar("An unexpected error occurred. Please try again.", "error");
     } finally {
       setIsRequestInProgress(false);
     }
@@ -188,12 +172,15 @@ const ClubCard = ({ club }) => {
       <div
         className="club-card"
         style={{
-          backgroundImage: `url(${club.images_url?.logo || ""})`,
+          backgroundImage: club.images_url?.logo
+            ? `url(${club.images_url.logo})`
+            : undefined,
           backgroundSize: "contain",
           backgroundRepeat: "no-repeat",
           backgroundPosition: "center",
           height: "280px",
         }}
+        aria-label={`Club card for ${club.title}`}
       >
         <div className="card-overlay">
           <div className="club-title">{club.title || "Club Name"}</div>
@@ -214,11 +201,12 @@ const ClubCard = ({ club }) => {
           </div>
         </div>
       </div>
+
       <Snackbar
         message={snackbar.message}
         type={snackbar.type}
         open={snackbar.open}
-        onClose={() => setSnackbar({ ...snackbar, open: false })}
+        onClose={() => setSnackbar((prev) => ({ ...prev, open: false }))}
       />
     </>
   );

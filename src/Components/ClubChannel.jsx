@@ -3,30 +3,34 @@ import { useParams, useNavigate } from "react-router-dom";
 import { jwtDecode } from "jwt-decode";
 import "../CSS/ClubChannel.css";
 
+const BASE_URL = process.env.REACT_APP_BASE_URL;
+
 const ClubChannel = () => {
-  const { clubId } = useParams(); // Get club ID from URL
+  const { clubId } = useParams();
   const navigate = useNavigate();
+
   const [newMessage, setNewMessage] = useState("");
   const [userEmail, setUserEmail] = useState("");
   const [isAuthorized, setIsAuthorized] = useState(false);
   const [loading, setLoading] = useState(true);
 
+  const token = localStorage.getItem("access_token");
+
   useEffect(() => {
-    const checkTokenValidity = () => {
-      const token = localStorage.getItem("access_token");
+    const validateToken = () => {
       if (!token) {
         alert("Please log in to access the communication channel.");
-        navigate("/login"); // Redirect to login page
+        navigate("/login");
         return false;
       }
 
       try {
         const decoded = jwtDecode(token);
-        const currentTime = Date.now() / 1000; // Convert to seconds
+        const currentTime = Date.now() / 1000;
         if (decoded.exp < currentTime) {
           alert("Session expired. Please log in again.");
-          localStorage.removeItem("access_token"); // Clear expired token
-          navigate("/login"); // Redirect to login
+          localStorage.removeItem("access_token");
+          navigate("/login");
           return false;
         }
 
@@ -41,41 +45,40 @@ const ClubChannel = () => {
       }
     };
 
-    if (!checkTokenValidity()) {
+    if (validateToken()) {
       setLoading(false);
-      return;
+    } else {
+      setLoading(false);
     }
-  }, [navigate]);
+  }, [navigate, token]);
 
   useEffect(() => {
-    if (!userEmail) return;
-    const token = localStorage.getItem("access_token");
-    if (!token) return;
+    if (!userEmail || !token) return;
 
     const verifyMembership = async () => {
       try {
-        const membershipResponse = await fetch(
-          `http://43.205.202.255:5000/membership/list?club_id=${clubId}`,
+        const response = await fetch(
+          `${BASE_URL}/membership/list?club_id=${clubId}`,
           {
             method: "GET",
-            headers: { Authorization: `Bearer ${token}` },
+            headers: {
+              Authorization: `Bearer ${token}`,
+              "Content-Type": "application/json",
+            },
           }
         );
 
-        if (!membershipResponse.ok) {
-          console.error(
-            "Failed to verify membership:",
-            membershipResponse.status
-          );
-          setLoading(false);
+        if (!response.ok) {
+          console.error("Failed to fetch memberships:", response.status);
           return;
         }
 
-        const membersData = await membershipResponse.json();
-        const membersEmails = membersData.memberships.map(
-          (member) => member.student_email
+        const data = await response.json();
+        const isMember = data.memberships.some(
+          (member) => member.student_email === userEmail
         );
-        setIsAuthorized(membersEmails.includes(userEmail));
+
+        setIsAuthorized(isMember);
       } catch (error) {
         console.error("Error verifying membership:", error);
       } finally {
@@ -84,18 +87,28 @@ const ClubChannel = () => {
     };
 
     verifyMembership();
-  }, [clubId, userEmail]);
+  }, [clubId, userEmail, token]);
 
   const handleSendMessage = async () => {
     if (!newMessage.trim()) {
-      alert("Message cannot be empty!");
+      alert("Message cannot be empty.");
       return;
     }
-    const token = localStorage.getItem("access_token");
+
     if (!token) {
       alert("You need to log in to send a message.");
       navigate("/login");
       return;
+    }
+
+    try {
+      console.log("Sending message:", newMessage);
+      alert("Message sent (not really, just console logged).");
+
+      setNewMessage(""); 
+    } catch (error) {
+      console.error("Error sending message:", error);
+      alert("Failed to send message.");
     }
   };
 
@@ -119,9 +132,11 @@ const ClubChannel = () => {
   return (
     <div className="club-channel-container">
       <h2>Club Communication Channel</h2>
+
       <div className="messages-container">
-        <p>Messages are no longer being fetched from the server.</p>
+        <p>Messages are not yet loaded from the server (placeholder).</p>
       </div>
+
       <div className="message-input-container">
         <textarea
           placeholder="Type your message here..."

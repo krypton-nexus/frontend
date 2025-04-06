@@ -12,7 +12,8 @@ import { jwtDecode } from "jwt-decode";
 import "../CSS/MessageForm.css";
 import { FaPaperPlane } from "react-icons/fa";
 
-const TYPING_TIMEOUT = 2000; // 2 seconds timeout
+const BASE_URL = process.env.REACT_APP_BASE_URL;
+const TYPING_TIMEOUT = 2000;
 
 const MessageForm = ({ clubId, userEmail }) => {
   const [text, setText] = useState("");
@@ -21,27 +22,20 @@ const MessageForm = ({ clubId, userEmail }) => {
   const [usersTyping, setUsersTyping] = useState([]);
   const typingTimeoutRef = useRef(null);
 
-  // Check if the current user is authorized by comparing the decoded token email
   useEffect(() => {
-    const checkAuthorization = () => {
-      const token = localStorage.getItem("access_token");
-      if (token) {
-        try {
-          const decodedToken = jwtDecode(token);
-          setIsAuthorized(decodedToken.email === userEmail);
-        } catch (error) {
-          console.error("Error decoding token:", error);
-          setIsAuthorized(false);
-        }
-      } else {
+    const token = localStorage.getItem("access_token");
+    if (token) {
+      try {
+        const decodedToken = jwtDecode(token);
+        setIsAuthorized(decodedToken.email === userEmail);
+      } catch {
         setIsAuthorized(false);
       }
-    };
-
-    checkAuthorization();
+    } else {
+      setIsAuthorized(false);
+    }
   }, [userEmail]);
 
-  // Update the typing status in Firestore under the "typingIndicators" collection.
   const updateTypingStatus = async (typing) => {
     if (!clubId || !userEmail) return;
     const typingDocRef = doc(db, "typingIndicators", clubId);
@@ -56,8 +50,6 @@ const MessageForm = ({ clubId, userEmail }) => {
     }
   };
 
-  // Handle the onChange event. Each time the user types, update the status.
-  // A timeout resets the status to “not typing” after TYPING_TIMEOUT ms of inactivity.
   const handleTyping = (e) => {
     setText(e.target.value);
     updateTypingStatus(true);
@@ -94,18 +86,14 @@ const MessageForm = ({ clubId, userEmail }) => {
     }
   };
 
-  // Helper function to fetch first name from the API using the email and token.
   const fetchFirstName = async (email) => {
     try {
       const token = localStorage.getItem("access_token");
-      const response = await fetch(
-        `http://43.205.202.255:5000/student/${email}`,
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        }
-      );
+      const response = await fetch(`${BASE_URL}/student/${email}`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
       }
@@ -117,8 +105,6 @@ const MessageForm = ({ clubId, userEmail }) => {
     }
   };
 
-  // Listen to the typing indicator document in Firestore.
-  // Only include users who have updated their timestamp within TYPING_TIMEOUT ms.
   useEffect(() => {
     if (!clubId) return;
     const typingDocRef = doc(db, "typingIndicators", clubId);
@@ -128,13 +114,11 @@ const MessageForm = ({ clubId, userEmail }) => {
         const now = Date.now();
         const activeEmails = [];
         Object.entries(data).forEach(([email, timestamp]) => {
-          // Exclude the current user and only consider recent updates as active typing
           if (email === userEmail) return;
           if (timestamp && now - timestamp.toMillis() < TYPING_TIMEOUT) {
             activeEmails.push(email);
           }
         });
-        // Map emails to first names using the API with token.
         const firstNames = await Promise.all(
           activeEmails.map(async (email) => await fetchFirstName(email))
         );
@@ -146,7 +130,6 @@ const MessageForm = ({ clubId, userEmail }) => {
     return () => unsubscribe();
   }, [clubId, userEmail]);
 
-  // Clear any pending typing status on component unmount.
   useEffect(() => {
     return () => {
       if (typingTimeoutRef.current) {
@@ -170,6 +153,7 @@ const MessageForm = ({ clubId, userEmail }) => {
           typing...
         </div>
       )}
+
       <form onSubmit={sendMessage} className="message-form">
         <input
           type="text"
@@ -187,6 +171,7 @@ const MessageForm = ({ clubId, userEmail }) => {
           <FaPaperPlane />
         </button>
       </form>
+
       {error && <p className="error-message">{error}</p>}
     </div>
   );
