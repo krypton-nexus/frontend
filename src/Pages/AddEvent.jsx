@@ -3,6 +3,8 @@ import { useNavigate } from "react-router-dom";
 import AWS from "aws-sdk";
 import "../CSS/AddEvent.css";
 import AdminSidebar from "../Components/AdminSidebar";
+import Snackbar from "@mui/material/Snackbar";
+import Alert from "@mui/material/Alert";
 
 AWS.config.update({
   accessKeyId: "AKIAUQ4L3D64ZBVKU2W4",
@@ -27,8 +29,18 @@ const AddEvent = () => {
     ispublic: "1",
     meeting_note: "",
   });
-
   const navigate = useNavigate();
+
+  // Snackbar state
+  const [snackbarOpen, setSnackbarOpen] = useState(false);
+  const [snackbarMessage, setSnackbarMessage] = useState("");
+  const [snackbarSeverity, setSnackbarSeverity] = useState("success");
+
+  // Snackbar close handler.
+  const handleSnackbarClose = (event, reason) => {
+    if (reason === "clickaway") return;
+    setSnackbarOpen(false);
+  };
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -62,9 +74,14 @@ const AddEvent = () => {
         imageFile: file,
       }));
       console.log("Image uploaded to:", imageUrl);
+      setSnackbarMessage("Image uploaded successfully.");
+      setSnackbarSeverity("success");
+      setSnackbarOpen(true);
     } catch (error) {
       console.error("S3 Upload Error:", error);
-      alert("Failed to upload image.");
+      setSnackbarMessage("Failed to upload image.");
+      setSnackbarSeverity("error");
+      setSnackbarOpen(true);
     }
   };
 
@@ -73,7 +90,9 @@ const AddEvent = () => {
 
     // Check if imageUrl is populated
     if (!eventData.imageUrl) {
-      alert("Please upload an image before submitting.");
+      setSnackbarMessage("Please upload an image before submitting.");
+      setSnackbarSeverity("warning");
+      setSnackbarOpen(true);
       return;
     }
 
@@ -89,6 +108,7 @@ const AddEvent = () => {
       category: eventData.category,
       ispublic: eventData.ispublic,
     };
+
     try {
       const response = await fetch("http://43.205.202.255:5000/event/create", {
         method: "POST",
@@ -100,7 +120,9 @@ const AddEvent = () => {
       });
 
       if (response.ok) {
-        alert("Event created successfully!");
+        setSnackbarMessage("Event created successfully!");
+        setSnackbarSeverity("success");
+        setSnackbarOpen(true);
         setEventData({
           club_id: "club_gavel",
           event_name: "",
@@ -117,11 +139,17 @@ const AddEvent = () => {
         });
       } else {
         const err = await response.json();
-        alert(`Event creation failed: ${err.error || "Unknown error"}`);
+        setSnackbarMessage(
+          `Event creation failed: ${err.error || "Unknown error"}`
+        );
+        setSnackbarSeverity("error");
+        setSnackbarOpen(true);
       }
     } catch (error) {
       console.error("Create Event Error:", error);
-      alert("Something went wrong. Try again later.");
+      setSnackbarMessage("Something went wrong. Try again later.");
+      setSnackbarSeverity("error");
+      setSnackbarOpen(true);
     }
   };
 
@@ -249,6 +277,20 @@ const AddEvent = () => {
           </button>
         </form>
       </main>
+      <Snackbar
+        open={snackbarOpen}
+        autoHideDuration={4000}
+        onClose={handleSnackbarClose}
+        anchorOrigin={{ vertical: "bottom", horizontal: "center" }}
+      >
+        <Alert
+          onClose={handleSnackbarClose}
+          severity={snackbarSeverity}
+          sx={{ width: "100%" }}
+        >
+          {snackbarMessage}
+        </Alert>
+      </Snackbar>
     </div>
   );
 };
