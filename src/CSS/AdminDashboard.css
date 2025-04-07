@@ -108,7 +108,7 @@ header {
 .membership-section {
   display: flex;
   flex-direction: column;
-  gap: 30px;
+  gap: 10px;
   width: 100%;
 }
 
@@ -116,8 +116,7 @@ header {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 30px;
-  /* background: #ffffff; */
+  padding: 10px;
   border-radius: 8px;
   max-width: 100%;
 }
@@ -168,7 +167,7 @@ header {
   border: none;
   height: 1px;
   background-color: #f6f7f8;
-  margin: 10px 0;
+  margin: 2px 0;
   box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
 }
 
@@ -228,20 +227,20 @@ header {
 }
 
 .no-membership-request {
+  display: flex;
   text-align: left;
-  padding: 10px;
   background: #ede9fe;
   box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
   color: #a91d3a;
   font-size: 0.5rem;
   font-weight: bold;
-  max-width: 100%;
+  width: 100%;
+  padding: 10px;
 }
 
+
+
 .no-membership-request h2 {
-  margin: 0;
-  display: flex;
-  padding: 10px;
   font-size: 0.9rem;
   color: #a91d3a;
   text-transform: capitalize;

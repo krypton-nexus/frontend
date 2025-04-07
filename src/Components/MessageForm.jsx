@@ -140,39 +140,41 @@ const MessageForm = ({ clubId, userEmail }) => {
   }, []);
 
   return (
-    <div className="message-form-container">
-      {!isAuthorized && (
-        <p className="error-message">
-          You are not authorized to send messages.
-        </p>
-      )}
+    <div className="page-container">
+      <div className="message-form-container">
+        {!isAuthorized && (
+          <p className="error-message">
+            You are not authorized to send messages.
+          </p>
+        )}
 
-      {usersTyping.length > 0 && (
-        <div className="typing-indicator">
-          {usersTyping.join(", ")} {usersTyping.length === 1 ? "is" : "are"}{" "}
-          typing...
-        </div>
-      )}
+        {usersTyping.length > 0 && (
+          <div className="typing-indicator">
+            {usersTyping.join(", ")} {usersTyping.length === 1 ? "is" : "are"}{" "}
+            typing...
+          </div>
+        )}
 
-      <form onSubmit={sendMessage} className="message-form">
-        <input
-          type="text"
-          value={text}
-          onChange={handleTyping}
-          placeholder="Type a message..."
-          className="message-input"
-          disabled={!isAuthorized}
-        />
-        <button
-          type="submit"
-          className="message-send-button"
-          disabled={!isAuthorized}
-        >
-          <FaPaperPlane />
-        </button>
-      </form>
+        <form onSubmit={sendMessage} className="message-form">
+          <input
+            type="text"
+            value={text}
+            onChange={handleTyping}
+            placeholder="Type a message..."
+            className="message-input"
+            disabled={!isAuthorized}
+          />
+          <button
+            type="submit"
+            className="message-send-button"
+            disabled={!isAuthorized}
+          >
+            <FaPaperPlane />
+          </button>
+        </form>
 
-      {error && <p className="error-message">{error}</p>}
+        {error && <p className="error-message">{error}</p>}
+      </div>
     </div>
   );
 };

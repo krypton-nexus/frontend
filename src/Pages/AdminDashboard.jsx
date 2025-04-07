@@ -273,19 +273,6 @@ const MembershipTable = ({
   if (!Array.isArray(data) || data.length === 0) {
     return (
       <div>
-        <div className="membership-header">
-          <div className="search-container">
-            <input
-              type="text"
-              placeholder="Search members..."
-              className="membership-search"
-            />
-            <button className="search-icon">
-              <FaSearch />
-            </button>
-          </div>
-          <FaUserCircle className="membership-avatar" size={30} />
-        </div>
         <hr className="section-divider" />
         <div className="no-membership-request">
           <h2>
@@ -298,7 +285,6 @@ const MembershipTable = ({
       </div>
     );
   }
-
   const yearCounts = data.reduce((acc, member) => {
     const year = member.year || "Unknown";
     acc[year] = (acc[year] || 0) + 1;
@@ -661,6 +647,7 @@ const AdminDashboard = () => {
         toggleNotifications={openNotifications}
         handleLogout={handleLogout}
       />
+
       <UserDetailModal
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
@@ -677,6 +664,19 @@ const AdminDashboard = () => {
       )}
       <main className="main-content-admin">
         <section className="membership-section">
+          <div className="membership-header">
+            <div className="search-container">
+              <input
+                type="text"
+                placeholder="Search members..."
+                className="membership-search"
+              />
+              <button className="search-icon">
+                <FaSearch />
+              </button>
+            </div>
+            <FaUserCircle className="membership-avatar" size={30} />
+          </div>
           <MembershipTable
             title="New Membership Requests"
             data={newMembershipRequests}
