@@ -30,7 +30,6 @@ import {
   Trash2,
 } from "lucide-react";
 
-
 const BASE_URL = process.env.REACT_APP_BASE_URL;
 
 const Finance = () => {
@@ -424,8 +423,7 @@ const Finance = () => {
           <h1>Financial Dashboard</h1>
           <button
             className="add-transaction-btn"
-            onClick={() => setShowAddTransaction(true)}
-          >
+            onClick={() => setShowAddTransaction(true)}>
             <Plus size={20} /> Add Transaction
           </button>
         </header>
@@ -438,20 +436,17 @@ const Finance = () => {
             <div className="filter-options">
               <button
                 className={timeFilter === "month" ? "active" : ""}
-                onClick={() => setTimeFilter("month")}
-              >
+                onClick={() => setTimeFilter("month")}>
                 Month
               </button>
               <button
                 className={timeFilter === "quarter" ? "active" : ""}
-                onClick={() => setTimeFilter("quarter")}
-              >
+                onClick={() => setTimeFilter("quarter")}>
                 Quarter
               </button>
               <button
                 className={timeFilter === "year" ? "active" : ""}
-                onClick={() => setTimeFilter("year")}
-              >
+                onClick={() => setTimeFilter("year")}>
                 Year
               </button>
             </div>
@@ -493,11 +488,10 @@ const Finance = () => {
         <section className="data-visualization">
           <div className="bar-chart-container">
             <h2>Income vs. Expenses (Last 6 Months)</h2>
-            <ResponsiveContainer width="100%" height={300}>
+            <ResponsiveContainer width="100%" height={450}>
               <BarChart
                 data={getBarChartData()}
-                margin={{ top: 20, right: 30, left: 20, bottom: 5 }}
-              >
+                margin={{ top: 20, right: 30, left: 20, bottom: 5 }}>
                 <CartesianGrid strokeDasharray="3 3" />
                 <XAxis dataKey="month" />
                 <YAxis />
@@ -512,7 +506,7 @@ const Finance = () => {
           <div className="pie-charts-container">
             <div className="pie-chart">
               <h2>Income by Category (Last 6 Months)</h2>
-              <ResponsiveContainer width="100%" height={200}>
+              <ResponsiveContainer width="100%" height={250}>
                 <PieChart>
                   <Pie
                     data={getPieChartData("income")}
@@ -522,10 +516,42 @@ const Finance = () => {
                     outerRadius={80}
                     fill="#8884d8"
                     dataKey="value"
-                    label={({ name, percent }) =>
-                      `${name} ${(percent * 100).toFixed(0)}%`
-                    }
-                  >
+                    label={({
+                      name,
+                      percent,
+                      cx,
+                      cy,
+                      midAngle,
+                      outerRadius,
+                      index,
+                    }) => {
+                      const RADIAN = Math.PI / 180;
+                      const radius = outerRadius + 30;
+                      const x = cx + radius * Math.cos(-midAngle * RADIAN);
+                      const y = cy + radius * Math.sin(-midAngle * RADIAN);
+                      const percentage = `${(percent * 100).toFixed(0)}%`;
+                      const [line1, ...rest] = name.split(" ");
+                      const line2 = rest.join(" ");
+                      const fillColor =
+                        INCOME_COLORS[index % INCOME_COLORS.length];
+
+                      return (
+                        <text
+                          x={x}
+                          y={y}
+                          textAnchor="middle"
+                          dominantBaseline="middle"
+                          fill={fillColor}
+                          fontSize={14}>
+                          <tspan x={x} dy="-0.6em">
+                            {line1}
+                          </tspan>
+                          <tspan x={x} dy="1.2em">
+                            {line2 ? `${line2} ${percentage}` : percentage}
+                          </tspan>
+                        </text>
+                      );
+                    }}>
                     {getPieChartData("income").map((entry, index) => (
                       <Cell
                         key={`cell-${index}`}
@@ -540,8 +566,28 @@ const Finance = () => {
 
             <div className="pie-chart">
               <h2>Expenses by Category</h2>
-              <ResponsiveContainer width="100%" height={200}>
+              <ResponsiveContainer width="100%" height={280}>
                 <PieChart>
+                  {/*
+    <Pie
+      data={getPieChartData("expense")}
+      cx="50%"
+      cy="50%"
+      labelLine={false}
+      outerRadius={80}
+      fill="#8884d8"
+      dataKey="value"
+      label={({ name, percent }) =>
+        `${name} ${(percent * 100).toFixed(0)}%`
+      }>
+      {getPieChartData("expense").map((entry, index) => (
+        <Cell
+          key={`cell-${index}`}
+          fill={EXPENSE_COLORS[index % EXPENSE_COLORS.length]}
+        />
+      ))}
+    </Pie>
+    */}
                   <Pie
                     data={getPieChartData("expense")}
                     cx="50%"
@@ -550,10 +596,43 @@ const Finance = () => {
                     outerRadius={80}
                     fill="#8884d8"
                     dataKey="value"
-                    label={({ name, percent }) =>
-                      `${name} ${(percent * 100).toFixed(0)}%`
-                    }
-                  >
+                    label={({
+                      name,
+                      percent,
+                      cx,
+                      cy,
+                      midAngle,
+                      outerRadius,
+                      index,
+                    }) => {
+                      const RADIAN = Math.PI / 180;
+                      const radius = outerRadius + 40;
+                      const x = cx + radius * Math.cos(-midAngle * RADIAN);
+                      const y = cy + radius * Math.sin(-midAngle * RADIAN);
+
+                      const percentage = `${(percent * 100).toFixed(0)}%`;
+                      const [line1, ...rest] = name.split(" ");
+                      const line2 = rest.join(" ");
+                      const fillColor =
+                        EXPENSE_COLORS[index % EXPENSE_COLORS.length];
+
+                      return (
+                        <text
+                          x={x}
+                          y={y}
+                          textAnchor="middle"
+                          dominantBaseline="middle"
+                          fill={fillColor}
+                          fontSize={12}>
+                          <tspan x={x} dy="-0.6em">
+                            {line1}
+                          </tspan>
+                          <tspan x={x} dy="1.2em">
+                            {line2 ? `${line2} ${percentage}` : percentage}
+                          </tspan>
+                        </text>
+                      );
+                    }}>
                     {getPieChartData("expense").map((entry, index) => (
                       <Cell
                         key={`cell-${index}`}
@@ -574,8 +653,7 @@ const Finance = () => {
               <h2>Recent Transactions</h2>
               <button
                 className="toggle-transactions-btn"
-                onClick={() => setShowAllTransactions(!showAllTransactions)}
-              >
+                onClick={() => setShowAllTransactions(!showAllTransactions)}>
                 {showAllTransactions
                   ? "Show Recent Only"
                   : "Show All Transactions"}
@@ -617,8 +695,7 @@ const Finance = () => {
                           onClick={() =>
                             handleDeleteTransaction(transaction.id)
                           }
-                          disabled={deletingId === transaction.id}
-                        >
+                          disabled={deletingId === transaction.id}>
                           {deletingId === transaction.id ? (
                             "Deleting..."
                           ) : (
@@ -638,8 +715,7 @@ const Finance = () => {
                   onClick={() =>
                     setCurrentPage((prev) => Math.max(prev - 1, 1))
                   }
-                  disabled={currentPage === 1}
-                >
+                  disabled={currentPage === 1}>
                   Previous
                 </button>
 
@@ -647,8 +723,7 @@ const Finance = () => {
                   <button
                     key={i + 1}
                     onClick={() => setCurrentPage(i + 1)}
-                    className={currentPage === i + 1 ? "active" : ""}
-                  >
+                    className={currentPage === i + 1 ? "active" : ""}>
                     {i + 1}
                   </button>
                 ))}
@@ -657,8 +732,7 @@ const Finance = () => {
                   onClick={() =>
                     setCurrentPage((prev) => Math.min(prev + 1, totalPages))
                   }
-                  disabled={currentPage === totalPages}
-                >
+                  disabled={currentPage === totalPages}>
                   Next
                 </button>
               </div>
@@ -670,14 +744,12 @@ const Finance = () => {
             <div className="category-tabs">
               <button
                 className={newCategoryType === "income" ? "active" : ""}
-                onClick={() => setNewCategoryType("income")}
-              >
+                onClick={() => setNewCategoryType("income")}>
                 Income
               </button>
               <button
                 className={newCategoryType === "expense" ? "active" : ""}
-                onClick={() => setNewCategoryType("expense")}
-              >
+                onClick={() => setNewCategoryType("expense")}>
                 Expense
               </button>
             </div>
@@ -710,8 +782,7 @@ const Finance = () => {
                 <h2>Add Transaction</h2>
                 <button
                   className="close-btn"
-                  onClick={() => setShowAddTransaction(false)}
-                >
+                  onClick={() => setShowAddTransaction(false)}>
                   <X size={20} />
                 </button>
               </div>
@@ -719,14 +790,12 @@ const Finance = () => {
               <div className="transaction-type-tabs">
                 <button
                   className={transactionType === "income" ? "active" : ""}
-                  onClick={() => setTransactionType("income")}
-                >
+                  onClick={() => setTransactionType("income")}>
                   <ArrowUp size={16} /> Income
                 </button>
                 <button
                   className={transactionType === "expense" ? "active" : ""}
-                  onClick={() => setTransactionType("expense")}
-                >
+                  onClick={() => setTransactionType("expense")}>
                   <ArrowDown size={16} /> Expense
                 </button>
               </div>
@@ -780,8 +849,7 @@ const Finance = () => {
                     name="category"
                     value={newTransaction.category}
                     onChange={handleTransactionChange}
-                    required
-                  >
+                    required>
                     <option value="">Select a category</option>
                     {categories[transactionType].map((category) => (
                       <option key={category} value={category}>
@@ -800,16 +868,14 @@ const Finance = () => {
                     value={newTransaction.description}
                     onChange={handleTransactionChange}
                     placeholder="Enter description"
-                    rows="3"
-                  ></textarea>
+                    rows="3"></textarea>
                 </div>
               </div>
 
               <div className="modal-footer">
                 <button
                   className="cancel-btn"
-                  onClick={() => setShowAddTransaction(false)}
-                >
+                  onClick={() => setShowAddTransaction(false)}>
                   Cancel
                 </button>
                 <button className="add-btn" onClick={handleAddTransaction}>

@@ -3,7 +3,7 @@ import { jwtDecode } from "jwt-decode";
 import "../CSS/ViewEvents.css";
 import Sidebar from "../Components/SideBar";
 import bannerImage from "../Images/bannerevent.png";
-import { FaUserCircle, FaSearch } from "react-icons/fa";
+import { FaUserCircle, FaSearch, FaMapPin } from "react-icons/fa";
 import Snackbar from "@mui/material/Snackbar";
 import Alert from "@mui/material/Alert";
 import UserProfile from "../Components/UserProfile";
@@ -288,16 +288,14 @@ const ViewEvents = () => {
                 className={`event-tab ${
                   activeTab === "today" ? "active-tab" : ""
                 }`}
-                onClick={() => setActiveTab("today")}
-              >
+                onClick={() => setActiveTab("today")}>
                 Today’s Events
               </span>
               <span
                 className={`event-tab ${
                   activeTab === "upcoming" ? "active-tab" : ""
                 }`}
-                onClick={() => setActiveTab("upcoming")}
-              >
+                onClick={() => setActiveTab("upcoming")}>
                 Upcoming Events
               </span>
             </div>
@@ -326,8 +324,7 @@ const ViewEvents = () => {
             <span
               key={tab}
               className={`event-tab ${activeTab === tab ? "active-tab" : ""}`}
-              onClick={() => setActiveTab(tab)}
-            >
+              onClick={() => setActiveTab(tab)}>
               {tab.charAt(0).toUpperCase() + tab.slice(1)} Events
             </span>
           ))}
@@ -355,14 +352,12 @@ const ViewEvents = () => {
                   <div className="event-buttons">
                     <button
                       className="yes-btn"
-                      onClick={() => handleYesVote(event)}
-                    >
+                      onClick={() => handleYesVote(event)}>
                       Yes
                     </button>
                     <button
                       className="no-btn"
-                      onClick={() => handleNoVote(event)}
-                    >
+                      onClick={() => handleNoVote(event)}>
                       No
                     </button>
                     <button className="maybe-btn" onClick={handleMaybeVote}>
@@ -384,13 +379,11 @@ const ViewEvents = () => {
         open={snackbarOpen}
         autoHideDuration={4000}
         onClose={handleSnackbarClose}
-        anchorOrigin={{ vertical: "bottom", horizontal: "center" }}
-      >
+        anchorOrigin={{ vertical: "bottom", horizontal: "center" }}>
         <Alert
           severity={snackbarSeverity}
           sx={{ width: "100%" }}
-          onClose={handleSnackbarClose}
-        >
+          onClose={handleSnackbarClose}>
           {snackbarMessage}
         </Alert>
       </Snackbar>
