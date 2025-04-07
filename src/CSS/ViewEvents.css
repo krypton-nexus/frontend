@@ -80,6 +80,7 @@ html {
   font-size: 24px;
   color: #333;
 }
+
 /* 
 .events-grid {
   display: grid;
@@ -121,6 +122,7 @@ html {
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+  color: #a91d3a;
 }
 .events-grid {
   display: grid;
@@ -230,8 +232,6 @@ html {
   border-radius: 10px;
   object-fit: cover;
 }
-
-
 
 .my-events {
   /* background: #a91d3a; */
