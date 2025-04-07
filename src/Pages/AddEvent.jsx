@@ -104,7 +104,7 @@ const AddEvent = () => {
       venue: eventData.venue,
       mode: eventData.mode,
       event_description: eventData.event_description,
-      images: eventData.imageUrl, // imageUrl is appended here
+      images: eventData.imageUrl, 
       category: eventData.category,
       ispublic: eventData.ispublic,
     };
@@ -124,7 +124,7 @@ const AddEvent = () => {
         setSnackbarSeverity("success");
         setSnackbarOpen(true);
         setEventData({
-          club_id: "club_gavel",
+          club_id: "",
           event_name: "",
           event_date: "",
           event_time: "",

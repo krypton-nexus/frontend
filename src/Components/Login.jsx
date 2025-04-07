@@ -7,6 +7,8 @@ import useAuthCheck from "./UseAuthCheck";
 import "../CSS/Login.css";
 import logo1 from "../Images/logo1.png";
 
+const BASE_URL = process.env.REACT_APP_BASE_URL;
+
 const Login = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -15,34 +17,27 @@ const Login = () => {
 
   useAuthCheck(navigate);
 
-  // Function to check if the token is valid (exists and not expired)
   const isTokenValid = () => {
     const token = localStorage.getItem("access_token");
     const tokenExpiry = localStorage.getItem("token_expiry");
+    if (!token || !tokenExpiry) return false;
 
-    if (!token || !tokenExpiry) {
-      return false; // Token or expiry time is missing
-    }
-
-    // Check if token is expired
-    const currentTime = new Date().getTime();
+    const currentTime = Date.now();
     if (currentTime >= tokenExpiry) {
       localStorage.removeItem("access_token");
       localStorage.removeItem("token_expiry");
-      return false; // Token is expired
+      return false;
     }
-
-    return true; // Token is valid
+    return true;
   };
 
-  // Handle Login
   const handleLogin = async (e) => {
     e.preventDefault();
-    setError(""); // Reset error message
+    setError("");
 
     try {
       const { data } = await axios.post(
-        "http://43.205.202.255:5000/auth/login",
+        `${BASE_URL}/auth/login`,
         { email, password },
         { headers: { "Content-Type": "application/json" } }
       );
@@ -50,30 +45,25 @@ const Login = () => {
       if (data.token) {
         const { exp } = jwtDecode(data.token);
         const expiryTime = exp * 1000;
-
-        // Save token and expiry time in localStorage
         localStorage.setItem("access_token", data.token);
         localStorage.setItem("token_expiry", expiryTime);
-
-        console.log(data.token);
-        console.log(expiryTime);
-
         enqueueSnackbar("Login Successful", { variant: "success" });
         navigate("/viewclubs");
       } else {
-        setError(data.message || "Login failed!");
+        const message = data.message || "Login failed!";
+        setError(message);
+        enqueueSnackbar(message, { variant: "error" });
       }
     } catch (err) {
       const errorMessage =
         err.response?.data?.error ||
         "An unexpected error occurred. Please try again later.";
-      enqueueSnackbar(errorMessage, { variant: "error" });
       setError(errorMessage);
+      enqueueSnackbar(errorMessage, { variant: "error" });
     }
   };
 
   useEffect(() => {
-    // Check if the token is valid when the component loads
     if (isTokenValid()) {
       enqueueSnackbar("Already logged in.", { variant: "info" });
       navigate("/viewclubs");

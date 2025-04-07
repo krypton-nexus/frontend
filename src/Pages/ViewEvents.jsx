@@ -1,37 +1,41 @@
 import React, { useEffect, useState } from "react";
-import {jwtDecode} from "jwt-decode";
+import { jwtDecode } from "jwt-decode";
 import "../CSS/ViewEvents.css";
 import Sidebar from "../Components/SideBar";
 import bannerImage from "../Images/bannerevent.png";
 import { FaUserCircle, FaSearch } from "react-icons/fa";
 import Snackbar from "@mui/material/Snackbar";
 import Alert from "@mui/material/Alert";
+import UserProfile from "../Components/UserProfile";
+
+const BASE_URL = process.env.REACT_APP_BASE_URL;
 
 const ViewEvents = () => {
   const [events, setEvents] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
   const [studentEmail, setStudentEmail] = useState("");
   const [token, setToken] = useState(null);
   const [participantCounts, setParticipantCounts] = useState({});
   const [trendingImages, setTrendingImages] = useState([]);
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const [activeTab, setActiveTab] = useState("today");
-  const [userVotes, setUserVotes] = useState({});
   const [clubs, setClubs] = useState([]);
-
-  // Snackbar state
+  const [profileOpen, setProfileOpen] = useState(false);
+  const [user, setUser] = useState(null);
   const [snackbarOpen, setSnackbarOpen] = useState(false);
   const [snackbarMessage, setSnackbarMessage] = useState("");
-  const [snackbarSeverity, setSnackbarSeverity] = useState("success");
+  const [snackbarSeverity, setSnackbarSeverity] = useState("info");
 
-  // Snackbar close handler.
-  const handleSnackbarClose = (event, reason) => {
-    if (reason === "clickaway") return;
-    setSnackbarOpen(false);
+  const showSnackbar = (msg, severity = "info") => {
+    setSnackbarMessage(msg);
+    setSnackbarSeverity(severity);
+    setSnackbarOpen(true);
   };
 
-  // Decode token and set student email.
+  const handleSnackbarClose = (_, reason) => {
+    if (reason !== "clickaway") setSnackbarOpen(false);
+  };
+
   useEffect(() => {
     const token = localStorage.getItem("access_token");
     if (token) {
@@ -39,276 +43,197 @@ const ViewEvents = () => {
         const decoded = jwtDecode(token);
         setStudentEmail(decoded.email);
         setToken(token);
-        console.debug("Token decoded successfully", decoded);
-      } catch (err) {
-        console.error("Invalid token", err);
-        setError("Failed to decode token. Please log in again.");
-        setSnackbarMessage("Failed to decode token. Please log in again.");
-        setSnackbarSeverity("error");
-        setSnackbarOpen(true);
+      } catch {
+        showSnackbar("Invalid token. Please log in again.", "error");
       }
     } else {
-      console.error("No token found");
-      setError("User is not authenticated. Please log in.");
-      setSnackbarMessage("User is not authenticated. Please log in.");
-      setSnackbarSeverity("error");
-      setSnackbarOpen(true);
+      showSnackbar("Please log in to continue.", "error");
     }
   }, []);
 
-  // Fetch clubs the user follows.
   useEffect(() => {
     if (!token) return;
     const fetchClubs = async () => {
       try {
-        console.debug("Fetching clubs for the user...");
-        const response = await fetch(
-          `http://43.205.202.255:5000/student/clubs/${studentEmail}`,
-          {
-            method: "GET",
-            headers: {
-              "Content-Type": "application/json",
-              Authorization: `Bearer ${token}`,
-            },
-          }
-        );
-        if (!response.ok) {
-          throw new Error(`Failed to fetch clubs: ${response.status}`);
-        }
-        const data = await response.json();
-        console.debug("Clubs fetched successfully", data);
+        const res = await fetch(`${BASE_URL}/student/clubs/${studentEmail}`, {
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+        });
+        const data = await res.json();
         setClubs(data.clubs || []);
-      } catch (error) {
-        console.error("Error fetching clubs:", error);
-        setError("Failed to load clubs.");
-        setSnackbarMessage("Failed to load clubs.");
-        setSnackbarSeverity("error");
-        setSnackbarOpen(true);
+      } catch {
+        showSnackbar("Failed to load clubs.", "error");
       }
     };
     fetchClubs();
   }, [token, studentEmail]);
 
-  // Fetch events from all clubs the user is part of.
   useEffect(() => {
     if (!token || clubs.length === 0) return;
     const fetchAllEvents = async () => {
       try {
-        console.debug("Fetching events from all clubs...");
         const allEvents = [];
+        const allImages = [];
+
         for (let club of clubs) {
-          const response = await fetch(
-            `http://43.205.202.255:5000/event/get_events?club_id=${club}`,
+          const res = await fetch(
+            `${BASE_URL}/event/get_events?club_id=${club}`,
             {
-              method: "GET",
               headers: {
-                "Content-Type": "application/json",
                 Authorization: `Bearer ${token}`,
+                "Content-Type": "application/json",
               },
             }
           );
-          if (!response.ok)
-            throw new Error(`Failed to fetch events for ${club}`);
-          const data = await response.json();
-          console.debug(`Events for club ${club}:`, data);
-          if (data.events && Array.isArray(data.events)) {
+          const data = await res.json();
+          if (Array.isArray(data.events)) {
             allEvents.push(...data.events);
-            // Extract images for trending section.
             const images = data.events
               .map((event) => getImageUrl(event.images))
               .filter((img) => img !== "");
-            setTrendingImages((prev) => [...prev, ...images]);
-
-            // For each event, fetch its participant count.
-            data.events.forEach((event) => {
-              fetchParticipantCount(event.club_id, event.id);
-            });
+            allImages.push(...images);
+            data.events.forEach((event) =>
+              fetchParticipantCount(event.club_id, event.id)
+            );
           }
         }
+
         setEvents(allEvents);
-        console.debug("All events fetched successfully", allEvents);
-      } catch (error) {
-        console.error("Error fetching all events:", error);
-        setError("Failed to load events.");
-        setSnackbarMessage("Failed to load events.");
-        setSnackbarSeverity("error");
-        setSnackbarOpen(true);
+        setTrendingImages(allImages);
+      } catch {
+        showSnackbar("Failed to load events.", "error");
       } finally {
         setLoading(false);
-        console.debug("Event loading complete.");
       }
     };
+
     fetchAllEvents();
   }, [token, clubs]);
 
-  // Cycle trending images every 4 seconds.
   useEffect(() => {
     if (trendingImages.length > 1) {
       const interval = setInterval(() => {
-        setCurrentImageIndex((prevIndex) =>
-          prevIndex === trendingImages.length - 1 ? 0 : prevIndex + 1
+        setCurrentImageIndex((i) =>
+          i === trendingImages.length - 1 ? 0 : i + 1
         );
       }, 4000);
       return () => clearInterval(interval);
     }
   }, [trendingImages]);
 
-  // Fetch the participant count for an event.
-  const fetchParticipantCount = async (clubIdParam, eventId) => {
-    if (!token) return;
+  const fetchParticipantCount = async (clubId, eventId) => {
     try {
-      console.debug(`Fetching participant count for event ${eventId}`);
-      const response = await fetch(
-        "http://43.205.202.255:5000/event/get_participant_count",
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${token}`,
-          },
-          body: JSON.stringify({
-            club_id: clubIdParam,
-            event_id: eventId,
-          }),
-        }
-      );
-      if (!response.ok)
-        throw new Error(
-          `Failed to fetch participant count: ${response.status}`
-        );
-      const data = await response.json();
+      const res = await fetch(`${BASE_URL}/event/get_participant_count`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({ club_id: clubId, event_id: eventId }),
+      });
+      const data = await res.json();
       setParticipantCounts((prev) => ({
         ...prev,
-        [eventId]: data.participant_count || 0,
+        [eventId]: data.participant_count,
       }));
-      console.debug(`Participant count for event ${eventId}:`, data);
-    } catch (error) {
-      console.error("Error fetching participant count:", error);
-      setSnackbarMessage("Error fetching participant count.");
-      setSnackbarSeverity("error");
-      setSnackbarOpen(true);
+    } catch {
+      showSnackbar("Failed to get participant count.", "error");
     }
   };
 
-  // Handle "Yes" vote.
   const handleYesVote = async (eventItem) => {
-    if (userVotes[eventItem.id] === "yes") {
-      setSnackbarMessage("You are already participating in this event.");
-      setSnackbarSeverity("warning");
-      setSnackbarOpen(true);
-      return;
+    const participants = JSON.parse(eventItem.participants || "[]");
+    if (participants.includes(studentEmail)) {
+      return showSnackbar("You're already participating.", "warning");
     }
+
     try {
-      console.debug(`Handling "Yes" vote for event ${eventItem.id}`);
-      const response = await fetch(
-        "http://43.205.202.255:5000/event/add_event_participant",
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${token}`,
-          },
-          body: JSON.stringify({
-            club_id: eventItem.club_id,
-            event_id: eventItem.id,
-            student_email: studentEmail,
-          }),
-        }
-      );
-      if (!response.ok)
-        throw new Error(`Failed to add participant: ${response.status}`);
-      const data = await response.json();
-      setParticipantCounts((prev) => ({
-        ...prev,
-        [eventItem.id]: data.participant_count,
-      }));
-      setUserVotes((prev) => ({ ...prev, [eventItem.id]: "yes" }));
-      setSnackbarMessage("You are now participating in the event.");
-      setSnackbarSeverity("success");
-      setSnackbarOpen(true);
-    } catch (error) {
-      console.error("Error adding participant:", error);
-      setSnackbarMessage(
-        "Error updating your participation. Please try again."
-      );
-      setSnackbarSeverity("error");
-      setSnackbarOpen(true);
+      const res = await fetch(`${BASE_URL}/event/add_participant`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({
+          club_id: eventItem.club_id,
+          event_id: eventItem.id,
+          student_email: studentEmail,
+        }),
+      });
+      await res.json();
+      // After a successful vote, update the count for this event
+      fetchParticipantCount(eventItem.club_id, eventItem.id);
+      updateEventParticipants(eventItem.id, [...participants, studentEmail]);
+      showSnackbar("Participation confirmed.", "success");
+    } catch {
+      showSnackbar("Failed to participate.", "error");
     }
   };
 
-  // Handle "No" vote.
   const handleNoVote = async (eventItem) => {
-    if (userVotes[eventItem.id] !== "yes") {
-      setSnackbarMessage("You are not currently participating in this event.");
-      setSnackbarSeverity("warning");
-      setSnackbarOpen(true);
-      return;
+    const participants = JSON.parse(eventItem.participants || "[]");
+    if (!participants.includes(studentEmail)) {
+      return showSnackbar("You're not a participant.", "warning");
     }
+
     try {
-      console.debug(`Handling "No" vote for event ${eventItem.id}`);
-      const response = await fetch(
-        "http://43.205.202.255:5000/event/delete_participant",
-        {
-          method: "DELETE",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${token}`,
-          },
-          body: JSON.stringify({
-            club_id: eventItem.club_id,
-            event_id: eventItem.id,
-            student_email: studentEmail,
-          }),
-        }
+      const res = await fetch(`${BASE_URL}/event/delete_participant`, {
+        method: "DELETE",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({
+          club_id: eventItem.club_id,
+          event_id: eventItem.id,
+          student_email: studentEmail,
+        }),
+      });
+      await res.json();
+      // After a successful removal, update the count for this event
+      fetchParticipantCount(eventItem.club_id, eventItem.id);
+      updateEventParticipants(
+        eventItem.id,
+        participants.filter((p) => p !== studentEmail)
       );
-      if (!response.ok)
-        throw new Error(`Failed to remove participant: ${response.status}`);
-      const data = await response.json();
-      setParticipantCounts((prev) => ({
-        ...prev,
-        [eventItem.id]: data.participant_count,
-      }));
-      setUserVotes((prev) => ({ ...prev, [eventItem.id]: "no" }));
-      setSnackbarMessage("Your participation has been removed.");
-      setSnackbarSeverity("info");
-      setSnackbarOpen(true);
-    } catch (error) {
-      console.error("Error deleting participant:", error);
-      setSnackbarMessage(
-        "Error updating your participation. Please try again."
-      );
-      setSnackbarSeverity("error");
-      setSnackbarOpen(true);
+      showSnackbar("You left the event.", "info");
+    } catch {
+      showSnackbar("Failed to remove participation.", "error");
     }
   };
 
-  // (Optional) Handle "Maybe" vote.
-  const handleMaybeVote = (eventItem) => {
-    setSnackbarMessage("Maybe functionality is not implemented yet.");
-    setSnackbarSeverity("info");
-    setSnackbarOpen(true);
+  const updateEventParticipants = (eventId, updatedList) => {
+    setEvents((prev) =>
+      prev.map((ev) =>
+        ev.id === eventId
+          ? { ...ev, participants: JSON.stringify(updatedList) }
+          : ev
+      )
+    );
   };
 
-  // Helper to extract image URL.
+  const handleMaybeVote = () => {
+    showSnackbar("Maybe functionality coming soon!", "info");
+  };
+
   const getImageUrl = (images) => {
-    if (!images) return "";
     try {
-      const parsedImages =
-        typeof images === "string" ? JSON.parse(images) : images;
-      return parsedImages.event_img1 || parsedImages[0] || "";
-    } catch (e) {
-      console.error("Error parsing image JSON", e);
+      const parsed = typeof images === "string" ? JSON.parse(images) : images;
+      return parsed.event_img1 || parsed[0] || "";
+    } catch {
       return "";
     }
   };
 
-  const todayDate = new Date().toDateString();
+  const today = new Date().toDateString();
   const filteredEvents = events.filter((event) => {
-    const eventDate = new Date(event.event_date);
+    const date = new Date(event.event_date);
     if (activeTab === "all") return true;
-    if (activeTab === "today") return eventDate.toDateString() === todayDate;
-    if (activeTab === "upcoming") return eventDate > new Date();
-    if (activeTab === "past") return eventDate < new Date();
+    if (activeTab === "today") return date.toDateString() === today;
+    if (activeTab === "upcoming") return date > new Date();
+    if (activeTab === "past") return date < new Date();
     return false;
   });
 
@@ -319,7 +244,6 @@ const ViewEvents = () => {
         <div className="membership-header">
           <div className="search-container">
             <input
-              type="text"
               placeholder="Discover Your Event..."
               className="membership-search"
             />
@@ -327,11 +251,23 @@ const ViewEvents = () => {
               <FaSearch />
             </button>
           </div>
-          <FaUserCircle className="membership-avatar" size={30} />
+          <FaUserCircle
+            className="membership-avatar"
+            size={30}
+            onClick={() => setProfileOpen(true)}
+            style={{ cursor: "pointer" }}
+          />
+          <UserProfile
+            open={profileOpen}
+            onClose={() => setProfileOpen(false)}
+            user={user}
+          />
         </div>
+
         <header className="banner">
           <img src={bannerImage} alt="Events Banner" className="banner-image" />
         </header>
+
         <div className="trending-my-events">
           <div className="trending-events">
             <h2>Trending Events</h2>
@@ -369,8 +305,7 @@ const ViewEvents = () => {
               {events
                 .filter((event) =>
                   activeTab === "today"
-                    ? new Date(event.event_date).toDateString() ===
-                      new Date().toDateString()
+                    ? new Date(event.event_date).toDateString() === today
                     : new Date(event.event_date) > new Date()
                 )
                 .map((event) => (
@@ -381,41 +316,25 @@ const ViewEvents = () => {
             </div>
           </div>
         </div>
+
         <div className="events-header">
           <h2>Popular Events</h2>
         </div>
+
         <div className="all-event-tabs">
-          <span
-            className={`event-tab ${activeTab === "all" ? "active-tab" : ""}`}
-            onClick={() => setActiveTab("all")}
-          >
-            All Events
-          </span>
-          <span
-            className={`event-tab ${activeTab === "today" ? "active-tab" : ""}`}
-            onClick={() => setActiveTab("today")}
-          >
-            Today Events
-          </span>
-          <span
-            className={`event-tab ${
-              activeTab === "upcoming" ? "active-tab" : ""
-            }`}
-            onClick={() => setActiveTab("upcoming")}
-          >
-            Upcoming Events
-          </span>
-          <span
-            className={`event-tab ${activeTab === "past" ? "active-tab" : ""}`}
-            onClick={() => setActiveTab("past")}
-          >
-            Past Events
-          </span>
+          {["all", "today", "upcoming", "past"].map((tab) => (
+            <span
+              key={tab}
+              className={`event-tab ${activeTab === tab ? "active-tab" : ""}`}
+              onClick={() => setActiveTab(tab)}
+            >
+              {tab.charAt(0).toUpperCase() + tab.slice(1)} Events
+            </span>
+          ))}
         </div>
+
         {loading ? (
           <div>Loading events...</div>
-        ) : error ? (
-          <div className="error-message">{error}</div>
         ) : filteredEvents.length > 0 ? (
           <div className="events-grid">
             {filteredEvents.map((event) => (
@@ -431,9 +350,7 @@ const ViewEvents = () => {
                   <p>{event.venue}</p>
                   <p className="event-participants">
                     <strong>Participants:</strong>{" "}
-                    {participantCounts[event.id] !== undefined
-                      ? participantCounts[event.id]
-                      : 0}
+                    {participantCounts[event.id] || 0}
                   </p>
                   <div className="event-buttons">
                     <button
@@ -448,10 +365,7 @@ const ViewEvents = () => {
                     >
                       No
                     </button>
-                    <button
-                      className="maybe-btn"
-                      onClick={() => handleMaybeVote(event)}
-                    >
+                    <button className="maybe-btn" onClick={handleMaybeVote}>
                       Maybe
                     </button>
                   </div>
@@ -465,6 +379,7 @@ const ViewEvents = () => {
           </div>
         )}
       </main>
+
       <Snackbar
         open={snackbarOpen}
         autoHideDuration={4000}
@@ -472,9 +387,9 @@ const ViewEvents = () => {
         anchorOrigin={{ vertical: "bottom", horizontal: "center" }}
       >
         <Alert
-          onClose={handleSnackbarClose}
           severity={snackbarSeverity}
           sx={{ width: "100%" }}
+          onClose={handleSnackbarClose}
         >
           {snackbarMessage}
         </Alert>

@@ -4,84 +4,74 @@ import { db } from "../firebase";
 import { jwtDecode } from "jwt-decode";
 import "../CSS/Messages.css";
 
+const BASE_URL = process.env.REACT_APP_BASE_URL;
+
 const Messages = ({ clubId }) => {
   const [messages, setMessages] = useState([]);
   const [userEmail, setUserEmail] = useState(null);
   const [userNames, setUserNames] = useState({});
   const [isLoading, setIsLoading] = useState(true);
-
-  // Reference to the bottom of the messages container
   const messagesEndRef = useRef(null);
 
-  // Decode user email from JWT token
   useEffect(() => {
     const token = localStorage.getItem("access_token");
     if (token) {
       try {
-        const decodedToken = jwtDecode(token);
-        setUserEmail(decodedToken.email || null);
-      } catch (error) {
-        console.error("Error decoding token:", error);
+        const decoded = jwtDecode(token);
+        setUserEmail(decoded.email || null);
+      } catch (err) {
+        console.error("Token decode failed:", err);
       }
     }
   }, []);
 
-  // Fetch user names based on emails
   const fetchUserNames = useCallback(async (emails) => {
-    const namesMapping = {};
+    const result = {};
+    const token = localStorage.getItem("access_token");
+
+    if (!token) {
+      console.error("Missing token for user name fetch.");
+      return result;
+    }
+
     for (const email of emails) {
       if (!email) continue;
       try {
-        const token = localStorage.getItem("access_token");
-        if (!token) {
-          console.error("Authorization token is missing.");
-          return;
-        }
-        const response = await fetch(
-          `http://43.205.202.255:5000/student/${email}`,
-          {
-            method: "GET",
-            headers: {
-              "Content-Type": "application/json",
-              Authorization: `Bearer ${token}`,
-            },
-          }
-        );
+        const response = await fetch(`${BASE_URL}/student/${email}`, {
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+        });
+
         if (response.ok) {
           const data = await response.json();
-          namesMapping[email] = `${data.first_name || "Anonymous"} ${
+          result[email] = `${data.first_name || "Anonymous"} ${
             data.last_name || ""
           }`.trim();
         } else {
-          console.error(`Failed to fetch user details for ${email}`);
+          console.error(`Failed to get name for ${email}`);
         }
-      } catch (error) {
-        console.error(`Error fetching user details for ${email}`, error);
+      } catch (err) {
+        console.error(`Error getting name for ${email}:`, err);
       }
     }
-    return namesMapping;
+    return result;
   }, []);
 
-  // Helper function to determine the date label for a message
   const getDateLabel = (date) => {
     const today = new Date();
-    if (date.toDateString() === today.toDateString()) {
-      return "Today";
-    }
-    const yesterday = new Date();
+    const yesterday = new Date(today);
     yesterday.setDate(today.getDate() - 1);
-    if (date.toDateString() === yesterday.toDateString()) {
-      return "Yesterday";
-    }
-    // Determine the start and end of the current week (assuming week starts on Sunday)
-    const currentWeekStart = new Date(today);
-    currentWeekStart.setDate(today.getDate() - today.getDay());
-    const currentWeekEnd = new Date(currentWeekStart);
-    currentWeekEnd.setDate(currentWeekStart.getDate() + 6);
-    if (date >= currentWeekStart && date <= currentWeekEnd) {
+    const weekStart = new Date(today);
+    weekStart.setDate(today.getDate() - today.getDay());
+    const weekEnd = new Date(weekStart);
+    weekEnd.setDate(weekStart.getDate() + 6);
+
+    if (date.toDateString() === today.toDateString()) return "Today";
+    if (date.toDateString() === yesterday.toDateString()) return "Yesterday";
+    if (date >= weekStart && date <= weekEnd)
       return date.toLocaleDateString("en-US", { weekday: "long" });
-    }
-    // For messages older than the current week, show date in "March 16, 2025" format
     return date.toLocaleDateString("en-US", {
       month: "long",
       day: "numeric",
@@ -89,51 +79,53 @@ const Messages = ({ clubId }) => {
     });
   };
 
-  // Group messages by date label
-  const groupMessagesByDate = (messages) => {
-    const groups = {};
-    messages.forEach((msg) => {
+  const groupMessagesByDate = (msgs) => {
+    const grouped = {};
+    msgs.forEach((msg) => {
       if (msg.timestamp?.seconds) {
         const date = new Date(msg.timestamp.seconds * 1000);
         const label = getDateLabel(date);
-        if (!groups[label]) {
-          groups[label] = [];
-        }
-        groups[label].push(msg);
+        if (!grouped[label]) grouped[label] = [];
+        grouped[label].push(msg);
       }
     });
-    return groups;
+    return grouped;
   };
 
-  // Fetch messages from Firebase
   useEffect(() => {
+    if (!clubId) return;
+
     const q = query(
       collection(db, "messages", clubId, "messages"),
       orderBy("timestamp", "asc")
     );
+
     const unsubscribe = onSnapshot(q, async (snapshot) => {
-      const messagesData = snapshot.docs.map((doc) => ({
+      const messageData = snapshot.docs.map((doc) => ({
         id: doc.id,
         ...doc.data(),
       }));
-      setMessages(messagesData);
+
+      setMessages(messageData);
 
       const uniqueEmails = [
-        ...new Set(messagesData.map((msg) => msg.sendersEmail).filter(Boolean)),
+        ...new Set(messageData.map((m) => m.sendersEmail).filter(Boolean)),
       ];
-      const namesMapping = await fetchUserNames(uniqueEmails);
-      setUserNames((prev) => ({ ...prev, ...namesMapping }));
+      const nameMap = await fetchUserNames(uniqueEmails);
+      setUserNames((prev) => ({ ...prev, ...nameMap }));
+
       setIsLoading(false);
     });
+
     return () => unsubscribe();
   }, [clubId, fetchUserNames]);
 
-  // After messages load, scroll to the bottom so latest messages are visible
-  useEffect(() => {
-    if (!isLoading && messagesEndRef.current) {
-      messagesEndRef.current.scrollIntoView({ behavior: "smooth" });
-    }
-  }, [messages, isLoading]);
+useEffect(() => {
+  if (!isLoading && messagesEndRef.current) {
+    messagesEndRef.current.scrollIntoView({ behavior: "smooth", block: "end" });
+  }
+}, [messages, isLoading]);
+
 
   if (isLoading) {
     return (
@@ -146,23 +138,16 @@ const Messages = ({ clubId }) => {
   if (messages.length === 0) {
     return (
       <div className="messages-container">
-        <p>No messages are available.</p>
+        <p>No messages yet. Start the conversation!</p>
       </div>
     );
   }
 
-  // Group messages by date label
-  const groupedMessages = groupMessagesByDate(messages);
-  // Get the group labels in the order of first occurrence in messages array
-  const orderedLabels = [];
-  messages.forEach((msg) => {
-    if (msg.timestamp?.seconds) {
-      const date = new Date(msg.timestamp.seconds * 1000);
-      const label = getDateLabel(date);
-      if (!orderedLabels.includes(label)) {
-        orderedLabels.push(label);
-      }
-    }
+  const grouped = groupMessagesByDate(messages);
+  const orderedLabels = Object.keys(grouped).sort((a, b) => {
+    const firstA = grouped[a][0]?.timestamp?.seconds || 0;
+    const firstB = grouped[b][0]?.timestamp?.seconds || 0;
+    return firstA - firstB;
   });
 
   return (
@@ -172,29 +157,32 @@ const Messages = ({ clubId }) => {
           <div className="date-separator">
             <span className="date-label">{label}</span>
           </div>
-          {groupedMessages[label].map((msg) => {
-            const isSent = msg.sendersEmail === userEmail;
+          {grouped[label].map((msg) => {
+            const isSentByUser = msg.sendersEmail === userEmail;
+            const avatarUrl = `https://ui-avatars.com/api/?name=${encodeURIComponent(
+              userNames[msg.sendersEmail] || "User"
+            )}&background=random`;
+
             return (
               <div
                 key={msg.id}
                 className={`message ${
-                  isSent ? "message-right" : "message-left"
+                  isSentByUser ? "message-right" : "message-left"
                 }`}
               >
-                {!isSent && (
+                {!isSentByUser && (
                   <img
                     className="message-avatar"
-                    src={`https://ui-avatars.com/api/?name=${encodeURIComponent(
-                      userNames[msg.sendersEmail] || "User"
-                    )}&background=random`}
+                    src={avatarUrl}
                     alt="Avatar"
                   />
                 )}
                 <div
-                  className={`message-bubble ${isSent ? "sent" : "received"}`}
+                  className={`message-bubble ${
+                    isSentByUser ? "sent" : "received"
+                  }`}
                 >
-                  {/* For received messages, show the sender's full name */}
-                  {!isSent && (
+                  {!isSentByUser && (
                     <div className="message-sender-name">
                       {userNames[msg.sendersEmail] || "User"}
                     </div>
@@ -218,7 +206,6 @@ const Messages = ({ clubId }) => {
           })}
         </div>
       ))}
-      {/* This empty div is used as the reference point for scrolling */}
       <div ref={messagesEndRef} />
     </div>
   );

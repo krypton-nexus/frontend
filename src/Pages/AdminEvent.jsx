@@ -18,11 +18,11 @@ import {
 import { Ban } from "lucide-react";
 import bannerImage from "../Images/bannerevent.png";
 
-const baseURL = "http://43.205.202.255:5000";
+const BASE_URL = process.env.REACT_APP_BASE_URL;
 
 // ------------------ Helper API Functions ------------------
 const apiGet = async (endpoint, token) => {
-  const res = await fetch(`${baseURL}${endpoint}`, {
+  const res = await fetch(`${BASE_URL}${endpoint}`, {
     method: "GET",
     headers: {
       Authorization: `Bearer ${token}`,
@@ -37,7 +37,7 @@ const apiGet = async (endpoint, token) => {
 };
 
 const apiPut = async (endpoint, token, body) => {
-  const res = await fetch(`${baseURL}${endpoint}`, {
+  const res = await fetch(`${BASE_URL}${endpoint}`, {
     method: "PUT",
     headers: {
       Authorization: `Bearer ${token}`,
@@ -53,7 +53,7 @@ const apiPut = async (endpoint, token, body) => {
 };
 
 const apiPatch = async (endpoint, token, body) => {
-  const res = await fetch(`${baseURL}${endpoint}`, {
+  const res = await fetch(`${BASE_URL}${endpoint}`, {
     method: "PATCH",
     headers: {
       Authorization: `Bearer ${token}`,
@@ -69,7 +69,7 @@ const apiPatch = async (endpoint, token, body) => {
 };
 
 const apiDelete = async (endpoint, token, body) => {
-  const res = await fetch(`${baseURL}${endpoint}`, {
+  const res = await fetch(`${BASE_URL}${endpoint}`, {
     method: "DELETE",
     headers: {
       Authorization: `Bearer ${token}`,
@@ -449,7 +449,7 @@ const AdminEvent = () => {
     const fetchEvents = async () => {
       try {
         const response = await fetch(
-          `http://43.205.202.255:5000/event/get_events?club_id=${clubId}`,
+          `${BASE_URL}/event/get_events?club_id=${clubId}`,
           {
             method: "GET",
             headers: {
@@ -488,13 +488,10 @@ const AdminEvent = () => {
   const handleDelete = async (eventId) => {
     if (!window.confirm("Are you sure you want to delete this event?")) return;
     try {
-      const response = await fetch(
-        `http://43.205.202.255:5000/event/delete/${eventId}`,
-        {
-          method: "DELETE",
-          headers: { Authorization: `Bearer ${token}` },
-        }
-      );
+      const response = await fetch(`${BASE_URL}/event/delete/${eventId}`, {
+        method: "DELETE",
+        headers: { Authorization: `Bearer ${token}` },
+      });
       if (!response.ok)
         throw new Error(`Failed to delete event: ${response.status}`);
       setEvents((prev) => prev.filter((event) => event.id !== eventId));
@@ -509,17 +506,14 @@ const AdminEvent = () => {
   const fetchParticipantCount = async (clubId, eventId) => {
     if (!token) return;
     try {
-      const response = await fetch(
-        "http://43.205.202.255:5000/event/get_participant_count",
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${token}`,
-          },
-          body: JSON.stringify({ club_id: clubId, event_id: eventId }),
-        }
-      );
+      const response = await fetch(`${BASE_URL}/event/get_participant_count`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({ club_id: clubId, event_id: eventId }),
+      });
       if (!response.ok)
         throw new Error(
           `Failed to fetch participant count: ${response.status}`
@@ -568,17 +562,14 @@ const AdminEvent = () => {
   // Handle edit submit with toast notifications
   const handleEditSubmit = async () => {
     try {
-      const response = await fetch(
-        `http://43.205.202.255:5000/event/update/${editEvent.id}`,
-        {
-          method: "PUT",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${token}`,
-          },
-          body: JSON.stringify(editEvent),
-        }
-      );
+      const response = await fetch(`${BASE_URL}/event/update/${editEvent.id}`, {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify(editEvent),
+      });
       if (!response.ok)
         throw new Error(`Failed to update event: ${response.status}`);
       setEvents((prev) =>

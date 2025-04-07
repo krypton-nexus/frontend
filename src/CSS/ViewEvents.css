@@ -208,7 +208,8 @@ html {
 }
 
 .trending-events {
-  width: fit-content;
+  min-width: 60%;
+  width: 60%;
   background: #9f9a9b;
   padding: 20px;
   border-radius: 15px;
@@ -223,8 +224,8 @@ html {
 }
 
 .trending-image {
-height: 500px;  
-aspect-ratio: 16 / 9;
+  width: 100%;
+  aspect-ratio: 16 / 9;
   margin-top: 20px;
   border-radius: 10px;
   object-fit: cover;

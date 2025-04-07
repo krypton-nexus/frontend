@@ -30,6 +30,9 @@ import {
   Trash2,
 } from "lucide-react";
 
+
+const BASE_URL = process.env.REACT_APP_BASE_URL;
+
 const Finance = () => {
   // State management
   const [loading, setLoading] = useState(true);
@@ -88,15 +91,16 @@ const Finance = () => {
     setLoading(true);
     try {
       const response = await fetch(
-        `http://43.205.202.255:5000/finance/get_transactions?club_id=${clubId}`,
+        `${BASE_URL}/finance/get_transactions?club_id=${clubId}`,
         {
           method: "GET",
           headers: { "Content-Type": "application/json" },
         }
       );
-      if (!response.ok) throw new Error(`HTTP error! Status: ${response.status}`);
+      if (!response.ok)
+        throw new Error(`HTTP error! Status: ${response.status}`);
       const data = await response.json();
-      
+
       if (data.transactions) {
         const fetchedTransactions = data.transactions.map((t) => ({
           id: t.ID, // Using the actual database ID
@@ -110,16 +114,20 @@ const Finance = () => {
         console.log(fetchedTransactions);
         setTransactions(fetchedTransactions);
 
-        const incomeCategories = [...new Set(
-          fetchedTransactions
-            .filter((t) => t.type === "income")
-            .map((t) => t.category)
-        )];
-        const expenseCategories = [...new Set(
-          fetchedTransactions
-            .filter((t) => t.type === "expense")
-            .map((t) => t.category)
-        )];
+        const incomeCategories = [
+          ...new Set(
+            fetchedTransactions
+              .filter((t) => t.type === "income")
+              .map((t) => t.category)
+          ),
+        ];
+        const expenseCategories = [
+          ...new Set(
+            fetchedTransactions
+              .filter((t) => t.type === "expense")
+              .map((t) => t.category)
+          ),
+        ];
         setCategories({ income: incomeCategories, expense: expenseCategories });
       }
     } catch (error) {
@@ -153,7 +161,9 @@ const Finance = () => {
     indexOfFirstTransaction,
     indexOfLastTransaction
   );
-  const totalPages = Math.ceil(filteredTransactions.length / transactionsPerPage);
+  const totalPages = Math.ceil(
+    filteredTransactions.length / transactionsPerPage
+  );
 
   // Filter transactions based on selected time period
   const getFilteredTransactions = () => {
@@ -259,14 +269,14 @@ const Finance = () => {
     const payload = {
       transaction_type: newCategoryType,
       club_id: clubId,
-      category_name: newCategory
+      category_name: newCategory,
     };
 
     try {
-      const response = await fetch('http://43.205.202.255:5000/finance/insert_category', {
-        method: 'POST',
+      const response = await fetch(`${BASE_URL}/finance/insert_category`, {
+        method: "POST",
         headers: {
-          'Content-Type': 'application/json',
+          "Content-Type": "application/json",
         },
         body: JSON.stringify(payload),
       });
@@ -276,14 +286,14 @@ const Finance = () => {
         // Refresh categories and transactions
         await fetchTransactions();
         setNewCategory("");
-        alert('Category added successfully');
+        alert("Category added successfully");
       } else {
-        console.error('Error adding category:', result.error);
-        alert('Failed to add category: ' + result.error);
+        console.error("Error adding category:", result.error);
+        alert("Failed to add category: " + result.error);
       }
     } catch (error) {
-      console.error('Error making API request:', error);
-      alert('Failed to add category');
+      console.error("Error making API request:", error);
+      alert("Failed to add category");
     }
   };
 
@@ -310,25 +320,22 @@ const Finance = () => {
 
     try {
       const transactionData = {
-        "Date": newTransaction.date,
-        "Name": newTransaction.name,
-        "Description": newTransaction.description,
-        "Amount": parseFloat(newTransaction.amount),
+        Date: newTransaction.date,
+        Name: newTransaction.name,
+        Description: newTransaction.description,
+        Amount: parseFloat(newTransaction.amount),
         "Transaction Type": newTransaction.type,
         "Category Name": newTransaction.category,
-        "club_id": clubId,
+        club_id: clubId,
       };
 
-      const response = await fetch(
-        "http://43.205.202.255:5000/finance/insert_transaction",
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify(transactionData),
-        }
-      );
+      const response = await fetch(`${BASE_URL}/finance/insert_transaction`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(transactionData),
+      });
 
       if (!response.ok) {
         throw new Error(`HTTP error! Status: ${response.status}`);
@@ -366,21 +373,18 @@ const Finance = () => {
     console.log(transactionId);
 
     setDeletingId(transactionId);
-    
+
     try {
-      const response = await fetch(
-        `http://43.205.202.255:5000/finance/delete`,
-        {
-          method: "DELETE",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            transaction_id: transactionId, // Using the correct field name
-            club_id: clubId,
-          }),
-        }
-      );
+      const response = await fetch(`${BASE_URL}/finance/delete`, {
+        method: "DELETE",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          transaction_id: transactionId, // Using the correct field name
+          club_id: clubId,
+        }),
+      });
 
       if (!response.ok) {
         throw new Error(`HTTP error! Status: ${response.status}`);
@@ -404,7 +408,13 @@ const Finance = () => {
 
   const { income, expense, balance } = getSummaryData();
   const INCOME_COLORS = ["#4CAF50", "#8BC34A", "#CDDC39", "#FFC107", "#03A9F4"];
-  const EXPENSE_COLORS = ["#FF5722", "#F44336", "#E91E63", "#9C27B0", "#673AB7"];
+  const EXPENSE_COLORS = [
+    "#FF5722",
+    "#F44336",
+    "#E91E63",
+    "#9C27B0",
+    "#673AB7",
+  ];
 
   return (
     <div className="view-events-container">
@@ -566,7 +576,9 @@ const Finance = () => {
                 className="toggle-transactions-btn"
                 onClick={() => setShowAllTransactions(!showAllTransactions)}
               >
-                {showAllTransactions ? "Show Recent Only" : "Show All Transactions"}
+                {showAllTransactions
+                  ? "Show Recent Only"
+                  : "Show All Transactions"}
               </button>
             </div>
             <div className="transactions-table-container">
@@ -583,9 +595,13 @@ const Finance = () => {
                 <tbody>
                   {currentTransactions.map((transaction) => (
                     <tr key={transaction.id} className={transaction.type}>
-                      <td>{format(new Date(transaction.date), "MMM dd, yyyy")}</td>
                       <td>
-                        <div className="transaction-name">{transaction.name}</div>
+                        {format(new Date(transaction.date), "MMM dd, yyyy")}
+                      </td>
+                      <td>
+                        <div className="transaction-name">
+                          {transaction.name}
+                        </div>
                         <div className="transaction-description">
                           {transaction.description}
                         </div>
@@ -598,7 +614,9 @@ const Finance = () => {
                       <td>
                         <button
                           className="delete-btn"
-                          onClick={() => handleDeleteTransaction(transaction.id)}
+                          onClick={() =>
+                            handleDeleteTransaction(transaction.id)
+                          }
                           disabled={deletingId === transaction.id}
                         >
                           {deletingId === transaction.id ? (
@@ -617,12 +635,14 @@ const Finance = () => {
             {filteredTransactions.length > transactionsPerPage && (
               <div className="pagination-controls">
                 <button
-                  onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
+                  onClick={() =>
+                    setCurrentPage((prev) => Math.max(prev - 1, 1))
+                  }
                   disabled={currentPage === 1}
                 >
                   Previous
                 </button>
-                
+
                 {Array.from({ length: totalPages }, (_, i) => (
                   <button
                     key={i + 1}
@@ -632,9 +652,11 @@ const Finance = () => {
                     {i + 1}
                   </button>
                 ))}
-                
+
                 <button
-                  onClick={() => setCurrentPage((prev) => Math.min(prev + 1, totalPages))}
+                  onClick={() =>
+                    setCurrentPage((prev) => Math.min(prev + 1, totalPages))
+                  }
                   disabled={currentPage === totalPages}
                 >
                   Next

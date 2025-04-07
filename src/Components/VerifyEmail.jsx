@@ -1,30 +1,48 @@
 import React, { useEffect, useState } from "react";
-import { useParams } from "react-router-dom";
+import { useParams, useNavigate } from "react-router-dom";
 import axios from "axios";
+import { enqueueSnackbar } from "notistack";
+
+const BASE_URL = process.env.REACT_APP_BASE_URL;
 
 const Verify = () => {
   const { token } = useParams();
+  const navigate = useNavigate();
   const [message, setMessage] = useState("Verifying your email...");
+  const [status, setStatus] = useState("loading");
 
   useEffect(() => {
     const verifyEmail = async () => {
       try {
-        const response = await axios.get(
-          `http://43.205.202.255:5000/auth/verify/${token}`
-        );
-        setMessage(response.data.message);
+        const response = await axios.get(`${BASE_URL}/auth/verify/${token}`);
+        setMessage(response.data.message || "Verification successful.");
+        setStatus("success");
+        enqueueSnackbar("Email verified successfully!", { variant: "success" });
+
         setTimeout(() => {
-          window.location.reload(); // Automatically refresh the page
-        }, 2000); // Adjust delay as needed
+          navigate("/login", { replace: true });
+        }, 2500);
       } catch (error) {
-        setMessage("Verification failed or link expired.");
+        console.error("Verification error:", error);
+        setMessage("Verification failed or link has expired.");
+        setStatus("error");
+        enqueueSnackbar("Verification failed. Please request a new link.", {
+          variant: "error",
+        });
       }
     };
 
     verifyEmail();
-  }, [token]);
+  }, [token, navigate]);
 
-  return <div>{message}</div>;
+  return (
+    <div style={{ textAlign: "center", marginTop: "100px" }}>
+      <h2>
+        {status === "loading" ? "wait" : status === "success" ? "verified" : "verfication failed"}
+      </h2>
+      <p>{message}</p>
+    </div>
+  );
 };
 
 export default Verify;

@@ -9,11 +9,10 @@ import "../CSS/SideBar.css";
 import { FaSearch, FaUserCircle } from "react-icons/fa";
 import { Ban } from "lucide-react";
 
-const baseURL = "http://43.205.202.255:5000";
+const BASE_URL = process.env.REACT_APP_BASE_URL;
 
-// ------------------ Helper API Functions ------------------
 const apiGet = async (endpoint, token) => {
-  const res = await fetch(`${baseURL}${endpoint}`, {
+  const res = await fetch(`${BASE_URL}${endpoint}`, {
     method: "GET",
     headers: {
       Authorization: `Bearer ${token}`,
@@ -27,7 +26,7 @@ const apiGet = async (endpoint, token) => {
 };
 
 const apiPut = async (endpoint, token, body) => {
-  const res = await fetch(`${baseURL}${endpoint}`, {
+  const res = await fetch(`${BASE_URL}${endpoint}`, {
     method: "PUT",
     headers: {
       Authorization: `Bearer ${token}`,
@@ -42,7 +41,7 @@ const apiPut = async (endpoint, token, body) => {
 };
 
 const apiPatch = async (endpoint, token, body) => {
-  const res = await fetch(`${baseURL}${endpoint}`, {
+  const res = await fetch(`${BASE_URL}${endpoint}`, {
     method: "PATCH",
     headers: {
       Authorization: `Bearer ${token}`,
@@ -57,7 +56,7 @@ const apiPatch = async (endpoint, token, body) => {
 };
 
 const apiDelete = async (endpoint, token, body) => {
-  const res = await fetch(`${baseURL}${endpoint}`, {
+  const res = await fetch(`${BASE_URL}${endpoint}`, {
     method: "DELETE",
     headers: {
       Authorization: `Bearer ${token}`,

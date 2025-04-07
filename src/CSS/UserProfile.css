@@ -48,7 +48,9 @@ body {
 }
 
 .user-avatar {
-  margin-right: 20px;
+  margin-top: -20px;
+  margin-bottom: 20px;
+  align-items: center;
 }
 
 .user-info h2 {
@@ -83,3 +85,9 @@ body {
   background-color: #e63946;
   color: white;
 }
+
+h3 {
+  font-size: 20px;
+  margin-bottom: 10px;
+  color:red;
+text-align: center;}

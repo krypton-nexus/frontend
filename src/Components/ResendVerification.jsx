@@ -2,6 +2,8 @@ import React, { useState } from "react";
 import axios from "axios";
 import "../CSS/ResendVerification.css";
 
+const BASE_URL = process.env.REACT_APP_BASE_URL;
+
 const ResendVerification = () => {
   const [email, setEmail] = useState("");
   const [loading, setLoading] = useState(false);
@@ -15,17 +17,13 @@ const ResendVerification = () => {
     setError("");
 
     try {
-      const response = await axios.post(
-        "http://43.205.202.255:5000/student/resend-verification",
+      const { status } = await axios.post(
+        `${BASE_URL}/student/resend-verification`,
         { email },
-        {
-          headers: {
-            "Content-Type": "application/json",
-          },
-        }
+        { headers: { "Content-Type": "application/json" } }
       );
 
-      if (response.status === 200) {
+      if (status === 200) {
         setMessage(
           "Verification email has been resent. Please check your inbox."
         );

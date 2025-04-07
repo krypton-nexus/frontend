@@ -1,24 +1,21 @@
 import React, { useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import axios from "axios";
+import { enqueueSnackbar } from "notistack";
 import "../CSS/Signup.css";
 import logo1 from "../Images/logo1.png";
-import { useNavigate } from "react-router-dom";
-import { enqueueSnackbar } from "notistack";
+
+const BASE_URL = process.env.REACT_APP_BASE_URL;
 
 const Signup = () => {
-  const [email, setEmail] = useState("");
-  const [error, setError] = useState("");
-  const [password, setPassword] = useState("");
-  const [confirmPassword, setConfirmPassword] = useState("");
-  const [emailError, setEmailError] = useState("");
-  const [passwordError, setPasswordError] = useState("");
-  const [confirmPasswordError, setConfirmPasswordError] = useState("");
-  const [loading, setLoading] = useState(false);
+  const navigate = useNavigate();
   const [formData, setFormData] = useState({
     firstName: "",
     lastName: "",
+    email: "",
     phoneNumber: "",
+    password: "",
+    confirmPassword: "",
     faculty: "",
     department: "",
     year: "",
@@ -26,127 +23,101 @@ const Signup = () => {
     studentNumber: "",
     dateOfBirth: "",
   });
-  const navigate = useNavigate();
 
-  // Validation Functions
-  const validateEmail = (value) => {
+  const [formErrors, setFormErrors] = useState({});
+  const [loading, setLoading] = useState(false);
+  const [serverError, setServerError] = useState("");
+
+  const validateFields = () => {
+    const errors = {};
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!value) {
-      setEmailError("Email is required.");
-    } else if (!emailRegex.test(value)) {
-      setEmailError("Please enter a valid email address.");
-    } else {
-      setEmailError("");
-    }
-  };
-
-  const validatePassword = (value) => {
     const passwordRegex =
       /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/;
-    if (!value) {
-      setPasswordError("Password is required.");
-    } else if (!passwordRegex.test(value)) {
-      setPasswordError(
-        "Password must include at least 8 characters with uppercase, lowercase, number, and special character."
-      );
-    } else {
-      setPasswordError("");
-    }
-  };
 
-  const validateConfirmPassword = (value) => {
-    if (!value) {
-      setConfirmPasswordError("Confirm Password is required.");
-    } else if (value !== password) {
-      setConfirmPasswordError("Passwords do not match.");
-    } else {
-      setConfirmPasswordError("");
-    }
+    if (!formData.firstName) errors.firstName = "First name is required.";
+    if (!formData.lastName) errors.lastName = "Last name is required.";
+    if (!formData.email || !emailRegex.test(formData.email))
+      errors.email = "Enter a valid email address.";
+    if (!formData.phoneNumber) errors.phoneNumber = "Phone number is required.";
+    if (!formData.password || !passwordRegex.test(formData.password))
+      errors.password =
+        "Password must be 8+ chars and include uppercase, lowercase, number & special character.";
+    if (formData.confirmPassword !== formData.password)
+      errors.confirmPassword = "Passwords do not match.";
+    if (!formData.faculty) errors.faculty = "Faculty is required.";
+    if (!formData.department) errors.department = "Department is required.";
+    if (!formData.year) errors.year = "Year is required.";
+    if (!formData.courseName) errors.courseName = "Course name is required.";
+    if (!formData.studentNumber)
+      errors.studentNumber = "Student number is required.";
+    if (!formData.dateOfBirth)
+      errors.dateOfBirth = "Date of birth is required.";
+
+    setFormErrors(errors);
+    return Object.keys(errors).length === 0;
   };
 
   const handleChange = (e) => {
     const { name, value } = e.target;
-    setFormData((prevData) => ({
-      ...prevData,
-      [name]: value,
-    }));
-
-    // Validate fields dynamically
-    if (name === "email") validateEmail(value);
-    if (name === "password") validatePassword(value);
-    if (name === "confirmPassword") validateConfirmPassword(value);
+    setFormData((prev) => ({ ...prev, [name]: value }));
+    setFormErrors((prev) => ({ ...prev, [name]: "" }));
+    setServerError("");
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    if (!validateFields()) return;
 
-    // Validate before submission
-    validateEmail(email);
-    validatePassword(password);
-    validateConfirmPassword(confirmPassword);
+    setLoading(true);
+    try {
+      const response = await axios.post(
+        `${BASE_URL}/student/register`,
+        {
+          first_name: formData.firstName,
+          last_name: formData.lastName,
+          email: formData.email,
+          phone_number: formData.phoneNumber,
+          faculty: formData.faculty,
+          department: formData.department,
+          year: formData.year,
+          course_name: formData.courseName,
+          student_number: formData.studentNumber,
+          dob: formData.dateOfBirth,
+          password: formData.password,
+        },
+        { headers: { "Content-Type": "application/json" } }
+      );
 
-    // Check for any validation errors
-    if (!emailError && !passwordError && !confirmPasswordError) {
-      setLoading(true);
-      try {
-        // Submit registration data
-        const response = await axios.post(
-          "http://43.205.202.255:5000/student/register",
-          {
-            first_name: formData.firstName,
-            last_name: formData.lastName,
-            email: email,
-            phone_number: formData.phoneNumber,
-            faculty: formData.faculty,
-            department: formData.department,
-            year: formData.year,
-            course_name: formData.courseName,
-            student_number: formData.studentNumber,
-            dob: formData.dateOfBirth,
-            password: password,
-          },
-          {
-            headers: {
-              "Content-Type": "application/json",
-            },
-          }
-        );
-
-        if (response.status === 201) {
-          enqueueSnackbar(
-            "Registration successful! Please verify your email.",
-            {
-              variant: "success",
-            }
-          );
-          navigate("/verify/:token");
-          setFormData({
-            firstName: "",
-            lastName: "",
-            phoneNumber: "",
-            faculty: "",
-            department: "",
-            year: "",
-            courseName: "",
-            studentNumber: "",
-            dateOfBirth: "",
-          });
-          setEmail("");
-          setPassword("");
-          setConfirmPassword("");
-        }
-      } catch (error) {
-        if (error.response) {
-          console.error("Response data:", error.response.data); // Log response data for more insights
-          setError(error.response.data.error);
-        } else
-          enqueueSnackbar(
-            "An error occurred during registration. Please check your input.",
-            { variant: "error" }
-          );
-      } finally {
-        setLoading(false);
+      if (response.status === 201) {
+        enqueueSnackbar("Registration successful! Please verify your email.", {
+          variant: "success",
+        });
+        navigate("/verify/:token");
+        setFormData({
+          firstName: "",
+          lastName: "",
+          email: "",
+          phoneNumber: "",
+          password: "",
+          confirmPassword: "",
+          faculty: "",
+          department: "",
+          year: "",
+          courseName: "",
+          studentNumber: "",
+          dateOfBirth: "",
+        });
       }
+    } catch (err) {
+      if (err.response?.data?.error) {
+        setServerError(err.response.data.error);
+      } else {
+        enqueueSnackbar("Something went wrong. Please try again later.", {
+          variant: "error",
+        });
+      }
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -155,178 +126,144 @@ const Signup = () => {
       <Link to="/home">
         <img src={logo1} alt="Logo" className="logo" />
       </Link>
+
       <div className="signup-box">
         <h2>
           WELCOME <span className="highlight">NEXUS</span>
         </h2>
         <p>Welcome to Nexus Dashboard Community</p>
+
         <form className="signup-form" onSubmit={handleSubmit}>
           <div className="form-row">
             <input
-              type="text"
               name="firstName"
               placeholder="First Name"
               className="input-field"
               value={formData.firstName}
               onChange={handleChange}
-              required
             />
             <input
-              type="text"
               name="lastName"
               placeholder="Last Name"
               className="input-field"
               value={formData.lastName}
               onChange={handleChange}
-              required
             />
-          </div>
-          <div className="form-row">
-            <div className="input-wrapper">
-              <input
-                type="email"
-                name="email"
-                placeholder="Email Address"
-                className={`input-field ${emailError ? "error-border" : ""}`}
-                value={email}
-                onChange={(e) => {
-                  setEmail(e.target.value);
-                  validateEmail(e.target.value);
-                }}
-                required
-              />
-              {emailError && (
-                <div className="error-box">
-                  <span className="error-icon">!</span>
-                  {emailError}
-                </div>
-              )}
-            </div>
-            <div className="input-wrapper">
-              <input
-                type="text"
-                name="phoneNumber"
-                placeholder="Phone Number"
-                className="input-field"
-                value={formData.phoneNumber}
-                onChange={handleChange}
-                required
-              />
-            </div>
           </div>
 
           <div className="form-row">
-            <div className="input-wrapper">
-              <input
-                type="password"
-                name="password"
-                placeholder="Password"
-                className={`input-field ${passwordError ? "error-border" : ""}`}
-                value={password}
-                onChange={(e) => {
-                  setPassword(e.target.value);
-                  validatePassword(e.target.value);
-                }}
-                required
-              />
-              {passwordError && (
-                <div className="error-box">
-                  <span className="error-icon">!</span>
-                  {passwordError}
-                </div>
-              )}
-            </div>
-            <div className="input-wrapper">
-              <input
-                type="password"
-                name="confirmPassword"
-                placeholder="Confirm Password"
-                className={`input-field ${
-                  confirmPasswordError ? "error-border" : ""
-                }`}
-                value={confirmPassword}
-                onChange={(e) => {
-                  setConfirmPassword(e.target.value);
-                  validateConfirmPassword(e.target.value);
-                }}
-                required
-              />
-              {confirmPasswordError && (
-                <div className="error-box">
-                  <span className="error-icon">!</span>
-                  {confirmPasswordError}
-                </div>
-              )}
-            </div>
+            <input
+              name="email"
+              placeholder="Email Address"
+              className={`input-field ${
+                formErrors.email ? "error-border" : ""
+              }`}
+              value={formData.email}
+              onChange={handleChange}
+            />
+            <input
+              name="phoneNumber"
+              placeholder="Phone Number"
+              className="input-field"
+              value={formData.phoneNumber}
+              onChange={handleChange}
+            />
           </div>
+
           <div className="form-row">
             <input
-              type="text"
+              name="password"
+              type="password"
+              placeholder="Password"
+              className={`input-field ${
+                formErrors.password ? "error-border" : ""
+              }`}
+              value={formData.password}
+              onChange={handleChange}
+            />
+            <input
+              name="confirmPassword"
+              type="password"
+              placeholder="Confirm Password"
+              className={`input-field ${
+                formErrors.confirmPassword ? "error-border" : ""
+              }`}
+              value={formData.confirmPassword}
+              onChange={handleChange}
+            />
+          </div>
+
+          <div className="form-row">
+            <input
               name="faculty"
               placeholder="Faculty"
               className="input-field"
               value={formData.faculty}
               onChange={handleChange}
-              required
             />
             <input
-              type="text"
               name="department"
               placeholder="Department"
               className="input-field"
               value={formData.department}
               onChange={handleChange}
-              required
             />
           </div>
+
           <div className="form-row">
             <input
-              type="text"
               name="year"
               placeholder="Year"
               className="input-field"
               value={formData.year}
               onChange={handleChange}
-              required
             />
             <input
-              type="text"
               name="courseName"
               placeholder="Course Name"
               className="input-field"
               value={formData.courseName}
               onChange={handleChange}
-              required
             />
           </div>
+
           <div className="form-row">
             <input
-              type="text"
               name="studentNumber"
               placeholder="Student Number"
               className="input-field"
               value={formData.studentNumber}
               onChange={handleChange}
-              required
             />
             <input
-              type="date"
               name="dateOfBirth"
+              type="date"
               className="input-field"
               value={formData.dateOfBirth}
               onChange={handleChange}
-              required
             />
           </div>
+
           <div className="remember-me">
             <input type="checkbox" id="remember" />
             <label htmlFor="remember">Remember Me</label>
           </div>
+
           <button type="submit" className="register-btn" disabled={loading}>
             {loading ? "Registering..." : "Register"}
           </button>
+
+          {Object.values(formErrors).map(
+            (msg, idx) =>
+              msg && (
+                <p key={idx} className="error-message">
+                  {msg}
+                </p>
+              )
+          )}
+          {serverError && <p className="error-message">{serverError}</p>}
         </form>
-        {error && <p className="error-message">{error}</p>}
+
         <p className="register">
           Already have an account? <Link to="/login">Login</Link>
         </p>
