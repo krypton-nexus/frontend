@@ -485,15 +485,24 @@ const AdminEvent = () => {
   }, [token, clubId]);
 
   // Delete event handler with toast messages
-  const handleDelete = async (eventId) => {
+  const handleDelete = async (eventId, clubId) => {
     if (!window.confirm("Are you sure you want to delete this event?")) return;
     try {
-      const response = await fetch(`${BASE_URL}/event/delete/${eventId}`, {
+      const response = await fetch(`${BASE_URL}/event/delete`, {
         method: "DELETE",
-        headers: { Authorization: `Bearer ${token}` },
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({
+          event_id: eventId,
+          club_id: clubId,
+        }),
       });
+
       if (!response.ok)
         throw new Error(`Failed to delete event: ${response.status}`);
+
       setEvents((prev) => prev.filter((event) => event.id !== eventId));
       toast.success("Event deleted successfully!");
     } catch (error) {
@@ -561,17 +570,32 @@ const AdminEvent = () => {
 
   // Handle edit submit with toast notifications
   const handleEditSubmit = async () => {
+    const payload = {
+      event_id: editEvent.id, // backend expects 'event_id'
+      event_name: editEvent.event_name,
+      event_date: editEvent.event_date,
+      event_time: editEvent.event_time,
+      venue: editEvent.venue,
+      mode: editEvent.mode,
+      event_description: editEvent.event_description,
+      category: editEvent.category,
+    };
+
+    console.log(JSON.stringify(payload));
+
     try {
-      const response = await fetch(`${BASE_URL}/event/update/${editEvent.id}`, {
-        method: "PUT",
+      const response = await fetch(`${BASE_URL}/event/update`, {
+        method: "POST", // changed from POST to PUT
         headers: {
           "Content-Type": "application/json",
           Authorization: `Bearer ${token}`,
         },
-        body: JSON.stringify(editEvent),
+        body: JSON.stringify(payload),
       });
+
       if (!response.ok)
         throw new Error(`Failed to update event: ${response.status}`);
+
       setEvents((prev) =>
         prev.map((ev) => (ev.id === editEvent.id ? editEvent : ev))
       );
@@ -736,7 +760,9 @@ const AdminEvent = () => {
                       <button onClick={() => handleEditClick(event)}>
                         <FaPen /> Edit
                       </button>
-                      <button onClick={() => handleDelete(event.id)}>
+                      <button
+                        onClick={() => handleDelete(event.id, event.club_id)}
+                      >
                         <FaTrash /> Delete
                       </button>
                     </div>
