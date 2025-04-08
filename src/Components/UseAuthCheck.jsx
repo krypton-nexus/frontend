@@ -37,7 +37,7 @@ const useAuthCheck = () => {
     const specialAdminPaths = [
       "/admindashboard",
       "/finance",
-      "/addtask",
+      "/task",
       "/feed",
       "/addmerchandise",
       "/adminevent",

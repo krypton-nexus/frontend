@@ -123,7 +123,7 @@ const ShowClubs = () => {
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
             />
-            <button className="search-icon" type="button">
+            <button className="searchIcon" type="button">
               <FaSearch />
             </button>
           </div>

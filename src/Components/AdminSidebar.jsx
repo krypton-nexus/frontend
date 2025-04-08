@@ -223,7 +223,7 @@ const AdminSidebar = () => {
   const menuItems = [
     { path: "/admindashboard", label: "Membership", icon: <FaUsers /> },
     { path: "/adminevent", label: "Events", icon: <FaCalendarAlt /> },
-    { path: "/addtask", label: "Tasks", icon: <FaTasks /> },
+    { path: "/task", label: "Tasks", icon: <FaTasks /> },
     { path: "/feed", label: "Feed", icon: <FaRss /> },
     { path: "/finance", label: "Finance", icon: <FaWallet /> },
     { path: "/addmerchandise", label: "Merchandise", icon: <FaListAlt /> },

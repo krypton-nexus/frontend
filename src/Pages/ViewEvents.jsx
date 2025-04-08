@@ -173,6 +173,8 @@ const ViewEvents = () => {
   };
 
   const handleNoVote = async (eventItem) => {
+    if (!window.confirm("Are you sure, you want to left from this event?"))
+          return;
     const participants = JSON.parse(eventItem.participants || "[]");
     if (!participants.includes(studentEmail)) {
       return showSnackbar("You're not a participant.", "warning");
@@ -247,7 +249,7 @@ const ViewEvents = () => {
               placeholder="Discover Your Event..."
               className="membership-search"
             />
-            <button className="search-icon">
+            <button className="searchIcon">
               <FaSearch />
             </button>
           </div>
