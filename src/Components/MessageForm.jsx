@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect, useRef,useCallback } from "react";
 import {
   addDoc,
   collection,
@@ -36,7 +36,7 @@ const MessageForm = ({ clubId, userEmail }) => {
     }
   }, [userEmail]);
 
-  const updateTypingStatus = async (typing) => {
+  const updateTypingStatus = useCallback(async (typing) => {
     if (!clubId || !userEmail) return;
     const typingDocRef = doc(db, "typingIndicators", clubId);
     try {
@@ -48,7 +48,7 @@ const MessageForm = ({ clubId, userEmail }) => {
     } catch (error) {
       console.error("Error updating typing status:", error);
     }
-  };
+  }, [clubId, userEmail]);
 
   const handleTyping = (e) => {
     setText(e.target.value);
@@ -137,7 +137,7 @@ const MessageForm = ({ clubId, userEmail }) => {
       }
       updateTypingStatus(false);
     };
-  }, []);
+  }, [updateTypingStatus]);
 
   return (
     <div className="page-container">
