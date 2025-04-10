@@ -290,7 +290,7 @@ const MembershipTable = ({
               placeholder="Search members..."
               className="membership-search"
             />
-            <button className="search-icon">
+            <button className="searchIcon">
               <FaSearch />
             </button>
           </div>
@@ -633,7 +633,7 @@ const AdminEvent = () => {
               placeholder="Discover Your Event..."
               className="membership-search"
             />
-            <button className="search-icon">
+            <button className="searchIcon">
               <FaSearch />
             </button>
           </div>

@@ -10,24 +10,25 @@ import {
 import ClubDetails from "./Components/ClubDetails";
 import ChatBot from "./Components/ChatBot";
 import UseAuthCheck from "./Components/UseAuthCheck";
-import Communication from "./Pages/Communication";
 import ChannelList from "./Components/ChannelList";
 import ClubChannel from "./Components/ClubChannel";
-
-// Import Pages
-import Home from "./Pages/Home";
+import AdminLogin from "./Components/AdminLogin";
 import ShowClubs from "./Components/ShowClubs";
-import ViewEvents from "./Pages/ViewEvents";
-import Finance from "./Pages/Finance";
 import Login from "./Components/Login";
 import Signup from "./Components/Signup";
 import UserProfile from "./Components/UserProfile";
+
+// Import Pages
+import Home from "./Pages/Home";
+import ViewEvents from "./Pages/ViewEvents";
+import Finance from "./Pages/Finance";
 import AdminDashboard from "./Pages/AdminDashboard";
 import AddEvent from "./Pages/AddEvent";
 import AdminEvent from "./Pages/AdminEvent";
 import Notification from "./Pages/Notification";
 import Merchandise from "./Pages/Merchandise";
-import AdminLogin from "./Components/AdminLogin";
+import Communication from "./Pages/Communication";
+import Task from "./Pages/Task";
 
 // Layout Wrapper to include ChatBot in all pages
 const NoButtonLayout = ({ children }) => (
@@ -162,6 +163,14 @@ const App = () => {
           element={
             <NoButtonLayout>
               <Communication />
+            </NoButtonLayout>
+          }
+        />
+        <Route
+          path="/task"
+          element={
+            <NoButtonLayout>
+              <Task/>
             </NoButtonLayout>
           }
         />

@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { format } from "date-fns";
 import { Search, X, Plus, Check, Trash2, Edit } from "lucide-react";
+import AdminSidebar from "../Components/AdminSidebar";
 import "../CSS/Task.css";
 
 // Main component
@@ -261,6 +262,7 @@ const Task = () => {
 
   return (
     <div className="task-app">
+      <AdminSidebar />
       <div className="container">
         <div className="panels">
           {/* Left Panel (25% Width) */}
@@ -290,24 +292,28 @@ const Task = () => {
                     className={classNames(
                       "task-item",
                       task.status === "Done" ? "task-done" : ""
-                    )}>
+                    )}
+                  >
                     <span
                       className={classNames(
                         task.status === "Done" ? "task-done-text" : ""
-                      )}>
+                      )}
+                    >
                       {task.name}
                     </span>
                     <div className="task-actions">
                       {task.status !== "Done" && (
                         <button
                           className="task-button outline"
-                          onClick={() => handleCompletePersonalTask(task.id)}>
+                          onClick={() => handleCompletePersonalTask(task.id)}
+                        >
                           <Check size={16} />
                         </button>
                       )}
                       <button
                         className="task-button outline"
-                        onClick={() => handleDeletePersonalTask(task.id)}>
+                        onClick={() => handleDeletePersonalTask(task.id)}
+                      >
                         <Trash2 size={16} />
                       </button>
                     </div>
@@ -393,7 +399,8 @@ const Task = () => {
                       if (!searchActive) {
                         setSearchQuery("");
                       }
-                    }}>
+                    }}
+                  >
                     <Search size={16} />
                   </button>
                   <button className="task-button" onClick={handleOpenAddTask}>
@@ -410,7 +417,8 @@ const Task = () => {
                       "filter-button",
                       filterType === "status" ? "active" : ""
                     )}
-                    onClick={() => setFilterType("status")}>
+                    onClick={() => setFilterType("status")}
+                  >
                     Status
                   </button>
                   <button
@@ -418,7 +426,8 @@ const Task = () => {
                       "filter-button",
                       filterType === "priority" ? "active" : ""
                     )}
-                    onClick={() => setFilterType("priority")}>
+                    onClick={() => setFilterType("priority")}
+                  >
                     Priority
                   </button>
                 </div>
@@ -439,7 +448,8 @@ const Task = () => {
                         : group === "Done" || group === "Complete"
                         ? "done-status"
                         : "default-title"
-                    )}>
+                    )}
+                  >
                     {group} ({groupedTasks[group]?.length || 0})
                   </h2>
                   <div className="column-content">
@@ -457,7 +467,8 @@ const Task = () => {
                               ? "#EF4444" // red
                               : "#991B1B", // dark red for Very High
                         }}
-                        onClick={() => handleEditClubTask(task)}>
+                        onClick={() => handleEditClubTask(task)}
+                      >
                         <div className="task-card-header">
                           <h3 className="task-card-title">{task.name}</h3>
                           <button
@@ -465,7 +476,8 @@ const Task = () => {
                             onClick={(e) => {
                               e.stopPropagation();
                               handleDeleteClubTask(task.id);
-                            }}>
+                            }}
+                          >
                             <Trash2 size={14} />
                           </button>
                         </div>
@@ -482,7 +494,8 @@ const Task = () => {
                                 task.status !== "Done"
                                 ? "overdue"
                                 : ""
-                            )}>
+                            )}
+                          >
                             {format(new Date(task.dueDate), "MMM d")}
                           </span>
                         </div>
@@ -505,10 +518,11 @@ const Task = () => {
         <div className="modal-overlay">
           <div className="modal">
             <div className="modal-header">
-              <h2>Add New Task</h2>
+              <h2>Add Task</h2>
               <button
                 className="modal-close"
-                onClick={() => setIsAddTaskOpen(false)}>
+                onClick={() => setIsAddTaskOpen(false)}
+              >
                 ×
               </button>
             </div>
@@ -537,7 +551,8 @@ const Task = () => {
                         ? { ...currentTask, description: e.target.value }
                         : null
                     )
-                  }></textarea>
+                  }
+                ></textarea>
               </div>
               <div className="form-group">
                 <label>Assignee</label>
@@ -549,7 +564,8 @@ const Task = () => {
                         ? { ...currentTask, assignee: e.target.value }
                         : null
                     )
-                  }>
+                  }
+                >
                   <option value="" disabled>
                     Select member
                   </option>
@@ -591,7 +607,8 @@ const Task = () => {
                             }
                           : null
                       )
-                    }>
+                    }
+                  >
                     <option value="" disabled>
                       Set priority
                     </option>
@@ -614,7 +631,8 @@ const Task = () => {
                             }
                           : null
                       )
-                    }>
+                    }
+                  >
                     <option value="" disabled>
                       Set status
                     </option>
@@ -629,12 +647,14 @@ const Task = () => {
             <div className="modal-footer">
               <button
                 className="modal-button cancel"
-                onClick={() => setIsAddTaskOpen(false)}>
+                onClick={() => setIsAddTaskOpen(false)}
+              >
                 Cancel
               </button>
               <button
                 className="modal-button save"
-                onClick={handleSaveClubTask}>
+                onClick={handleSaveClubTask}
+              >
                 Create Task
               </button>
             </div>
@@ -650,7 +670,8 @@ const Task = () => {
               <h2>Edit Task</h2>
               <button
                 className="modal-close"
-                onClick={() => setIsEditTaskOpen(false)}>
+                onClick={() => setIsEditTaskOpen(false)}
+              >
                 ×
               </button>
             </div>
@@ -679,7 +700,8 @@ const Task = () => {
                         ? { ...currentTask, description: e.target.value }
                         : null
                     )
-                  }></textarea>
+                  }
+                ></textarea>
               </div>
               <div className="form-group">
                 <label>Assignee</label>
@@ -691,7 +713,8 @@ const Task = () => {
                         ? { ...currentTask, assignee: e.target.value }
                         : null
                     )
-                  }>
+                  }
+                >
                   <option value="" disabled>
                     Select member
                   </option>
@@ -733,7 +756,8 @@ const Task = () => {
                             }
                           : null
                       )
-                    }>
+                    }
+                  >
                     <option value="" disabled>
                       Set priority
                     </option>
@@ -756,7 +780,8 @@ const Task = () => {
                             }
                           : null
                       )
-                    }>
+                    }
+                  >
                     <option value="" disabled>
                       Set status
                     </option>
@@ -771,12 +796,14 @@ const Task = () => {
             <div className="modal-footer">
               <button
                 className="modal-button cancel"
-                onClick={() => setIsEditTaskOpen(false)}>
+                onClick={() => setIsEditTaskOpen(false)}
+              >
                 Cancel
               </button>
               <button
                 className="modal-button save"
-                onClick={handleSaveClubTask}>
+                onClick={handleSaveClubTask}
+              >
                 Save Changes
               </button>
             </div>

@@ -8,6 +8,7 @@ import "../CSS/AdminDashboard.css";
 import "../CSS/SideBar.css";
 import { FaSearch, FaUserCircle } from "react-icons/fa";
 import { Ban } from "lucide-react";
+import MemberAnalysisCharts from "../Components/MemberAnalysisCharts";
 
 const BASE_URL = process.env.REACT_APP_BASE_URL;
 
@@ -300,16 +301,6 @@ const MembershipTable = ({
 
   return (
     <div className="membership-table-container">
-      <div className="year-analysis">
-        <h2>Year-wise Analysis</h2>
-        <ul>
-          {Object.entries(yearCounts).map(([year, count]) => (
-            <li key={year}>
-              Year {year}: {count} student{count > 1 ? "s" : ""}
-            </li>
-          ))}
-        </ul>
-      </div>
       <br />
       <h2>{title}</h2>
       <table className="membership-table">
@@ -383,7 +374,9 @@ const MembershipTable = ({
 };
 
 // ------------------ Main AdminDashboard Component ------------------
+
 const AdminDashboard = () => {
+  // ---------------------- State Declarations ----------------------
   const [unreadNotifications, setUnreadNotifications] = useState([]);
   const [allNotifications, setAllNotifications] = useState([]);
   const [filteredNotifications, setFilteredNotifications] = useState([]);
@@ -402,6 +395,7 @@ const AdminDashboard = () => {
   const navigate = useNavigate();
   const adminAccessToken = localStorage.getItem("admin_access_token");
 
+  // ---------------------- Helper Functions ----------------------
   const getAdminEmailFromToken = useCallback((token) => {
     try {
       const decodedToken = jwtDecode(token);
@@ -411,16 +405,14 @@ const AdminDashboard = () => {
       return null;
     }
   }, []);
-
   const adminEmail = adminAccessToken
     ? getAdminEmailFromToken(adminAccessToken)
     : null;
-
   useEffect(() => {
     if (!adminEmail) navigate("/admin");
   }, [adminEmail, navigate]);
 
-  // ------------------ Notification Fetching Functions ------------------
+  // ---------------------- API Fetching Functions ----------------------
   const fetchAdminDetails = async () => {
     try {
       const data = await apiGet(
@@ -465,7 +457,6 @@ const AdminDashboard = () => {
     }
   };
 
-  // ------------------ Membership Data Fetching ------------------
   const fetchMembershipData = async () => {
     if (!clubId) return;
     try {
@@ -513,7 +504,7 @@ const AdminDashboard = () => {
     }
   };
 
-  // ------------------ Initial Data Fetching ------------------
+  // ---------------------- useEffects for Data Fetching ----------------------
   useEffect(() => {
     if (!adminEmail) return;
     fetchAdminDetails();
@@ -540,7 +531,7 @@ const AdminDashboard = () => {
     setFilteredNotifications(filtered);
   }, [notificationFilter, allNotifications]);
 
-  // ------------------ Handlers for Membership Actions ------------------
+  // ---------------------- Handlers ----------------------
   const handleLogout = () => {
     localStorage.removeItem("admin_access_token");
     sessionStorage.clear();
@@ -606,7 +597,6 @@ const AdminDashboard = () => {
     }
   };
 
-  // ------------------ Notification Popup Handlers ------------------
   const openNotifications = () => setIsNotificationsVisible(true);
   const closeNotifications = () => setIsNotificationsVisible(false);
 
@@ -626,9 +616,7 @@ const AdminDashboard = () => {
       );
       if (!res) throw new Error("Failed to mark notifications as read");
       toast.success("All notifications marked as read.");
-      // After marking as read, re-fetch notifications to update the state
       fetchNotifications();
-      // Also update the unread count
       fetchUnreadNotificationCount();
     } catch (error) {
       console.error("Failed to mark notifications as read:", error);
@@ -636,8 +624,7 @@ const AdminDashboard = () => {
     }
   };
 
-  // ------------------ End of Handlers ------------------
-
+  // ---------------------- Render ----------------------
   return (
     <div className="view-clubs-container">
       <ToastContainer />
@@ -647,7 +634,6 @@ const AdminDashboard = () => {
         toggleNotifications={openNotifications}
         handleLogout={handleLogout}
       />
-
       <UserDetailModal
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
@@ -671,7 +657,7 @@ const AdminDashboard = () => {
                 placeholder="Search members..."
                 className="membership-search"
               />
-              <button className="search-icon">
+              <button className="searchIcon">
                 <FaSearch />
               </button>
             </div>
@@ -684,6 +670,17 @@ const AdminDashboard = () => {
             onViewDetails={handleViewDetails}
             onStatusChange={handleMembershipStatus}
           />
+          {/* Analysis charts below New Membership Requests table */}
+          {newMembershipRequests.length > 0 && (
+            <MemberAnalysisCharts
+              data={newMembershipRequests}
+              titlePrefix="New Request"
+              // Additional visualizations can be enabled by passing the extra props:
+              newRequests={newMembershipRequests}
+              approvedMembers={currentMembers}
+              notifications={allNotifications}
+            />
+          )}
           <MembershipTable
             title="Current Members List"
             data={currentMembers}
@@ -691,6 +688,16 @@ const AdminDashboard = () => {
             onViewDetails={handleViewDetails}
             onMemberDeletion={handleMemberDeletion}
           />
+          {/* Analysis charts below Current Members table */}
+          {currentMembers.length > 0 && (
+            <MemberAnalysisCharts
+              data={currentMembers}
+              titlePrefix="Current"
+              newRequests={newMembershipRequests}
+              approvedMembers={currentMembers}
+              notifications={allNotifications}
+            />
+          )}
         </section>
       </main>
     </div>
