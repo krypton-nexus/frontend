@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { jwtDecode } from "jwt-decode";
 import { format } from "date-fns";
 import { Search, X, Plus, Check, Trash2, Edit } from "lucide-react";
 import AdminSidebar from "../Components/AdminSidebar";
@@ -11,6 +12,9 @@ const Task = () => {
   // Status = "To Do" | "In Progress" | "Complete" | "Done";
 
   // States
+  const [error, setError] = useState(null);
+  const [loading, setLoadingMembers] = useState(true);
+  const [clubMembers, setClubMembers] = useState("");
   const [personalTasks, setPersonalTasks] = useState([]);
   const [clubTasks, setClubTasks] = useState([]);
   const [newPersonalTask, setNewPersonalTask] = useState("");
@@ -20,15 +24,87 @@ const Task = () => {
   const [searchActive, setSearchActive] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [filterType, setFilterType] = useState("status");
+  const [studentEmail, setStudentEmail] = useState("");
+  const [clubId, setClubId] = useState("");
+  const [token, setToken] = useState(null);
 
-  // Club members list
-  const clubMembers = [
-    "John Smith",
-    "Emma Johnson",
-    "Michael Brown",
-    "Sarah Davis",
-    "Robert Wilson",
-  ];
+
+  // Fetch token and club details
+  useEffect(() => {
+    const token = localStorage.getItem("admin_access_token");
+    if (token) {
+      try {
+        const decoded = jwtDecode(token);
+        setStudentEmail(decoded.email);
+        setClubId(decoded.club_id);
+        setToken(token);
+      } catch (err) {
+        console.error("Invalid token", err);
+        setError("Failed to decode token. Please log in again.");
+      }
+    } else {
+      console.error("No token found");
+      setError("User is not authenticated. Please log in.");
+    }
+  }, []);
+
+
+
+  // Function to fetch club members
+  const fetchClubMembers = async () => {
+    if (!clubId || !token) return;
+
+    setLoadingMembers(true);
+    setError(null);
+
+    try {
+      const response = await fetch(
+        `http://13.247.207.132:5000/membership/list?club_id=${clubId}`,
+        {
+          method: "GET",
+          headers: {
+            "Authorization": `Bearer ${token}`,
+            "Content-Type": "application/json",
+          },
+        }
+      );
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+
+      const data = await response.json();
+      // Transform the data to combine first and last names and keep member_id
+      const members = data.memberships.map(member => ({
+        id: member.member_id,
+        email: member.email,
+        name: `${member.first_name} ${member.last_name}`,
+        fullName: member.full_name,
+        status: member.status
+      }));
+
+      setClubMembers(members);
+    } catch (err) {
+      console.error("Error fetching club members:", err);
+      setError("Failed to load club members");
+    } finally {
+      setLoadingMembers(false);
+    }
+  };
+
+
+  // Fetch members when clubId or token changes
+  useEffect(() => {
+    fetchClubMembers();
+  }, [clubId, token]);
+  // // Club members list
+  // const clubMembers = [
+  //   "John Smith",
+  //   "Emma Johnson",
+  //   "Michael Brown",
+  //   "Sarah Davis",
+  //   "Robert Wilson",
+  // ];
 
   // New task template
   const newTaskTemplate = {
@@ -41,75 +117,86 @@ const Task = () => {
     status: "To Do",
   };
 
+
   // Load sample data
+  const fetchPersonalTasks = async () => {
+    try {
+      const response = await fetch(
+        `http://13.247.207.132:5000/task/admin?admin_email=${studentEmail}&club_id=${clubId}`,
+        {
+          headers: { Authorization: `Bearer ${token}` }
+        }
+      );
+
+      if (!response.ok) throw new Error(response.statusText);
+
+      const data = await response.json();
+      return data.tasks.map(task => ({
+        id: `pt-${task.task_id}`,
+        name: task.task_name,
+        description: task.description || "",
+        assignee: "Admin",
+        dueDate: task.due_date ? new Date(task.due_date) : new Date(),
+        priority: task.priority || "Medium",
+        status: task.status || "To Do",
+        isPersonal: true
+      }));
+
+    } catch (error) {
+      console.error("Failed to fetch personal tasks:", error);
+      throw error;
+    }
+  };
+
+  const fetchClubTasks = async () => {
+    try {
+      const response = await fetch(
+        `http://13.247.207.132:5000/task/club/${clubId}`,
+        {
+          headers: { Authorization: `Bearer ${token}` }
+        }
+      );
+
+      if (!response.ok) throw new Error(response.statusText);
+
+      const data = await response.json();
+      return data.tasks.map(task => ({
+        id: `ct-${task.task_id}`,
+        name: task.title,
+        description: task.description || "",
+        assignee: task.assignee_details?.full_name || "Unassigned",
+        assigneeId: task.assignee_details?.membership_id || null,
+        dueDate: task.due_date && task.due_date !== "None"
+          ? new Date(task.due_date)
+          : new Date(Date.now() + 86400000 * 3), // Default: 3 days from now
+        priority: task.priority || "Medium",
+        status: task.status || "To Do"
+      }));
+
+    } catch (error) {
+      console.error("Failed to fetch club tasks:", error);
+      throw error;
+    }
+  };
+  // Call them together like this:
+  const loadAllTasks = async () => {
+    try {
+      const [personalTasks, clubTasks] = await Promise.all([
+        fetchPersonalTasks(),
+        fetchClubTasks()
+      ]);
+      setPersonalTasks(personalTasks);
+      setClubTasks(clubTasks);
+    } catch (error) {
+      setError("Failed to load tasks");
+    }
+  };
   useEffect(() => {
-    // Sample personal tasks
-    const samplePersonalTasks = [
-      {
-        id: "pt1",
-        name: "Review meeting notes",
-        description: "",
-        assignee: "Admin",
-        dueDate: new Date(),
-        priority: "Medium",
-        status: "To Do",
-        isPersonal: true,
-      },
-      {
-        id: "pt2",
-        name: "Prepare presentation",
-        description: "",
-        assignee: "Admin",
-        dueDate: new Date(Date.now() + 86400000), // tomorrow
-        priority: "High",
-        status: "To Do",
-        isPersonal: true,
-      },
-    ];
-
-    // Sample club tasks
-    const sampleClubTasks = [
-      {
-        id: "ct1",
-        name: "Update website content",
-        description: "Add recent event photos and update about page",
-        assignee: "Sarah Davis",
-        dueDate: new Date(Date.now() - 86400000), // yesterday
-        priority: "Medium",
-        status: "To Do",
-      },
-      {
-        id: "ct2",
-        name: "Plan fundraising event",
-        description: "Coordinate with venues and prepare budget",
-        assignee: "John Smith",
-        dueDate: new Date(Date.now() + 172800000), // day after tomorrow
-        priority: "High",
-        status: "In Progress",
-      },
-      {
-        id: "ct3",
-        name: "Send newsletter",
-        description: "Draft monthly newsletter and send to members",
-        assignee: "Emma Johnson",
-        dueDate: new Date(Date.now() + 86400000), // tomorrow
-        priority: "Low",
-        status: "Complete",
-      },
-      {
-        id: "ct4",
-        name: "Order new equipment",
-        description: "Research and purchase new audio equipment",
-        assignee: "Michael Brown",
-        dueDate: new Date(Date.now() + 259200000), // 3 days from now
-        priority: "Very High",
-        status: "Done",
-      },
-    ];
-
-    setPersonalTasks(samplePersonalTasks);
-    setClubTasks(sampleClubTasks);
-  }, []);
+    // Only fetch if we have the required values
+    if (token && studentEmail && clubId) {
+      loadAllTasks();
+    }
+  }, [token, studentEmail, clubId]); // Re-run when these dependencies change
 
   // Get current date formatted
   const currentDate = format(new Date(), "EEEE, MMMM d, yyyy");
@@ -119,21 +206,49 @@ const Task = () => {
     `task-${Date.now()}-${Math.floor(Math.random() * 1000)}`;
 
   // Handler for adding a new personal task
-  const handleAddPersonalTask = () => {
-    if (newPersonalTask.trim()) {
-      const newTask = {
-        id: generateId(),
-        name: newPersonalTask.trim(),
-        description: "",
-        assignee: "Admin",
-        dueDate: new Date(),
-        priority: "Medium",
-        status: "To Do",
-        isPersonal: true,
-      };
-      setPersonalTasks([...personalTasks, newTask]);
+  const handleAddPersonalTask = async () => {
+    if (!newPersonalTask.trim() || !token) return;
+  
+    try {
+      const response = await fetch("http://13.247.207.132:5000/task/admin", {
+        method: "POST",
+        headers: {
+          "Authorization": `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          admin_email: studentEmail,
+          club_id: clubId,
+          task_name: newPersonalTask.trim()  // Note: Corrected from "task_naem" to "task_name"
+        })
+      });
+  
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+  
+      const newTask = await response.json();
+      
+      // Add the new task to state
+      setPersonalTasks(prev => [
+        ...prev,
+        {
+          id: `pt-${newTask.task_id}`, // Assuming API returns task_id
+          name: newPersonalTask.trim(),
+          description: "",
+          assignee: "Admin",
+          dueDate: new Date(),
+          priority: "Medium",
+          status: "To Do",
+          isPersonal: true
+        }
+      ]);
+      
       setNewPersonalTask("");
-      showToast("Personal task added");
+      showToast("Personal task added successfully");
+    } catch (error) {
+      console.error("Error adding personal task:", error);
+      showToast("Failed to add personal task");
     }
   };
 
@@ -155,28 +270,97 @@ const Task = () => {
 
   // Handler for opening the add task modal
   const handleOpenAddTask = () => {
-    setCurrentTask({ ...newTaskTemplate, id: generateId() });
+    console.log('Opening add task modal'); 
+    setCurrentTask({ ...newTaskTemplate, id: `task-${Date.now()}`, dueDate: new Date()});
     setIsAddTaskOpen(true);
   };
 
   // Handler for adding or updating a club task
-  const handleSaveClubTask = () => {
+  const handleSaveClubTask = async () => {
     if (!currentTask) return;
-
-    if (isEditTaskOpen) {
-      // Update existing task
-      setClubTasks(
-        clubTasks.map((task) =>
-          task.id === currentTask.id ? currentTask : task
-        )
-      );
-      showToast("Task updated");
-      setIsEditTaskOpen(false);
-    } else {
-      // Create new task
-      setClubTasks([...clubTasks, currentTask]);
-      showToast("New task created");
-      setIsAddTaskOpen(false);
+  
+    try {
+      // Common data preparation
+      const formattedDueDate = format(currentTask.dueDate, 'yyyy-MM-dd');
+      const taskData = {
+        title: currentTask.name,
+        description: currentTask.description,
+        assignee_id: currentTask.assigneeId,
+        club_id: clubId,
+        due_date: formattedDueDate,
+        priority: currentTask.priority,
+        status: currentTask.status
+      };
+     
+  
+      // CREATE NEW TASK
+      if (!isEditTaskOpen) {
+        const response = await fetch("http://13.247.207.132:5000/task/clubtask", {
+          method: "POST",
+          headers: {
+            "Authorization": `Bearer ${token}`,
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(taskData)
+        });
+  
+        if (!response.ok) throw new Error("Failed to create task");
+        
+        const newTask = await response.json();
+  
+        setClubTasks(prev => [
+          ...prev,
+          {
+            id: `ct-${newTask.task_id}`,
+            name: newTask.title,
+            description: newTask.description,
+            assignee: clubMembers.find(m => m.id === newTask.assignee_id)?.name || "Unassigned",
+            assigneeId: newTask.assignee_id,
+            dueDate: new Date(newTask.due_date),
+            priority: newTask.priority,
+            status: newTask.status
+          }
+        ]);
+        
+        showToast("Task created successfully");
+        setIsAddTaskOpen(false);
+      } 
+      // UPDATE EXISTING TASK
+      else {
+        const taskId = currentTask.id.replace('ct-', '');
+        const response = await fetch(`http://13.247.207.132:5000/task/clubtask/${taskId}`, {
+          method: "PUT",
+          headers: {
+            "Authorization": `Bearer ${token}`,
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(taskData)
+        });
+        console.log(response);
+        if (!response.ok) throw new Error("Failed to update task");
+  
+        const updatedTask = await response.json();
+  
+        setClubTasks(prev => prev.map(task => 
+          task.id === currentTask.id ? {
+            ...task,
+            name: updatedTask.title,
+            description: updatedTask.description,
+            assignee: clubMembers.find(m => m.id === updatedTask.assignee_id)?.name || task.assignee,
+            assigneeId: updatedTask.assignee_id,
+            dueDate: updatedTask.due_date ? new Date(updatedTask.due_date) : task.dueDate,
+            priority: updatedTask.priority,
+            status: updatedTask.status
+          } : task
+        ));
+  
+        showToast("Task updated successfully");
+        loadAllTasks();
+        setIsEditTaskOpen(false);
+      }
+    } catch (error) {
+      console.error("Error:", error);
+      showToast(error.message || "Operation failed");
     }
   };
 
@@ -237,7 +421,7 @@ const Task = () => {
   const overdueTasks = clubTasks.filter(
     (task) =>
       new Date(task.dueDate).setHours(0, 0, 0, 0) <
-        new Date().setHours(0, 0, 0, 0) && task.status !== "Done"
+      new Date().setHours(0, 0, 0, 0) && task.status !== "Done"
   );
 
   // Get upcoming tasks (next 3 days)
@@ -444,10 +628,10 @@ const Task = () => {
                       group === "High" || group === "Very High"
                         ? "high-priority"
                         : group === "Medium"
-                        ? "medium-priority"
-                        : group === "Done" || group === "Complete"
-                        ? "done-status"
-                        : "default-title"
+                          ? "medium-priority"
+                          : group === "Done" || group === "Complete"
+                            ? "done-status"
+                            : "default-title"
                     )}
                   >
                     {group} ({groupedTasks[group]?.length || 0})
@@ -462,10 +646,10 @@ const Task = () => {
                             task.priority === "Low"
                               ? "#60A5FA" // blue
                               : task.priority === "Medium"
-                              ? "#F97316" // orange
-                              : task.priority === "High"
-                              ? "#EF4444" // red
-                              : "#991B1B", // dark red for Very High
+                                ? "#F97316" // orange
+                                : task.priority === "High"
+                                  ? "#EF4444" // red
+                                  : "#991B1B", // dark red for Very High
                         }}
                         onClick={() => handleEditClubTask(task)}
                       >
@@ -503,8 +687,8 @@ const Task = () => {
                     ))}
                     {(!groupedTasks[group] ||
                       groupedTasks[group].length === 0) && (
-                      <div className="empty-column">No tasks</div>
-                    )}
+                        <div className="empty-column">No tasks</div>
+                      )}
                   </div>
                 </div>
               ))}
@@ -555,27 +739,26 @@ const Task = () => {
                 ></textarea>
               </div>
               <div className="form-group">
-                <label>Assignee</label>
-                <select
-                  value={currentTask?.assignee || ""}
-                  onChange={(e) =>
-                    setCurrentTask(
-                      currentTask
-                        ? { ...currentTask, assignee: e.target.value }
-                        : null
-                    )
-                  }
-                >
-                  <option value="" disabled>
-                    Select member
-                  </option>
-                  {clubMembers.map((member) => (
-                    <option key={member} value={member}>
-                      {member}
-                    </option>
-                  ))}
-                </select>
-              </div>
+  <label>Assignee</label>
+  <select
+    value={currentTask?.assigneeId || ""}
+    onChange={(e) => {
+      const selectedMember = clubMembers.find(m => m.id.toString() === e.target.value);
+      setCurrentTask({
+        ...currentTask,
+        assignee: selectedMember?.name || "",  // For display
+        assigneeId: selectedMember?.id || null // For API (membership_id)
+      });
+    }}
+  >
+    <option value="" disabled>Select member</option>
+    {clubMembers.map((member) => (
+      <option key={member.id} value={member.id}>
+        {member.name} ({member.email})
+      </option>
+    ))}
+  </select>
+</div>
               <div className="form-group">
                 <label>Due Date</label>
                 <input
@@ -602,9 +785,9 @@ const Task = () => {
                       setCurrentTask(
                         currentTask
                           ? {
-                              ...currentTask,
-                              priority: e.target.value,
-                            }
+                            ...currentTask,
+                            priority: e.target.value,
+                          }
                           : null
                       )
                     }
@@ -626,9 +809,9 @@ const Task = () => {
                       setCurrentTask(
                         currentTask
                           ? {
-                              ...currentTask,
-                              status: e.target.value,
-                            }
+                            ...currentTask,
+                            status: e.target.value,
+                          }
                           : null
                       )
                     }
@@ -751,9 +934,9 @@ const Task = () => {
                       setCurrentTask(
                         currentTask
                           ? {
-                              ...currentTask,
-                              priority: e.target.value,
-                            }
+                            ...currentTask,
+                            priority: e.target.value,
+                          }
                           : null
                       )
                     }
@@ -775,9 +958,9 @@ const Task = () => {
                       setCurrentTask(
                         currentTask
                           ? {
-                              ...currentTask,
-                              status: e.target.value,
-                            }
+                            ...currentTask,
+                            status: e.target.value,
+                          }
                           : null
                       )
                     }
