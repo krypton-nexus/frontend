@@ -365,15 +365,85 @@ const Task = () => {
   };
 
   // Handler for deleting a club task
-  const handleDeleteClubTask = (taskId) => {
-    setClubTasks(clubTasks.filter((task) => task.id !== taskId));
-    showToast("Task deleted");
-  };
+ // Handler for deleting a club task
+const handleDeleteClubTask = async (taskId) => {
+  try {
+    const apiTaskId = taskId.replace('ct-', ''); // Remove the prefix we added
+    console.log(apiTaskId);
+    const response = await fetch(
+      `http://13.247.207.132:5000/task/delete/club/${apiTaskId}`,
+      {
+        method: "DELETE",
+        headers: {
+          "Authorization": `Bearer ${token}`,
+        },
+      }
+    );
+
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+
+    // Refresh the tasks after successful deletion
+    await loadAllTasks();
+    showToast("Task deleted successfully");
+  } catch (error) {
+    console.error("Error deleting task:", error);
+    showToast("Failed to delete task");
+  }
+};
 
   // Handler for editing a club task
-  const handleEditClubTask = (task) => {
-    setCurrentTask({ ...task });
-    setIsEditTaskOpen(true);
+  const handleEditClubTask = async (task) => {
+    try {
+      // First, get the latest task details from the server
+      const taskId = task.id.replace('ct-', '');
+      const response = await fetch(`http://13.247.207.132:5000/task/${taskId}`, {
+        method: "PUT",
+        headers: {
+          "Authorization": `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          title: currentTask.name,
+          description: currentTask.description,
+          assignee_id: currentTask.assigneeId,
+          due_date: format(currentTask.dueDate, 'yyyy-MM-dd'),
+          priority: currentTask.priority,
+          status: currentTask.status
+        })
+      });
+      
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+  
+      const updatedTask = await response.json();
+      console.log(updatedTask);
+       // Update the local state with the updated task
+    setClubTasks(prev => prev.map(task => 
+    task.id === currentTask.id ? {
+      ...task,
+      name: updatedTask.title,
+      description: updatedTask.description,
+      assignee: clubMembers.find(m => m.id === updatedTask.assignee_id)?.name || task.assignee,
+      assigneeId: updatedTask.assignee_id,
+      dueDate: updatedTask.due_date ? new Date(updatedTask.due_date) : task.dueDate,
+      priority: updatedTask.priority,
+      status: updatedTask.status
+    } : task
+  ));
+  
+      
+    showToast("Task updated successfully");
+      setIsEditTaskOpen(false);
+    } catch (error) {
+      console.error("Error fetching task details:", error);
+      showToast("Failed to load task details");
+      // Fallback to local data if API fails
+      setCurrentTask({ ...task });
+      setIsEditTaskOpen(true);
+    }
   };
 
   // Simple toast function
