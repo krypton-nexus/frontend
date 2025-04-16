@@ -263,10 +263,32 @@ const Task = () => {
   };
 
   // Handler for deleting a personal task
-  const handleDeletePersonalTask = (taskId) => {
-    setPersonalTasks(personalTasks.filter((task) => task.id !== taskId));
-    showToast("Personal task deleted");
-  };
+// Handler for deleting a personal task
+const handleDeletePersonalTask = async (taskId) => {
+  try {
+    const apiTaskId = taskId.replace('pt-', ''); // Remove the prefix
+    const response = await fetch(
+      `http://13.247.207.132:5000/task/delete/admin/${apiTaskId}`,
+      {
+        method: "DELETE",
+        headers: {
+          "Authorization": `Bearer ${token}`,
+        },
+      }
+    );
+
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+
+    // Update local state after successful deletion
+    setPersonalTasks(prev => prev.filter(task => task.id !== taskId));
+    showToast("Personal task deleted successfully");
+  } catch (error) {
+    console.error("Error deleting personal task:", error);
+    showToast("Failed to delete personal task");
+  }
+};
 
   // Handler for opening the add task modal
   const handleOpenAddTask = () => {
@@ -327,8 +349,18 @@ const Task = () => {
       } 
       // UPDATE EXISTING TASK
       else {
+            // Prepare the data exactly as the backend expects
+    const taskData = {
+      title: currentTask.name,          // Make sure this matches your allowed_fields
+      description: currentTask.description,
+      assignee_id: currentTask.assigneeId,  // Must be the ID, not the name
+      due_date: format(currentTask.dueDate, 'yyyy-MM-dd'),  // Must be proper date format
+      priority: currentTask.priority,
+      status: currentTask.status
+    };
+        console.log(taskData);
         const taskId = currentTask.id.replace('ct-', '');
-        const response = await fetch(`http://13.247.207.132:5000/task/clubtask/${taskId}`, {
+        const response = await fetch(`http://13.247.207.132:5000/task/${taskId}`, {
           method: "PUT",
           headers: {
             "Authorization": `Bearer ${token}`,
@@ -394,58 +426,11 @@ const handleDeleteClubTask = async (taskId) => {
 };
 
   // Handler for editing a club task
-  const handleEditClubTask = async (task) => {
-    try {
-      // First, get the latest task details from the server
-      const taskId = task.id.replace('ct-', '');
-      const response = await fetch(`http://13.247.207.132:5000/task/${taskId}`, {
-        method: "PUT",
-        headers: {
-          "Authorization": `Bearer ${token}`,
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          title: currentTask.name,
-          description: currentTask.description,
-          assignee_id: currentTask.assigneeId,
-          due_date: format(currentTask.dueDate, 'yyyy-MM-dd'),
-          priority: currentTask.priority,
-          status: currentTask.status
-        })
-      });
-      
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
-      }
-  
-      const updatedTask = await response.json();
-      console.log(updatedTask);
-       // Update the local state with the updated task
-    setClubTasks(prev => prev.map(task => 
-    task.id === currentTask.id ? {
-      ...task,
-      name: updatedTask.title,
-      description: updatedTask.description,
-      assignee: clubMembers.find(m => m.id === updatedTask.assignee_id)?.name || task.assignee,
-      assigneeId: updatedTask.assignee_id,
-      dueDate: updatedTask.due_date ? new Date(updatedTask.due_date) : task.dueDate,
-      priority: updatedTask.priority,
-      status: updatedTask.status
-    } : task
-  ));
-  
-      
-    showToast("Task updated successfully");
-      setIsEditTaskOpen(false);
-    } catch (error) {
-      console.error("Error fetching task details:", error);
-      showToast("Failed to load task details");
-      // Fallback to local data if API fails
-      setCurrentTask({ ...task });
-      setIsEditTaskOpen(true);
-    }
+  const handleEditClubTask = (task) => {
+    setCurrentTask({ ...task });
+    setIsEditTaskOpen(true);
   };
-
+  
   // Simple toast function
   const showToast = (message) => {
     const toast = document.createElement("div");
@@ -957,27 +942,27 @@ const handleDeleteClubTask = async (taskId) => {
                 ></textarea>
               </div>
               <div className="form-group">
-                <label>Assignee</label>
-                <select
-                  value={currentTask?.assignee || ""}
-                  onChange={(e) =>
-                    setCurrentTask(
-                      currentTask
-                        ? { ...currentTask, assignee: e.target.value }
-                        : null
-                    )
-                  }
-                >
-                  <option value="" disabled>
-                    Select member
-                  </option>
-                  {clubMembers.map((member) => (
-                    <option key={member} value={member}>
-                      {member}
-                    </option>
-                  ))}
-                </select>
-              </div>
+  <label>Assignee</label>
+  <select
+    value={currentTask?.assigneeId || ""}  // Use assigneeId instead of assignee object
+    onChange={(e) => {
+      const selectedId = e.target.value;
+      const selectedMember = clubMembers.find(m => m.id.toString() === selectedId);
+      setCurrentTask({
+        ...currentTask,
+        assignee: selectedMember?.name || "",  // For display
+        assigneeId: selectedId // For API
+      });
+    }}
+  >
+    <option value="" disabled>Select member</option>
+    {clubMembers.map((member) => (
+      <option key={member.id} value={member.id}>
+        {member.name} ({member.email})
+      </option>
+    ))}
+  </select>
+</div>
               <div className="form-group">
                 <label>Due Date</label>
                 <input
