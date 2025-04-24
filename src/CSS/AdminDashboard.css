@@ -97,12 +97,11 @@
   margin: 1rem;
 }
 
-
-.searchIcon{
-    padding: 10px 20px;
+.searchIcon {
+  padding: 10px 20px;
   border-radius: 8px;
   background-color: #c81c2d;
-margin-left: 10px;
+  margin-left: 10px;
   cursor: pointer;
 }
 
@@ -260,10 +259,9 @@ header {
   padding: 10px;
 }
 
-.searchIcon{
+.searchIcon {
   background: #a91d3a;
 }
-
 
 .no-membership-request h2 {
   font-size: 0.9rem;
@@ -524,9 +522,8 @@ header {
 
 button {
   padding: 10px 20px;
-  border-radius: 8px;
+  /* border-radius: 8px; */
   background-color: #c81c2d;
-;
   color: white;
   cursor: pointer;
 }
