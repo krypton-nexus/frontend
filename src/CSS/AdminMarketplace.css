@@ -1,0 +1,64 @@
+.admin-marketplace-container {
+  width: 80%;
+  padding: 2rem;
+  background: #fff;
+  overflow-y: auto;
+}
+
+.admin-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 2rem;
+}
+
+.admin-header h1 {
+  color: #8b1f3a;
+}
+
+.add-product-button {
+  background-color: #8b1f3a;
+  color: white;
+  padding: 0.5rem 1.25rem;
+  font-weight: 600;
+  border: none;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+  transition: background 0.3s;
+}
+
+.add-product-button:hover {
+  background-color: #a52b4d;
+}
+
+.admin-panels {
+  display: flex;
+  gap: 2rem;
+  flex-wrap: wrap;
+}
+
+.admin-panels h2 {
+  color: #000;
+}
+.admin-card {
+  background-color: #f4f4f4;
+  border-radius: 12px;
+  padding: 1.5rem;
+  flex: 1;
+  min-width: 250px;
+  box-shadow: 0 0 8px rgba(0, 0, 0, 0.05);
+  transition: 0.3s ease;
+}
+
+.admin-card:hover {
+  transform: translateY(-5px);
+}
+
+.admin-icon {
+  font-size: 2rem;
+  color: #8b1f3a;
+  margin-bottom: 1rem;
+}

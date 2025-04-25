@@ -1,7 +1,6 @@
-import React from "react";
+import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
-// import { ArrowLeft } from "lucide-react";
-import { FaArrowLeft } from "react-icons/fa";
+import { FaShoppingCart } from "react-icons/fa";
 import "../CSS/Merchandise.css";
 import tshirt1 from "../Images/t shirt.jpg";
 import cap2 from "../Images/cap2.jpg";
@@ -60,44 +59,46 @@ const products = [
 ];
 
 const Merchandise = () => {
-  const navigate = useNavigate();
+  const [cartCount, setCartCount] = useState(0);
 
   return (
-    <div className="temp">
+    <div className="view-events-container">
       <Sidebar />
-      <div className="merchandise-container">
-        <header className="banner">
-          <FaArrowLeft
-            className="back-arrow"
-            onClick={() => navigate("/viewclubs")}
-          />
-          <img src={bg} alt="MarketPlace Banner" className="market-bg" />
-        </header>
-        <section
-          className="products"
-          style={{ overflowY: "scroll", maxHeight: "calc(100vh - 420px)" }}
-        >
-          {products.map((product) => (
-            <div className="product-card" key={product.id}>
-              <div className="product-image">
-                <img src={product.image} alt={product.name} />
-              </div>
-              <div className="product-info">
-                <h3>{product.name}</h3>
-                <p>{product.description}</p>
-                <div className="pricing">
-                  <span className="discounted-price">{product.price}</span>
-                  <span className="original-price">
-                    {product.originalPrice}
-                  </span>
-                </div>
-                <div className="product-actions">
-                  <button className="add-to-cart">Add to Cart</button>
-                  <button className="wishlist">❤</button>
-                </div>
-              </div>
+      <div className="marketplace-container">
+        <section className="hero-section">
+          <div className="hero-top-bar">
+            <div className="marketplace-cart-icon">
+              <FaShoppingCart size={24} />
+              <span className="cart-count">{cartCount}</span>
             </div>
-          ))}
+          </div>
+          <h1>Welcome to the Club Marketplace</h1>
+          <p>
+            Support our club by purchasing premium quality merchandise. Every
+            purchase helps fund our activities and growth.
+          </p>
+          <button className="shop-now-button">Shop Now</button>
+        </section>
+
+        <section className="products-section">
+          <h2>Premium Quality Club Merchandise</h2>
+          <p>
+            Each item in our collection is carefully crafted with premium
+            materials to ensure the highest quality. Wear your club pride with
+            our exclusive merchandise designed for comfort and style.
+          </p>
+
+          <div className="products-grid">
+            {products.map((product, idx) => (
+              <div className="product-card" key={idx}>
+                <img src={product.image} alt={product.name} />
+                <h3>{product.name}</h3>
+                <p className="price">{product.price}</p>
+                <p className="description">{product.description}</p>
+                <button className="add-to-cart">Add to Cart</button>
+              </div>
+            ))}
+          </div>
         </section>
       </div>
     </div>
