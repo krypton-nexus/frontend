@@ -46,8 +46,7 @@ const NotificationPopup = ({
         width: "320px",
         padding: "10px",
         borderRadius: "5px",
-      }}
-    >
+      }}>
       <div
         className="notification-dropdown-header"
         style={{
@@ -55,8 +54,7 @@ const NotificationPopup = ({
           display: "flex",
           justifyContent: "space-between",
           alignItems: "center",
-        }}
-      >
+        }}>
         <button
           onClick={markAllAsRead}
           style={{
@@ -66,8 +64,7 @@ const NotificationPopup = ({
             padding: "5px 10px",
             cursor: "pointer",
             borderRadius: "3px",
-          }}
-        >
+          }}>
           Mark All as Read
         </button>
         <button
@@ -77,8 +74,7 @@ const NotificationPopup = ({
             border: "none",
             fontSize: "24px",
             cursor: "pointer",
-          }}
-        >
+          }}>
           &times;
         </button>
       </div>
@@ -91,8 +87,7 @@ const NotificationPopup = ({
                 fontWeight: notif.is_read ? "normal" : "bold",
                 borderBottom: "1px solid #ccc",
                 padding: "5px 0",
-              }}
-            >
+              }}>
               <div>{notif.notification}</div>
               <div style={{ fontSize: "0.8em", color: "#666" }}>
                 {notif.formattedDate}
@@ -105,8 +100,7 @@ const NotificationPopup = ({
       )}
       <div
         className="notification-filters"
-        style={{ marginTop: "10px", textAlign: "center" }}
-      >
+        style={{ marginTop: "10px", textAlign: "center" }}>
         <button onClick={() => setFilter("all")} style={{ margin: "0 5px" }}>
           All
         </button>
@@ -226,7 +220,7 @@ const AdminSidebar = () => {
     { path: "/task", label: "Tasks", icon: <FaTasks /> },
     { path: "/feed", label: "Feed", icon: <FaRss /> },
     { path: "/finance", label: "Finance", icon: <FaWallet /> },
-    { path: "/addmerchandise", label: "Merchandise", icon: <FaListAlt /> },
+    { path: "/adminmarketplace", label: "Merchandise", icon: <FaListAlt /> },
   ];
 
   const filteredNotifications = notifications.filter((n) => {
@@ -250,8 +244,7 @@ const AdminSidebar = () => {
           {menuItems.map(({ path, label, icon }) => (
             <li
               key={label}
-              className={location.pathname === path ? "active" : ""}
-            >
+              className={location.pathname === path ? "active" : ""}>
               <Link to={path}>
                 {icon} {label}
               </Link>
@@ -261,8 +254,7 @@ const AdminSidebar = () => {
             <div
               className="notifications"
               onClick={toggleNotificationsDropdown}
-              style={{ cursor: "pointer" }}
-            >
+              style={{ cursor: "pointer" }}>
               <FaRegBell /> Notification{" "}
               <span className="badge">{unreadCount}</span>
             </div>

@@ -25,6 +25,8 @@ import Finance from "./Pages/Finance";
 import AdminDashboard from "./Pages/AdminDashboard";
 import AddEvent from "./Pages/AddEvent";
 import AdminEvent from "./Pages/AdminEvent";
+import AddProduct from "./Pages/AddProduct";
+import AdminMarketplace from "./Pages/AdminMarketplace";
 import Notification from "./Pages/Notification";
 import Merchandise from "./Pages/Merchandise";
 import Communication from "./Pages/Communication";
@@ -88,10 +90,26 @@ const App = () => {
           }
         />
         <Route
+          path="/addproduct"
+          element={
+            <NoButtonLayout>
+              <AddProduct />
+            </NoButtonLayout>
+          }
+        />
+        <Route
           path="/adminevent"
           element={
             <NoButtonLayout>
               <AdminEvent />
+            </NoButtonLayout>
+          }
+        />
+        <Route
+          path="/adminmarketplace"
+          element={
+            <NoButtonLayout>
+              <AdminMarketplace />
             </NoButtonLayout>
           }
         />
@@ -170,7 +188,7 @@ const App = () => {
           path="/task"
           element={
             <NoButtonLayout>
-              <Task/>
+              <Task />
             </NoButtonLayout>
           }
         />
