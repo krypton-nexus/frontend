@@ -1,16 +1,13 @@
 import React, { useState, useEffect } from "react";
 import "../CSS/Merchandise.css";
+import SideBar from "../Components/SideBar";
+import marketbanner from "../Images/marketbanner.png";
 
 const Merchandise = () => {
-  const [userRole, setUserRole] = useState("member"); // 'member' or 'admin'
-  const [activeAdminTab, setActiveAdminTab] = useState("dashboard");
   const [showPurchaseModal, setShowPurchaseModal] = useState(false);
   const [selectedProduct, setSelectedProduct] = useState(null);
   const [purchaseQuantity, setPurchaseQuantity] = useState(1);
-  const [showProductForm, setShowProductForm] = useState(false);
-  const [editingProduct, setEditingProduct] = useState(null);
 
-  // Mock data matching database schema
   const [products, setProducts] = useState([
     {
       id: 1,
@@ -149,36 +146,12 @@ const Merchandise = () => {
     address: "",
   });
 
-  const [productForm, setProductForm] = useState({
-    product_name: "",
-    product_price: "",
-    product_description: "",
-    product_image_link: "",
-    product_quantity: "",
-  });
-
-  // Helper function to get product name by ID
-  const getProductNameById = (productId) => {
-    const product = products.find((p) => p.id === productId);
-    return product ? product.product_name : "Unknown Product";
-  };
-
   const resetCustomerForm = () => {
     setCustomerForm({
       name: "",
       email: "",
       phone: "",
       address: "",
-    });
-  };
-
-  const resetProductForm = () => {
-    setProductForm({
-      product_name: "",
-      product_price: "",
-      product_description: "",
-      product_image_link: "",
-      product_quantity: "",
     });
   };
 
@@ -216,7 +189,6 @@ const Merchandise = () => {
 
     setOrders([...orders, newOrder]);
 
-    // Update stock
     setProducts(
       products.map((product) =>
         product.id === selectedProduct.id
@@ -239,85 +211,6 @@ const Merchandise = () => {
     window.location.reload();
   };
 
-  const handleAddProduct = () => {
-    if (
-      !productForm.product_name ||
-      !productForm.product_price ||
-      !productForm.product_quantity
-    ) {
-      alert("Please fill in all required fields");
-      return;
-    }
-
-    const newProduct = {
-      id: Math.max(...products.map((p) => p.id)) + 1,
-      product_name: productForm.product_name,
-      product_price: parseFloat(productForm.product_price),
-      product_description: productForm.product_description,
-      product_image_link:
-        productForm.product_image_link ||
-        "https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?w=400",
-      product_quantity: parseInt(productForm.product_quantity),
-      club_id: "CLUB001",
-      created_at: new Date().toISOString(),
-    };
-
-    setProducts([...products, newProduct]);
-    setShowProductForm(false);
-    resetProductForm();
-    alert("Product added successfully!");
-  };
-
-  const handleEditProduct = (product) => {
-    setEditingProduct(product);
-    setProductForm({
-      product_name: product.product_name,
-      product_price: product.product_price.toString(),
-      product_description: product.product_description,
-      product_image_link: product.product_image_link,
-      product_quantity: product.product_quantity.toString(),
-    });
-    setShowProductForm(true);
-  };
-
-  const handleUpdateProduct = () => {
-    if (
-      !productForm.product_name ||
-      !productForm.product_price ||
-      !productForm.product_quantity
-    ) {
-      alert("Please fill in all required fields");
-      return;
-    }
-
-    setProducts(
-      products.map((product) =>
-        product.id === editingProduct.id
-          ? {
-              ...product,
-              product_name: productForm.product_name,
-              product_price: parseFloat(productForm.product_price),
-              product_description: productForm.product_description,
-              product_image_link: productForm.product_image_link,
-              product_quantity: parseInt(productForm.product_quantity),
-            }
-          : product
-      )
-    );
-
-    setShowProductForm(false);
-    setEditingProduct(null);
-    resetProductForm();
-    alert("Product updated successfully!");
-  };
-
-  const handleDeleteProduct = (productId) => {
-    if (window.confirm("Are you sure you want to delete this product?")) {
-      setProducts(products.filter((product) => product.id !== productId));
-      alert("Product deleted successfully!");
-    }
-  };
-
   const updateOrderStatus = (orderId, newStatus) => {
     setOrders(
       orders.map((order) =>
@@ -333,247 +226,10 @@ const Merchandise = () => {
     alert("Order status updated! Email sent to customer.");
   };
 
-  const getTotalProducts = () => products.length;
-  const getTotalOrders = () => orders.length;
-  const getOrderCountsByStatus = () => {
-    const counts = {};
-    orders.forEach((order) => {
-      counts[order.order_status] = (counts[order.order_status] || 0) + 1;
-    });
-    return counts;
-  };
-  const getRecentOrders = () => orders.slice(-5).reverse();
-
-  const renderMemberView = () => (
-    <div className="member-view">
-      <h2>Merchandise Store</h2>
-      <div className="products-grid">
-        {products.map((product) => (
-          <div key={product.id} className="product-card">
-            <img src={product.product_image_link} alt={product.product_name} />
-            <div className="product-info">
-              <h3>{product.product_name}</h3>
-              <p className="price">${product.product_price}</p>
-              <p className="description">{product.product_description}</p>
-              <p className="stock">Stock: {product.product_quantity}</p>
-              <button
-                className="purchase-btn"
-                onClick={() => handlePurchase(product)}
-                disabled={product.product_quantity === 0}>
-                {product.product_quantity === 0 ? "Out of Stock" : "Purchase"}
-              </button>
-            </div>
-          </div>
-        ))}
-      </div>
-    </div>
-  );
-
-  const renderAdminDashboard = () => {
-    const statusCounts = getOrderCountsByStatus();
-    const recentOrders = getRecentOrders();
-
-    return (
-      <div className="admin-dashboard">
-        <h3>Dashboard</h3>
-        <div className="stats-grid">
-          <div className="stat-card">
-            <h4>Total Products</h4>
-            <div className="stat-number">{getTotalProducts()}</div>
-          </div>
-          <div className="stat-card">
-            <h4>Total Orders</h4>
-            <div className="stat-number">{getTotalOrders()}</div>
-          </div>
-          <div className="stat-card">
-            <h4>Processing Orders</h4>
-            <div className="stat-number">{statusCounts.Processing || 0}</div>
-          </div>
-          <div className="stat-card">
-            <h4>Completed Orders</h4>
-            <div className="stat-number">{statusCounts.Completed || 0}</div>
-          </div>
-        </div>
-
-        <div className="order-status-summary">
-          <h4>Orders by Status</h4>
-          {Object.entries(statusCounts).map(([status, count]) => (
-            <div key={status} className="status-item">
-              <span className="status-label">{status}:</span>
-              <span className="status-count">{count}</span>
-            </div>
-          ))}
-        </div>
-
-        <div className="recent-orders">
-          <h4>Recent Orders</h4>
-          <div className="orders-table">
-            <div className="table-header">
-              <span>Customer</span>
-              <span>Product</span>
-              <span>Quantity</span>
-              <span>Amount</span>
-              <span>Status</span>
-            </div>
-            {recentOrders.map((order) => (
-              <div key={order.order_id} className="table-row">
-                <span>{order.customer_name}</span>
-                <span>{getProductNameById(order.product_id)}</span>
-                <span>{order.product_quantity}</span>
-                <span>${order.order_amount}</span>
-                <span
-                  className={`status ${order.order_status
-                    .toLowerCase()
-                    .replace(" ", "-")}`}>
-                  {order.order_status}
-                </span>
-              </div>
-            ))}
-          </div>
-        </div>
-      </div>
-    );
-  };
-
-  const renderProductManagement = () => (
-    <div className="product-management">
-      <div className="section-header">
-        <h3>Product Management</h3>
-        <button className="add-btn" onClick={() => setShowProductForm(true)}>
-          Add Product
-        </button>
-      </div>
-
-      <div className="products-table">
-        <div className="table-header">
-          <span>Image</span>
-          <span>Name</span>
-          <span>Price</span>
-          <span>Stock</span>
-          <span>Actions</span>
-        </div>
-        {products.map((product) => (
-          <div key={product.id} className="table-row">
-            <img
-              src={product.product_image_link}
-              alt={product.product_name}
-              className="product-thumbnail"
-            />
-            <span>{product.product_name}</span>
-            <span>${product.product_price}</span>
-            <span>{product.product_quantity}</span>
-            <div className="actions">
-              <button
-                className="edit-btn"
-                onClick={() => handleEditProduct(product)}>
-                Edit
-              </button>
-              <button
-                className="delete-btn"
-                onClick={() => handleDeleteProduct(product.id)}>
-                Delete
-              </button>
-            </div>
-          </div>
-        ))}
-      </div>
-    </div>
-  );
-
-  const renderOrderManagement = () => (
-    <div className="order-management">
-      <h3>Order Management</h3>
-      <div className="orders-table">
-        <div className="table-header">
-          <span>Order ID</span>
-          <span>Customer</span>
-          <span>Email</span>
-          <span>Product</span>
-          <span>Quantity</span>
-          <span>Amount</span>
-          <span>Status</span>
-          <span>Actions</span>
-        </div>
-        {orders.map((order) => (
-          <div key={order.order_id} className="table-row">
-            <span>#{order.order_id}</span>
-            <span>{order.customer_name}</span>
-            <span>{order.customer_email}</span>
-            <span>{getProductNameById(order.product_id)}</span>
-            <span>{order.product_quantity}</span>
-            <span>${order.order_amount}</span>
-            <span
-              className={`status ${order.order_status
-                .toLowerCase()
-                .replace(" ", "-")}`}>
-              {order.order_status}
-            </span>
-            <select
-              value={order.order_status}
-              onChange={(e) =>
-                updateOrderStatus(order.order_id, e.target.value)
-              }
-              className="status-select">
-              <option value="Processing">Processing</option>
-              <option value="On Track">On Track</option>
-              <option value="Completed">Completed</option>
-              <option value="Cancelled">Cancelled</option>
-            </select>
-          </div>
-        ))}
-      </div>
-    </div>
-  );
-
-  const renderAdminView = () => (
-    <div className="admin-view">
-      <div className="admin-tabs">
-        <button
-          className={activeAdminTab === "dashboard" ? "active" : ""}
-          onClick={() => setActiveAdminTab("dashboard")}>
-          Dashboard
-        </button>
-        <button
-          className={activeAdminTab === "products" ? "active" : ""}
-          onClick={() => setActiveAdminTab("products")}>
-          Product Management
-        </button>
-        <button
-          className={activeAdminTab === "orders" ? "active" : ""}
-          onClick={() => setActiveAdminTab("orders")}>
-          Order Management
-        </button>
-      </div>
-
-      <div className="admin-content">
-        {activeAdminTab === "dashboard" && renderAdminDashboard()}
-        {activeAdminTab === "products" && renderProductManagement()}
-        {activeAdminTab === "orders" && renderOrderManagement()}
-      </div>
-    </div>
-  );
-
   return (
-    <div className="merchandise-module">
-      <div className="header">
-        <h1>Merchandise Module</h1>
-        <div className="role-switcher">
-          <button
-            className={userRole === "member" ? "active" : ""}
-            onClick={() => setUserRole("member")}>
-            Member View
-          </button>
-          <button
-            className={userRole === "admin" ? "active" : ""}
-            onClick={() => setUserRole("admin")}>
-            Admin View
-          </button>
-        </div>
-      </div>
+    <div className="view-events-container">
+      <SideBar />
 
-      {userRole === "member" ? renderMemberView() : renderAdminView()}
-
-      {/* Purchase Modal */}
       {showPurchaseModal && (
         <div className="modal-overlay">
           <div className="modal">
@@ -626,7 +282,10 @@ const Merchandise = () => {
                 placeholder="Address"
                 value={customerForm.address}
                 onChange={(e) =>
-                  setCustomerForm({ ...customerForm, address: e.target.value })
+                  setCustomerForm({
+                    ...customerForm,
+                    address: e.target.value,
+                  })
                 }
               />
             </div>
@@ -643,90 +302,49 @@ const Merchandise = () => {
         </div>
       )}
 
-      {/* Product Form Modal */}
-      {showProductForm && (
-        <div className="modal-overlay">
-          <div className="modal">
-            <h3>{editingProduct ? "Edit Product" : "Add New Product"}</h3>
-            <div className="product-form">
-              <input
-                type="text"
-                placeholder="Product Name"
-                value={productForm.product_name}
-                onChange={(e) =>
-                  setProductForm({
-                    ...productForm,
-                    product_name: e.target.value,
-                  })
-                }
-              />
-              <input
-                type="number"
-                step="0.01"
-                placeholder="Price"
-                value={productForm.product_price}
-                onChange={(e) =>
-                  setProductForm({
-                    ...productForm,
-                    product_price: e.target.value,
-                  })
-                }
-              />
-              <textarea
-                placeholder="Description"
-                value={productForm.product_description}
-                onChange={(e) =>
-                  setProductForm({
-                    ...productForm,
-                    product_description: e.target.value,
-                  })
-                }
-              />
-              <input
-                type="url"
-                placeholder="Image URL"
-                value={productForm.product_image_link}
-                onChange={(e) =>
-                  setProductForm({
-                    ...productForm,
-                    product_image_link: e.target.value,
-                  })
-                }
-              />
-              <input
-                type="number"
-                placeholder="Quantity"
-                value={productForm.product_quantity}
-                onChange={(e) =>
-                  setProductForm({
-                    ...productForm,
-                    product_quantity: e.target.value,
-                  })
-                }
-              />
-            </div>
-
-            <div className="modal-actions">
-              <button
-                className="complete-btn"
-                onClick={
-                  editingProduct ? handleUpdateProduct : handleAddProduct
-                }>
-                {editingProduct ? "Update Product" : "Add Product"}
-              </button>
-              <button
-                className="cancel-btn"
-                onClick={() => {
-                  setShowProductForm(false);
-                  setEditingProduct(null);
-                  resetProductForm();
-                }}>
-                Cancel
-              </button>
-            </div>
+      <div className="merchandise-module">
+        <div className="member-view">
+          <div className="header">
+            <h1>Merchandise Store</h1>
+          </div>
+          <div className="banner">
+            <img
+              src={marketbanner}
+              alt="Merchandise Banner"
+              className="banner-image"
+            />
+          </div>
+          <h3>Discover amazing products from all our clubs</h3>
+          <p>
+            Support your favorite communities with every purchase — each item
+            tells a story and builds a stronger club spirit!
+          </p>
+          <div className="products-grid">
+            {products.map((product) => (
+              <div key={product.id} className="product-card">
+                <img
+                  src={product.product_image_link}
+                  alt={product.product_name}
+                />
+                <div className="product-info">
+                  <h3>{product.product_name}</h3>
+                  <p className="price">${product.product_price}</p>
+                  <p className="description">{product.product_description}</p>
+                  <p className="stock">Stock: {product.product_quantity}</p>
+                  <button
+                    className="purchase-btn"
+                    onClick={() => handlePurchase(product)}
+                    disabled={product.product_quantity === 0}>
+                    {product.product_quantity === 0
+                      ? "Out of Stock"
+                      : "Purchase"}
+                  </button>
+                </div>
+              </div>
+            ))}
           </div>
         </div>
-      )}
+      </div>
     </div>
   );
 };
