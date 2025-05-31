@@ -11,8 +11,8 @@ body {
   overflow-y: auto;
 }
 .merchandise-module {
-  max-width: 1200px;
-  margin: 0 auto;
+  width: 100%;
+  /* margin: 0 auto; */
   padding: 20px;
   font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
   overflow-y: auto;
@@ -192,7 +192,7 @@ body {
 }
 
 .stat-card {
-  background: linear-gradient(135deg, #a91d3a 0%, #764ba2 100%);
+  background: linear-gradient(135deg, #a91d3a 0%, #2e2525 100%);
   color: white;
   padding: 20px;
   border-radius: 10px;
@@ -323,7 +323,7 @@ body {
 }
 
 .add-btn {
-  background: #10b981;
+  background: #a91d3a;
   color: white;
   padding: 10px 20px;
   border: none;
@@ -334,7 +334,7 @@ body {
 }
 
 .add-btn:hover {
-  background: #059669;
+  background: #92400e;
 }
 
 .section-header {
@@ -502,12 +502,12 @@ body {
 }
 
 .complete-btn {
-  background: #10b981;
+  background: #a91d3a;
   color: white;
 }
 
 .complete-btn:hover {
-  background: #059669;
+  background: #92400e;
 }
 
 .cancel-btn {
@@ -517,6 +517,16 @@ body {
 
 .cancel-btn:hover {
   background: #4b5563;
+}
+
+.merchandise-module h3 {
+  text-align: center;
+}
+
+.merchandise-module p {
+  text-align: center;
+  margin-bottom: 30px;
+  color: #000;
 }
 
 /* Responsive Design */
