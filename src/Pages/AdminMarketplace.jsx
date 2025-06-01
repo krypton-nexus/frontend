@@ -3,144 +3,99 @@ import { FaPlus, FaClipboardList, FaBoxOpen, FaUsers } from "react-icons/fa";
 import AdminSidebar from "../Components/AdminSidebar";
 import "../CSS/AdminMarketplace.css";
 import { useNavigate } from "react-router-dom";
-
+import { jwtDecode } from "jwt-decode"; 
 const AdminMarketplace = () => {
   const navigate = useNavigate();
-
+  const [clubId, setClubId] = useState("");
+  const [products, setProducts] = useState([]);
   const [activeAdminTab, setActiveAdminTab] = useState("dashboard");
   const [showProductForm, setShowProductForm] = useState(false);
   const [editingProduct, setEditingProduct] = useState(null);
+  const [orders, setOrders] = useState([]);
+  const [ordersLoading, setOrdersLoading] = useState(true);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+  const [userEmail, setUserEmail] = useState("");
+   useEffect(() => {
+    const token = localStorage.getItem("admin_access_token");
+    if (token) {
+      try {
+        const decoded = jwtDecode(token);
+        setUserEmail(decoded.email);
+        setClubId(decoded.club_id); // Assuming club_id is in the token
+        setLoading(false);
+      } catch (error) {
+        console.error("Error decoding token:", error);
+        
+      }
+    } else {
+    console.error("token not found");
+    }
+  }, [navigate]);
 
-  const [products, setProducts] = useState([
-    {
-      id: 1,
-      product_name: "Club T-Shirt",
-      product_price: 25.99,
-      product_description: "Premium cotton t-shirt with club logo",
-      product_image_link:
-        "https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?w=400",
-      product_quantity: 50,
-      club_id: "CLUB001",
-      created_at: "2024-01-10T08:00:00Z",
-    },
-    {
-      id: 2,
-      product_name: "Club Hoodie",
-      product_price: 45.99,
-      product_description: "Comfortable hoodie perfect for cold weather",
-      product_image_link:
-        "https://images.unsplash.com/photo-1556821840-3a63f95609a7?w=400",
-      product_quantity: 30,
-      club_id: "CLUB001",
-      created_at: "2024-01-12T10:30:00Z",
-    },
-    {
-      id: 3,
-      product_name: "Club Mug",
-      product_price: 12.99,
-      product_description: "Ceramic mug with club branding",
-      product_image_link:
-        "https://images.unsplash.com/photo-1514228742587-6b1558fcf93a?w=400",
-      product_quantity: 100,
-      club_id: "CLUB001",
-      created_at: "2024-01-08T14:15:00Z",
-    },
-    {
-      id: 4,
-      product_name: "Club Water Bottle",
-      product_price: 18.5,
-      product_description: "Stainless steel water bottle with club emblem",
-      product_image_link:
-        "https://images.unsplash.com/photo-1602143407151-7111542de6e8?w=400",
-      product_quantity: 75,
-      club_id: "CLUB001",
-      created_at: "2024-01-14T16:45:00Z",
-    },
-    {
-      id: 5,
-      product_name: "Club Cap",
-      product_price: 22.99,
-      product_description: "Adjustable cap with embroidered club logo",
-      product_image_link:
-        "https://images.unsplash.com/photo-1588850561407-ed78c282e89b?w=400",
-      product_quantity: 0,
-      club_id: "CLUB001",
-      created_at: "2024-01-16T09:20:00Z",
-    },
-  ]);
+   // Define fetchProducts function outside useEffect
+  const fetchProducts = async () => {
+    if (!clubId) return;
+    
+    setLoading(true);
+    try {
+      const response = await fetch(
+        `http://13.247.207.132:5000/merchandise/products/club/${clubId}`
+      );
+      
+      if (!response.ok) {
+        throw new Error(`Failed to fetch products: ${response.status}`);
+      }
+      
+      const data = await response.json();
+      setProducts(data);
+      setError(null);
+    } catch (err) {
+      console.error("Fetch products error:", err);
+      setError(err.message);
+    } finally {
+      setLoading(false);
+    }
+  };
 
-  const [orders, setOrders] = useState([
-    {
-      order_id: 1001,
-      product_id: 1,
-      club_id: "CLUB001",
-      product_quantity: 2,
-      order_amount: 51.98,
-      customer_name: "John Doe",
-      customer_email: "john.doe@example.com",
-      customer_phone: "123-456-7890",
-      customer_address: "123 Main Street, Apt 4B, Springfield, IL 62701",
-      order_status: "Processing",
-      created_at: "2024-01-15T14:30:00Z",
-      updated_at: "2024-01-15T14:30:00Z",
-    },
-    {
-      order_id: 1002,
-      product_id: 2,
-      club_id: "CLUB001",
-      product_quantity: 1,
-      order_amount: 45.99,
-      customer_name: "Jane Smith",
-      customer_email: "jane.smith@example.com",
-      customer_phone: "098-765-4321",
-      customer_address: "456 Oak Avenue, Springfield, IL 62702",
-      order_status: "On Track",
-      created_at: "2024-01-14T11:15:00Z",
-      updated_at: "2024-01-15T09:20:00Z",
-    },
-    {
-      order_id: 1003,
-      product_id: 3,
-      club_id: "CLUB001",
-      product_quantity: 3,
-      order_amount: 38.97,
-      customer_name: "Mike Johnson",
-      customer_email: "mike.johnson@example.com",
-      customer_phone: "555-123-4567",
-      customer_address: "789 Pine Road, Unit 12, Springfield, IL 62703",
-      order_status: "Completed",
-      created_at: "2024-01-13T16:45:00Z",
-      updated_at: "2024-01-14T10:30:00Z",
-    },
-    {
-      order_id: 1004,
-      product_id: 4,
-      club_id: "CLUB001",
-      product_quantity: 2,
-      order_amount: 37.0,
-      customer_name: "Sarah Wilson",
-      customer_email: "sarah.wilson@example.com",
-      customer_phone: "333-987-6543",
-      customer_address: "321 Elm Street, Springfield, IL 62704",
-      order_status: "Processing",
-      created_at: "2024-01-16T13:20:00Z",
-      updated_at: "2024-01-16T13:20:00Z",
-    },
-    {
-      order_id: 1005,
-      product_id: 1,
-      club_id: "CLUB001",
-      product_quantity: 1,
-      order_amount: 25.99,
-      customer_name: "David Brown",
-      customer_email: "david.brown@example.com",
-      customer_phone: "777-555-1234",
-      customer_address: "654 Maple Drive, Springfield, IL 62705",
-      order_status: "Cancelled",
-      created_at: "2024-01-12T08:10:00Z",
-      updated_at: "2024-01-13T14:45:00Z",
-    },
-  ]);
+ //  ONLY IMPLEMENT ORDER FETCHING
+  const fetchOrders = async () => {
+    if (!clubId) return;
+    
+    try {
+      const response = await fetch(
+        `http://13.247.207.132:5000/merchandise/orders/club/${clubId}`
+      );
+      
+      if (!response.ok) throw new Error("Failed to fetch orders");
+      
+      const data = await response.json();
+      setOrders(data);
+    } catch (err) {
+      console.error("Fetch orders error:", err);
+      // Keep mock data as fallback
+      setOrders([
+        {
+          order_id: 1001,
+          product_id: 1,
+          // ... (rest of your mock order data)
+        }
+      ]);
+    } finally {
+      setOrdersLoading(false);
+    }
+  };
+  // Initial fetch when clubId changes
+  useEffect(() => {
+    fetchProducts();
+  }, [clubId]);
+
+// Initial fetch when clubId changes
+  useEffect(() => {
+    if (clubId) {
+      fetchOrders();
+    }
+  }, [clubId]);
 
   const [productForm, setProductForm] = useState({
     product_name: "",

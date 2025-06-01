@@ -7,64 +7,29 @@ const Merchandise = () => {
   const [showPurchaseModal, setShowPurchaseModal] = useState(false);
   const [selectedProduct, setSelectedProduct] = useState(null);
   const [purchaseQuantity, setPurchaseQuantity] = useState(1);
+  const [products, setProducts] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+  
+  
+  const fetchProducts = async () => {
+    try {
+      const response = await fetch("http://13.247.207.132:5000/merchandise/products");
+      if (!response.ok) {
+        throw new Error("Failed to fetch products");
+      }
+      const data = await response.json();
+      setProducts(data);
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setLoading(false);
+    }
+  };
 
-  const [products, setProducts] = useState([
-    {
-      id: 1,
-      product_name: "Club T-Shirt",
-      product_price: 25.99,
-      product_description: "Premium cotton t-shirt with club logo",
-      product_image_link:
-        "https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?w=400",
-      product_quantity: 50,
-      club_id: "CLUB001",
-      created_at: "2024-01-10T08:00:00Z",
-    },
-    {
-      id: 2,
-      product_name: "Club Hoodie",
-      product_price: 45.99,
-      product_description: "Comfortable hoodie perfect for cold weather",
-      product_image_link:
-        "https://images.unsplash.com/photo-1556821840-3a63f95609a7?w=400",
-      product_quantity: 30,
-      club_id: "CLUB001",
-      created_at: "2024-01-12T10:30:00Z",
-    },
-    {
-      id: 3,
-      product_name: "Club Mug",
-      product_price: 12.99,
-      product_description: "Ceramic mug with club branding",
-      product_image_link:
-        "https://images.unsplash.com/photo-1514228742587-6b1558fcf93a?w=400",
-      product_quantity: 100,
-      club_id: "CLUB001",
-      created_at: "2024-01-08T14:15:00Z",
-    },
-    {
-      id: 4,
-      product_name: "Club Water Bottle",
-      product_price: 18.5,
-      product_description: "Stainless steel water bottle with club emblem",
-      product_image_link:
-        "https://images.unsplash.com/photo-1602143407151-7111542de6e8?w=400",
-      product_quantity: 75,
-      club_id: "CLUB001",
-      created_at: "2024-01-14T16:45:00Z",
-    },
-    {
-      id: 5,
-      product_name: "Club Cap",
-      product_price: 22.99,
-      product_description: "Adjustable cap with embroidered club logo",
-      product_image_link:
-        "https://images.unsplash.com/photo-1588850561407-ed78c282e89b?w=400",
-      product_quantity: 0,
-      club_id: "CLUB001",
-      created_at: "2024-01-16T09:20:00Z",
-    },
-  ]);
+  useEffect(() => {
+    fetchProducts();
+  }, []);
 
   const [orders, setOrders] = useState([
     {
@@ -161,49 +126,83 @@ const Merchandise = () => {
     setShowPurchaseModal(true);
   };
 
-  const completePurchase = () => {
-    if (
-      !customerForm.name ||
-      !customerForm.email ||
-      !customerForm.phone ||
-      !customerForm.address
-    ) {
+ // Only implement createOrder API as requested
+  const createOrder = async (orderData) => {
+    try {
+      const response = await fetch("http://13.247.207.132:5000/merchandise/orders", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          product_id: orderData.product_id,
+          club_id: orderData.club_id,
+          product_quantity: orderData.product_quantity,
+          order_amount: orderData.order_amount,
+          customer_name: orderData.customer_name,
+          customer_email: orderData.customer_email,
+          customer_phone: orderData.customer_phone,
+          customer_address: orderData.customer_address
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error("Failed to create order");
+      }
+
+      return await response.json();
+    } catch (err) {
+      console.error("Order creation error:", err);
+      throw err;
+    }
+  };
+
+  // Modified completePurchase to use the API
+  const completePurchase = async () => {
+    if (!customerForm.name || !customerForm.email || !customerForm.phone || !customerForm.address) {
       alert("Please fill in all fields");
       return;
     }
 
-    const newOrder = {
-      order_id: Math.max(...orders.map((o) => o.order_id)) + 1,
+    const orderData = {
       product_id: selectedProduct.id,
-      club_id: "CLUB001",
+      club_id: selectedProduct.club_id,
       product_quantity: purchaseQuantity,
       order_amount: selectedProduct.product_price * purchaseQuantity,
       customer_name: customerForm.name,
       customer_email: customerForm.email,
       customer_phone: customerForm.phone,
       customer_address: customerForm.address,
-      order_status: "Processing",
-      created_at: new Date().toISOString(),
-      updated_at: new Date().toISOString(),
     };
 
-    setOrders([...orders, newOrder]);
+    try {
+      // API call to create order
+      const newOrder = await createOrder(orderData);
+      
+      // Update local state
+      setOrders([...orders, {
+        ...newOrder,
+        order_status: "Processing", // Default status
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString()
+      }]);
 
-    setProducts(
-      products.map((product) =>
-        product.id === selectedProduct.id
-          ? {
-              ...product,
-              product_quantity: product.product_quantity - purchaseQuantity,
-            }
-          : product
-      )
-    );
+      // Update product quantity locally
+      setProducts(products.map(product => 
+        product.id === selectedProduct.id ? {
+          ...product,
+          product_quantity: product.product_quantity - purchaseQuantity
+        } : product
+      ));
 
-    alert("Purchase completed! Confirmation email sent.");
-    setShowPurchaseModal(false);
-    resetCustomerForm();
+      alert("Order created successfully!");
+      setShowPurchaseModal(false);
+      resetCustomerForm();
+    } catch (error) {
+      alert("Failed to create order. Please try again.");
+    }
   };
+
 
   const cancelPurchase = () => {
     setShowPurchaseModal(false);
