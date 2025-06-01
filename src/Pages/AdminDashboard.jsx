@@ -262,7 +262,6 @@ const UserDetailModal = ({ isOpen, onClose, user }) => {
   );
 };
 
-// ------------------ MembershipTable Component ------------------
 const MembershipTable = ({
   title,
   data,
@@ -270,7 +269,7 @@ const MembershipTable = ({
   onViewDetails,
   onStatusChange,
   onMemberDeletion,
-}) => {
+}) => {  
   if (!Array.isArray(data) || data.length === 0) {
     return (
       <div>
@@ -316,7 +315,7 @@ const MembershipTable = ({
         </thead>
         <tbody>
           {data.map((member) => (
-            <tr key={member.student_email}>
+            <tr key={member.email}>
               <td>{member.firstName}</td>
               <td>{member.lastName}</td>
               <td>{member.courseName}</td>
@@ -327,13 +326,13 @@ const MembershipTable = ({
                   <>
                     <button
                       className="view-btn"
-                      onClick={() => onViewDetails(member.student_email)}
+                      onClick={() => onViewDetails(member.email)}
                     >
                       View
                     </button>
                     <button
                       className="delete-btn"
-                      onClick={() => onMemberDeletion(member.student_email)}
+                      onClick={() => onMemberDeletion(member.email)}
                     >
                       Delete
                     </button>
@@ -342,14 +341,14 @@ const MembershipTable = ({
                   <>
                     <button
                       className="view-btn"
-                      onClick={() => onViewDetails(member.student_email)}
+                      onClick={() => onViewDetails(member.email)}
                     >
                       View
                     </button>
                     <button
                       className="accept-btn"
                       onClick={() =>
-                        onStatusChange("Approved", member.student_email)
+                        onStatusChange("Approved", member.email)
                       }
                     >
                       Accept
@@ -357,7 +356,7 @@ const MembershipTable = ({
                     <button
                       className="reject-btn"
                       onClick={() =>
-                        onStatusChange("rejected", member.student_email)
+                        onStatusChange("rejected", member.email)
                       }
                     >
                       Reject
@@ -373,7 +372,6 @@ const MembershipTable = ({
   );
 };
 
-// ------------------ Main AdminDashboard Component ------------------
 
 const AdminDashboard = () => {
   // ---------------------- State Declarations ----------------------
@@ -457,20 +455,20 @@ const AdminDashboard = () => {
     }
   };
 
-  const fetchMembershipData = async () => {
+  const fetchMembershipData = async () => {    
     if (!clubId) return;
     try {
       const membershipPromise = apiGet(
         `/membership/list?club_id=${clubId}`,
         adminAccessToken
       );
-      const studentPromise = apiGet("/student/list", adminAccessToken);
+      const studentPromise = apiGet("/student/list", adminAccessToken);      
       const [membershipData, studentData] = await Promise.all([
         membershipPromise,
         studentPromise,
       ]);
       const memberships = membershipData.memberships || [];
-      const allStudents = studentData.students || [];
+      const allStudents = studentData.students || [];      
       const emailToStudentDataMap = allStudents.reduce((acc, student) => {
         acc[student.email] = {
           firstName: student.first_name,
@@ -484,14 +482,14 @@ const AdminDashboard = () => {
       const enrichedMemberships = memberships.map((member) => ({
         ...member,
         firstName:
-          emailToStudentDataMap[member.student_email]?.firstName || "Unknown",
+          emailToStudentDataMap[member.email]?.firstName || "Unknown",
         lastName:
-          emailToStudentDataMap[member.student_email]?.lastName || "Unknown",
+          emailToStudentDataMap[member.email]?.lastName || "Unknown",
         courseName:
-          emailToStudentDataMap[member.student_email]?.courseName || "Unknown",
-        year: emailToStudentDataMap[member.student_email]?.year || "Unknown",
+          emailToStudentDataMap[member.email]?.courseName || "Unknown",
+        year: emailToStudentDataMap[member.email]?.year || "Unknown",
         faculty:
-          emailToStudentDataMap[member.student_email]?.faculty || "Unknown",
+          emailToStudentDataMap[member.email]?.faculty || "Unknown",
       }));
       setNewMembershipRequests(
         enrichedMemberships.filter((m) => m.status === "Pending")
@@ -540,6 +538,7 @@ const AdminDashboard = () => {
   };
 
   const handleViewDetails = async (email) => {
+    
     try {
       const data = await apiGet(`/student/${email}`, adminAccessToken);
       setModalUserData(data);
@@ -553,7 +552,7 @@ const AdminDashboard = () => {
   const handleMembershipStatus = async (action, email) => {
     try {
       const requestBody = {
-        student_email: email,
+        email: email,
         club_id: clubId,
         status: action,
       };
@@ -569,11 +568,11 @@ const AdminDashboard = () => {
           } membership request for ${email}.`
         );
         setNewMembershipRequests((prev) =>
-          prev.filter((member) => member.student_email !== email)
+          prev.filter((member) => member.email !== email)
         );
         if (action === "Approved") {
           const approvedMember = newMembershipRequests.find(
-            (member) => member.student_email === email
+            (member) => member.email === email
           );
           setCurrentMembers((prev) => [...prev, approvedMember]);
         }
