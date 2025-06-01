@@ -8,12 +8,13 @@
   padding: 20px;
   height: 100vh;
   box-shadow: 2px 0 5px rgba(0, 0, 0, 0.2);
-  position: relative; /* Ensure absolute elements inside are positioned relative to sidebar */
+  position: relative;
 }
 
 .sidebar .logo {
   width: 200px;
-  margin-bottom: 30px;
+  margin-top: 30px;
+  margin-bottom: 20px;
 }
 
 .menu {
@@ -163,4 +164,3 @@
   padding: 8px 12px;
   color: inherit;
 }
-

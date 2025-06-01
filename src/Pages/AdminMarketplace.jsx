@@ -1,9 +1,10 @@
 import React, { useState, useEffect } from "react";
 import { FaPlus, FaClipboardList, FaBoxOpen, FaUsers } from "react-icons/fa";
 import AdminSidebar from "../Components/AdminSidebar";
-import "../CSS/AdminMarketplace.css";
+import "../CSS/Merchandise.css";
+// import "../CSS/AdminMarketplace.css";
 import { useNavigate } from "react-router-dom";
-import { jwtDecode } from "jwt-decode"; 
+import { jwtDecode } from "jwt-decode";
 const AdminMarketplace = () => {
   const navigate = useNavigate();
   const [clubId, setClubId] = useState("");
@@ -16,7 +17,7 @@ const AdminMarketplace = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [userEmail, setUserEmail] = useState("");
-   useEffect(() => {
+  useEffect(() => {
     const token = localStorage.getItem("admin_access_token");
     if (token) {
       try {
@@ -26,27 +27,26 @@ const AdminMarketplace = () => {
         setLoading(false);
       } catch (error) {
         console.error("Error decoding token:", error);
-        
       }
     } else {
-    console.error("token not found");
+      console.error("token not found");
     }
   }, [navigate]);
 
-   // Define fetchProducts function outside useEffect
+  // Define fetchProducts function outside useEffect
   const fetchProducts = async () => {
     if (!clubId) return;
-    
+
     setLoading(true);
     try {
       const response = await fetch(
         `http://13.247.207.132:5000/merchandise/products/club/${clubId}`
       );
-      
+
       if (!response.ok) {
         throw new Error(`Failed to fetch products: ${response.status}`);
       }
-      
+
       const data = await response.json();
       setProducts(data);
       setError(null);
@@ -58,17 +58,17 @@ const AdminMarketplace = () => {
     }
   };
 
- //  ONLY IMPLEMENT ORDER FETCHING
+  //  ONLY IMPLEMENT ORDER FETCHING
   const fetchOrders = async () => {
     if (!clubId) return;
-    
+
     try {
       const response = await fetch(
         `http://13.247.207.132:5000/merchandise/orders/club/${clubId}`
       );
-      
+
       if (!response.ok) throw new Error("Failed to fetch orders");
-      
+
       const data = await response.json();
       setOrders(data);
     } catch (err) {
@@ -79,7 +79,7 @@ const AdminMarketplace = () => {
           order_id: 1001,
           product_id: 1,
           // ... (rest of your mock order data)
-        }
+        },
       ]);
     } finally {
       setOrdersLoading(false);
@@ -90,7 +90,7 @@ const AdminMarketplace = () => {
     fetchProducts();
   }, [clubId]);
 
-// Initial fetch when clubId changes
+  // Initial fetch when clubId changes
   useEffect(() => {
     if (clubId) {
       fetchOrders();

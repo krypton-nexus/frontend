@@ -265,13 +265,16 @@ body {
 
 .orders-table .table-header,
 .orders-table .table-row {
-  grid-template-columns: 80px 1fr 1fr 80px 80px 100px 100px;
-  gap: 15px;
+  display: grid;
+  grid-template-columns: 70px 1fr 1.9fr 0.6fr 70px 80px 100px 120px;
+  gap: 10px;
+  align-items: center;
+  justify-content: center;
 }
 
 .recent-orders .table-header,
 .recent-orders .table-row {
-  grid-template-columns: 1fr 80px 100px 100px;
+  grid-template-columns: 1fr 1fr 80px 100px 100px;
   gap: 15px;
 }
 
