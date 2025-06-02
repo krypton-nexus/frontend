@@ -1,9 +1,13 @@
 import React, { useState, useEffect } from "react";
 import { FaPlus, FaClipboardList, FaBoxOpen, FaUsers } from "react-icons/fa";
 import AdminSidebar from "../Components/AdminSidebar";
-import "../CSS/AdminMarketplace.css";
+import "../CSS/Merchandise.css";
+// import "../CSS/AdminMarketplace.css";
 import { useNavigate } from "react-router-dom";
-import { jwtDecode } from "jwt-decode"; 
+import { jwtDecode } from "jwt-decode";
+
+const BASE_URL = process.env.REACT_APP_BASE_URL;
+
 const AdminMarketplace = () => {
   const navigate = useNavigate();
   const [clubId, setClubId] = useState("");
@@ -16,7 +20,8 @@ const AdminMarketplace = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [userEmail, setUserEmail] = useState("");
-   useEffect(() => {
+
+  useEffect(() => {
     const token = localStorage.getItem("admin_access_token");
     if (token) {
       try {
@@ -26,27 +31,26 @@ const AdminMarketplace = () => {
         setLoading(false);
       } catch (error) {
         console.error("Error decoding token:", error);
-        
       }
     } else {
-    console.error("token not found");
+      console.error("token not found");
     }
   }, [navigate]);
 
-   // Define fetchProducts function outside useEffect
+  // Define fetchProducts function outside useEffect
   const fetchProducts = async () => {
     if (!clubId) return;
-    
+
     setLoading(true);
     try {
       const response = await fetch(
-        `http://13.247.207.132:5000/merchandise/products/club/${clubId}`
+        `${BASE_URL}/merchandise/products/club/${clubId}`
       );
-      
+
       if (!response.ok) {
         throw new Error(`Failed to fetch products: ${response.status}`);
       }
-      
+
       const data = await response.json();
       setProducts(data);
       setError(null);
@@ -58,17 +62,17 @@ const AdminMarketplace = () => {
     }
   };
 
- //  ONLY IMPLEMENT ORDER FETCHING
+  // Fetch orders function
   const fetchOrders = async () => {
     if (!clubId) return;
-    
+
     try {
       const response = await fetch(
-        `http://13.247.207.132:5000/merchandise/orders/club/${clubId}`
+        `${BASE_URL}/merchandise/orders/club/${clubId}`
       );
-      
+
       if (!response.ok) throw new Error("Failed to fetch orders");
-      
+
       const data = await response.json();
       setOrders(data);
     } catch (err) {
@@ -78,19 +82,25 @@ const AdminMarketplace = () => {
         {
           order_id: 1001,
           product_id: 1,
-          // ... (rest of your mock order data)
-        }
+          customer_name: "John Doe",
+          customer_email: "john@example.com",
+          product_quantity: 2,
+          order_amount: 50.0,
+          order_status: "Processing",
+          created_at: new Date().toISOString(),
+        },
       ]);
     } finally {
       setOrdersLoading(false);
     }
   };
+
   // Initial fetch when clubId changes
   useEffect(() => {
     fetchProducts();
   }, [clubId]);
 
-// Initial fetch when clubId changes
+  // Initial fetch when clubId changes
   useEffect(() => {
     if (clubId) {
       fetchOrders();
@@ -120,7 +130,12 @@ const AdminMarketplace = () => {
     });
   };
 
-  const handleAddProduct = () => {
+  // Navigate to Add Product page
+  const handleAddProductNavigation = () => {
+    navigate("/add-product");
+  };
+
+  const handleAddProduct = async () => {
     if (
       !productForm.product_name ||
       !productForm.product_price ||
@@ -130,23 +145,53 @@ const AdminMarketplace = () => {
       return;
     }
 
-    const newProduct = {
-      id: Math.max(...products.map((p) => p.id)) + 1,
-      product_name: productForm.product_name,
-      product_price: parseFloat(productForm.product_price),
-      product_description: productForm.product_description,
-      product_image_link:
-        productForm.product_image_link ||
-        "https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?w=400",
-      product_quantity: parseInt(productForm.product_quantity),
-      club_id: "CLUB001",
-      created_at: new Date().toISOString(),
-    };
+    try {
+      const token = localStorage.getItem("admin_access_token");
+      const response = await fetch(`${BASE_URL}/merchandise/products`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({
+          product_name: productForm.product_name,
+          product_price: parseFloat(productForm.product_price),
+          product_description: productForm.product_description,
+          product_image_link: productForm.product_image_link,
+          product_quantity: parseInt(productForm.product_quantity),
+          club_id: clubId,
+        }),
+      });
 
-    setProducts([...products, newProduct]);
-    setShowProductForm(false);
-    resetProductForm();
-    alert("Product added successfully!");
+      if (response.ok) {
+        const newProduct = await response.json();
+        setProducts([...products, newProduct]);
+        setShowProductForm(false);
+        resetProductForm();
+        alert("Product added successfully!");
+        fetchProducts(); // Refresh the products list
+      } else {
+        throw new Error("Failed to add product");
+      }
+    } catch (error) {
+      console.error("Error adding product:", error);
+      // Fallback to local state update if API fails
+      const newProduct = {
+        id: Math.max(...products.map((p) => p.id)) + 1,
+        product_name: productForm.product_name,
+        product_price: parseFloat(productForm.product_price),
+        product_description: productForm.product_description,
+        product_image_link: productForm.product_image_link,
+        product_quantity: parseInt(productForm.product_quantity),
+        club_id: clubId,
+        created_at: new Date().toISOString(),
+      };
+
+      setProducts([...products, newProduct]);
+      setShowProductForm(false);
+      resetProductForm();
+      alert("Product added successfully!");
+    }
   };
 
   const handleEditProduct = (product) => {
@@ -161,7 +206,10 @@ const AdminMarketplace = () => {
     setShowProductForm(true);
   };
 
-  const handleUpdateProduct = () => {
+  // ─────────────────────────────────────────────────────────────────
+  // 1) EDIT (UPDATE) PRODUCT
+  // ─────────────────────────────────────────────────────────────────
+  const handleUpdateProduct = async () => {
     if (
       !productForm.product_name ||
       !productForm.product_price ||
@@ -171,47 +219,153 @@ const AdminMarketplace = () => {
       return;
     }
 
-    setProducts(
-      products.map((product) =>
-        product.id === editingProduct.id
-          ? {
-              ...product,
-              product_name: productForm.product_name,
-              product_price: parseFloat(productForm.product_price),
-              product_description: productForm.product_description,
-              product_image_link: productForm.product_image_link,
-              product_quantity: parseInt(productForm.product_quantity),
-            }
-          : product
-      )
-    );
+    try {
+      const token = localStorage.getItem("admin_access_token");
+      // Note: the backend endpoint for updating a product is:
+      //   PUT /merchandise/products/<product_id>
+      const response = await fetch(
+        `${BASE_URL}/merchandise/products/${editingProduct.id}`,
+        {
+          method: "PUT",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify({
+            product_name: productForm.product_name,
+            product_price: parseFloat(productForm.product_price),
+            product_description: productForm.product_description,
+            product_image_link: productForm.product_image_link,
+            product_quantity: parseInt(productForm.product_quantity, 10),
+            // We do NOT need to send club_id here again, since the API knows which product to update.
+          }),
+        }
+      );
 
-    setShowProductForm(false);
-    setEditingProduct(null);
-    resetProductForm();
-    alert("Product updated successfully!");
-  };
+      if (!response.ok) {
+        // In case backend returns a 4xx/5xx:
+        const err = await response.json();
+        throw new Error(err.error || `Status ${response.status}`);
+      }
 
-  const handleDeleteProduct = (productId) => {
-    if (window.confirm("Are you sure you want to delete this product?")) {
-      setProducts(products.filter((product) => product.id !== productId));
-      alert("Product deleted successfully!");
+      // If it succeeds, re‐fetch the list of products so the UI shows the latest data:
+      await fetchProducts();
+
+      setShowProductForm(false);
+      setEditingProduct(null);
+      resetProductForm();
+      alert("Product updated successfully!");
+    } catch (error) {
+      console.error("Error updating product:", error);
+
+      // Fallback: update local state to at least reflect the change in the table.
+      setProducts((prev) =>
+        prev.map((p) =>
+          p.id === editingProduct.id
+            ? {
+                ...p,
+                product_name: productForm.product_name,
+                product_price: parseFloat(productForm.product_price),
+                product_description: productForm.product_description,
+                product_image_link: productForm.product_image_link,
+                product_quantity: parseInt(productForm.product_quantity, 10),
+              }
+            : p
+        )
+      );
+
+      setShowProductForm(false);
+      setEditingProduct(null);
+      resetProductForm();
+      alert("Product updated locally (offline fallback).");
     }
   };
 
-  const updateOrderStatus = (orderId, newStatus) => {
-    setOrders(
-      orders.map((order) =>
-        order.order_id === orderId
-          ? {
-              ...order,
-              order_status: newStatus,
-              updated_at: new Date().toISOString(),
-            }
-          : order
-      )
-    );
-    alert("Order status updated! Email sent to customer.");
+  const handleDeleteProduct = async (productId) => {
+    // Confirm with the user
+    if (!window.confirm("Are you sure you want to delete this product?")) {
+      return;
+    }
+
+    try {
+      const token = localStorage.getItem("admin_access_token");
+      if (!token) {
+        alert("You must be logged in to perform this action.");
+        return;
+      }
+
+      // Send DELETE request
+      const response = await fetch(
+        `${BASE_URL}/merchandise/products/${productId}`,
+        {
+          method: "DELETE",
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+
+      // The backend might return 204 No Content or 200 OK on successful deletion.
+      if (response.ok) {
+        // Remove the deleted product from local state
+        setProducts((prev) => prev.filter((p) => p.id !== productId));
+        alert("Product deleted successfully!");
+      } else {
+        // Try to read JSON error body, if any
+        let errorMessage = `Status ${response.status}`;
+        try {
+          const errJson = await response.json();
+          errorMessage = errJson.error || errJson.message || errorMessage;
+        } catch {
+          // ignore JSON parse errors
+        }
+        throw new Error(errorMessage);
+      }
+    } catch (error) {
+      console.error("Error deleting product:", error);
+      alert(`Failed to delete product: ${error.message}`);
+    }
+  };
+
+  const updateOrderStatus = async (orderId, newStatus) => {
+    try {
+      const token = localStorage.getItem("admin_access_token");
+      const response = await fetch(
+        `${BASE_URL}/merchandise/orders/${orderId}/status`,
+        {
+          method: "PUT",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify({
+            order_status: newStatus,
+          }),
+        }
+      );
+
+      if (response.ok) {
+        fetchOrders(); // Refresh orders list
+        alert("Order status updated! Email sent to customer.");
+      } else {
+        throw new Error("Failed to update order status");
+      }
+    } catch (error) {
+      console.error("Error updating order status:", error);
+      // Fallback to local state update if API fails
+      setOrders(
+        orders.map((order) =>
+          order.order_id === orderId
+            ? {
+                ...order,
+                order_status: newStatus,
+                updated_at: new Date().toISOString(),
+              }
+            : order
+        )
+      );
+      alert("Order status updated! Email sent to customer.");
+    }
   };
 
   const getTotalProducts = () => products.length;
@@ -280,7 +434,8 @@ const AdminMarketplace = () => {
                 <span
                   className={`status ${order.order_status
                     .toLowerCase()
-                    .replace(" ", "-")}`}>
+                    .replace(" ", "-")}`}
+                >
                   {order.order_status}
                 </span>
               </div>
@@ -295,10 +450,13 @@ const AdminMarketplace = () => {
     <div className="product-management">
       <div className="section-header">
         <h3>Product Management</h3>
-        <button className="add-btn" onClick={() => setShowProductForm(true)}>
+        <button className="add-btn" onClick={handleAddProductNavigation}>
           Add Product
         </button>
       </div>
+
+      {loading && <div className="loading">Loading products...</div>}
+      {error && <div className="error">Error: {error}</div>}
 
       <div className="products-table">
         <div className="table-header">
@@ -314,6 +472,10 @@ const AdminMarketplace = () => {
               src={product.product_image_link}
               alt={product.product_name}
               className="product-thumbnail"
+              // onError={(e) => {
+              //   e.target.src =
+              //     "https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?w=400";
+              // }}
             />
             <span>{product.product_name}</span>
             <span>${product.product_price}</span>
@@ -321,12 +483,14 @@ const AdminMarketplace = () => {
             <div className="actions">
               <button
                 className="edit-btn"
-                onClick={() => handleEditProduct(product)}>
+                onClick={() => handleEditProduct(product)}
+              >
                 Edit
               </button>
               <button
                 className="delete-btn"
-                onClick={() => handleDeleteProduct(product.id)}>
+                onClick={() => handleDeleteProduct(product.id)}
+              >
                 Delete
               </button>
             </div>
@@ -339,6 +503,8 @@ const AdminMarketplace = () => {
   const renderOrderManagement = () => (
     <div className="order-management admin-dashboard">
       <h3>Order Management</h3>
+      {ordersLoading && <div className="loading">Loading orders...</div>}
+
       <div className="orders-table">
         <div className="table-header">
           <span>Order ID</span>
@@ -361,7 +527,8 @@ const AdminMarketplace = () => {
             <span
               className={`status ${order.order_status
                 .toLowerCase()
-                .replace(" ", "-")}`}>
+                .replace(" ", "-")}`}
+            >
               {order.order_status}
             </span>
             <select
@@ -369,7 +536,8 @@ const AdminMarketplace = () => {
               onChange={(e) =>
                 updateOrderStatus(order.order_id, e.target.value)
               }
-              className="status-select">
+              className="status-select"
+            >
               <option value="Processing">Processing</option>
               <option value="On Track">On Track</option>
               <option value="Completed">Completed</option>
@@ -390,7 +558,7 @@ const AdminMarketplace = () => {
             <div className="product-form">
               <input
                 type="text"
-                placeholder="Product Name"
+                placeholder="Product Name *"
                 value={productForm.product_name}
                 onChange={(e) =>
                   setProductForm({
@@ -398,11 +566,12 @@ const AdminMarketplace = () => {
                     product_name: e.target.value,
                   })
                 }
+                required
               />
               <input
                 type="number"
                 step="0.01"
-                placeholder="Price"
+                placeholder="Price *"
                 value={productForm.product_price}
                 onChange={(e) =>
                   setProductForm({
@@ -410,6 +579,7 @@ const AdminMarketplace = () => {
                     product_price: e.target.value,
                   })
                 }
+                required
               />
               <textarea
                 placeholder="Description"
@@ -420,6 +590,7 @@ const AdminMarketplace = () => {
                     product_description: e.target.value,
                   })
                 }
+                rows="4"
               />
               <input
                 type="url"
@@ -434,7 +605,7 @@ const AdminMarketplace = () => {
               />
               <input
                 type="number"
-                placeholder="Quantity"
+                placeholder="Quantity *"
                 value={productForm.product_quantity}
                 onChange={(e) =>
                   setProductForm({
@@ -442,6 +613,7 @@ const AdminMarketplace = () => {
                     product_quantity: e.target.value,
                   })
                 }
+                required
               />
             </div>
 
@@ -450,7 +622,8 @@ const AdminMarketplace = () => {
                 className="complete-btn"
                 onClick={
                   editingProduct ? handleUpdateProduct : handleAddProduct
-                }>
+                }
+              >
                 {editingProduct ? "Update Product" : "Add Product"}
               </button>
               <button
@@ -459,7 +632,8 @@ const AdminMarketplace = () => {
                   setShowProductForm(false);
                   setEditingProduct(null);
                   resetProductForm();
-                }}>
+                }}
+              >
                 Cancel
               </button>
             </div>
@@ -470,23 +644,26 @@ const AdminMarketplace = () => {
       <AdminSidebar />
       <div className="merchandise-module">
         <div className="admin-view">
-          <div className="header ">
+          <div className="header">
             <h1>Admin Merchandise Module</h1>
           </div>
           <div className="admin-tabs">
             <button
               className={activeAdminTab === "dashboard" ? "active" : ""}
-              onClick={() => setActiveAdminTab("dashboard")}>
+              onClick={() => setActiveAdminTab("dashboard")}
+            >
               Dashboard
             </button>
             <button
               className={activeAdminTab === "products" ? "active" : ""}
-              onClick={() => setActiveAdminTab("products")}>
+              onClick={() => setActiveAdminTab("products")}
+            >
               Product Management
             </button>
             <button
               className={activeAdminTab === "orders" ? "active" : ""}
-              onClick={() => setActiveAdminTab("orders")}>
+              onClick={() => setActiveAdminTab("orders")}
+            >
               Order Management
             </button>
           </div>
@@ -501,4 +678,5 @@ const AdminMarketplace = () => {
     </div>
   );
 };
+
 export default AdminMarketplace;

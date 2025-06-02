@@ -307,10 +307,9 @@ const Merchandise = () => {
             <h1>Merchandise Store</h1>
           </div>
           <div className="banner">
-            <img
+            <img id="bannerImage"
               src={marketbanner}
               alt="Merchandise Banner"
-              className="banner-image"
             />
           </div>
           <h3>Discover amazing products from all our clubs</h3>

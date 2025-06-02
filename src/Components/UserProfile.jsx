@@ -50,28 +50,43 @@ const UserProfile = ({ open, onClose }) => {
 
   return (
     <Dialog open={open} onClose={onClose}>
-      <h3>User Profile</h3>
-      <DialogContent>
-        {error && <p className="error-message">{error}</p>}
-        {user ? (
-          <div className="profile-details">
-            <div className="user-avatar">
-              <FaUserCircle size={80} />
+      <div className="upd">
+        <h3>User Profile</h3>
+        <DialogContent>
+          {error && <p className="error-message">{error}</p>}
+          {user ? (
+            <div className="profile-details">
+              <div className="user-avatar">
+                <FaUserCircle size={80} />
+              </div>
+
+              <div className="userInfo">
+                <div>
+                  Full Name:{" "}
+                  <b>
+                    {user.first_name} {user.last_name}
+                  </b>
+                </div>
+                <div>
+                  {" "}
+                  Email: <b>{user.email}</b>
+                </div>
+                <div>
+                  {" "}
+                  Mobile: <b>{user.phone_number}</b>
+                </div>
+                <div>
+                  {" "}
+                  Member Since:{" "}
+                  <b>{new Date(user.created_at).toLocaleDateString()}</b>
+                </div>
+              </div>
             </div>
-            <p>
-              {" "}
-              Full Name: {user.first_name} {user.last_name}
-            </p>
-            <p>Email: {user.email}</p>
-            <p>Mobile: {user.phone_number}</p>
-            <p>
-              Member Since: {new Date(user.created_at).toLocaleDateString()}
-            </p>
-          </div>
-        ) : (
-          !error && <p>Loading user details...</p>
-        )}
-      </DialogContent>
+          ) : (
+            !error && <p>Loading user details...</p>
+          )}
+        </DialogContent>
+      </div>
     </Dialog>
   );
 };

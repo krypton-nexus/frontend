@@ -19,6 +19,16 @@ body {
   cursor: pointer;
 }
 
+.userInfo{
+  width: 100%;
+  gap: 20px;
+  display: flex;
+  flex-direction: column;
+  align-items: left;
+  margin-bottom: 20px;
+
+}
+
 .nav-menu .notification .badge {
   background: red;
   color: white;
@@ -48,15 +58,24 @@ body {
 }
 
 .user-avatar {
-  margin-top: -20px;
-  margin-bottom: 20px;
+margin-bottom: 20px;
   align-items: center;
 }
 
 .user-info h2 {
   margin: 0;
 }
+.upd{
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
 
+.profile-details{
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
 .profile-details table {
   width: 100%;
   border-collapse: collapse;
@@ -88,7 +107,5 @@ body {
 
 h3 {
   font-size: 20px;
-  margin-bottom: 10px;
   color: #a91d3a;
-  /* text-align: center; */
 }
