@@ -9,6 +9,7 @@ import "../CSS/SideBar.css";
 import { FaSearch, FaUserCircle } from "react-icons/fa";
 import { Ban } from "lucide-react";
 import MemberAnalysisCharts from "../Components/MemberAnalysisCharts";
+import { color } from "@mui/system";
 
 const BASE_URL = process.env.REACT_APP_BASE_URL;
 
@@ -168,13 +169,12 @@ const NotificationPopup = ({
                 key={notif.id}
                 style={{
                   fontWeight: notif.is_read ? "normal" : "bold",
-                  borderBottom: "1px solid #ccc",
                   padding: "5px 0",
                 }}
               >
-                <div>{notif.notification}</div>
+                {notif.notification}
                 <div style={{ fontSize: "0.8em", color: "#666" }}>
-                  {notif.formattedDate}
+                  {new Date(notif.created_at).toLocaleString()}
                 </div>
               </li>
             ))}
@@ -269,7 +269,7 @@ const MembershipTable = ({
   onViewDetails,
   onStatusChange,
   onMemberDeletion,
-}) => {  
+}) => {
   if (!Array.isArray(data) || data.length === 0) {
     return (
       <div>
@@ -347,17 +347,13 @@ const MembershipTable = ({
                     </button>
                     <button
                       className="accept-btn"
-                      onClick={() =>
-                        onStatusChange("Approved", member.email)
-                      }
+                      onClick={() => onStatusChange("Approved", member.email)}
                     >
                       Accept
                     </button>
                     <button
                       className="reject-btn"
-                      onClick={() =>
-                        onStatusChange("rejected", member.email)
-                      }
+                      onClick={() => onStatusChange("rejected", member.email)}
                     >
                       Reject
                     </button>
@@ -371,7 +367,6 @@ const MembershipTable = ({
     </div>
   );
 };
-
 
 const AdminDashboard = () => {
   // ---------------------- State Declarations ----------------------
@@ -395,6 +390,8 @@ const AdminDashboard = () => {
 
   // ---------------------- Helper Functions ----------------------
   const getAdminEmailFromToken = useCallback((token) => {
+    console.log(token);
+
     try {
       const decodedToken = jwtDecode(token);
       return decodedToken.email;
@@ -455,20 +452,20 @@ const AdminDashboard = () => {
     }
   };
 
-  const fetchMembershipData = async () => {    
+  const fetchMembershipData = async () => {
     if (!clubId) return;
     try {
       const membershipPromise = apiGet(
         `/membership/list?club_id=${clubId}`,
         adminAccessToken
       );
-      const studentPromise = apiGet("/student/list", adminAccessToken);      
+      const studentPromise = apiGet("/student/list", adminAccessToken);
       const [membershipData, studentData] = await Promise.all([
         membershipPromise,
         studentPromise,
       ]);
       const memberships = membershipData.memberships || [];
-      const allStudents = studentData.students || [];      
+      const allStudents = studentData.students || [];
       const emailToStudentDataMap = allStudents.reduce((acc, student) => {
         acc[student.email] = {
           firstName: student.first_name,
@@ -481,15 +478,12 @@ const AdminDashboard = () => {
       }, {});
       const enrichedMemberships = memberships.map((member) => ({
         ...member,
-        firstName:
-          emailToStudentDataMap[member.email]?.firstName || "Unknown",
-        lastName:
-          emailToStudentDataMap[member.email]?.lastName || "Unknown",
+        firstName: emailToStudentDataMap[member.email]?.firstName || "Unknown",
+        lastName: emailToStudentDataMap[member.email]?.lastName || "Unknown",
         courseName:
           emailToStudentDataMap[member.email]?.courseName || "Unknown",
         year: emailToStudentDataMap[member.email]?.year || "Unknown",
-        faculty:
-          emailToStudentDataMap[member.email]?.faculty || "Unknown",
+        faculty: emailToStudentDataMap[member.email]?.faculty || "Unknown",
       }));
       setNewMembershipRequests(
         enrichedMemberships.filter((m) => m.status === "Pending")
@@ -538,7 +532,6 @@ const AdminDashboard = () => {
   };
 
   const handleViewDetails = async (email) => {
-    
     try {
       const data = await apiGet(`/student/${email}`, adminAccessToken);
       setModalUserData(data);
@@ -551,29 +544,38 @@ const AdminDashboard = () => {
 
   const handleMembershipStatus = async (action, email) => {
     try {
+      // build the correct request payload: student_id instead of email
       const requestBody = {
-        email: email,
+        student_email: email,
         club_id: clubId,
         status: action,
       };
+
+      // call PUT /membership/update/status
       const data = await apiPut(
         `/membership/update/status`,
         adminAccessToken,
         requestBody
       );
-      if (data) {
-        toast.success(
-          `${
-            action === "Approved" ? "Approved" : "Rejected"
-          } membership request for ${email}.`
+
+      toast.success(
+        `${
+          action === "Approved" ? "Approved" : "Rejected"
+        } membership request for ${email}.`
+      );
+
+      // Remove that member from the “pending” list
+      setNewMembershipRequests((prev) =>
+        prev.filter((member) => member.email !== email)
+      );
+
+      // If we approved, add them to “currentMembers”
+      if (action === "Approved") {
+        // Find the now‐approved member’s record in newMembershipRequests
+        const approvedMember = newMembershipRequests.find(
+          (member) => member.email === email
         );
-        setNewMembershipRequests((prev) =>
-          prev.filter((member) => member.email !== email)
-        );
-        if (action === "Approved") {
-          const approvedMember = newMembershipRequests.find(
-            (member) => member.email === email
-          );
+        if (approvedMember) {
           setCurrentMembers((prev) => [...prev, approvedMember]);
         }
       }

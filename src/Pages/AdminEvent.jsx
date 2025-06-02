@@ -417,7 +417,7 @@ const AdminEvent = () => {
   const [participantCounts, setParticipantCounts] = useState({});
   const [trendingImages, setTrendingImages] = useState([]);
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
-  const [activeTab, setActiveTab] = useState("today");
+  const [activeTab, setActiveTab] = useState("upcoming");
   const [menuOpen, setMenuOpen] = useState(null);
   const [editModalOpen, setEditModalOpen] = useState(false);
   const [editEvent, setEditEvent] = useState(null);
@@ -609,6 +609,8 @@ const AdminEvent = () => {
 
   // Filter events based on active tab
   const todayDate = new Date().toDateString();
+  console.log(events);
+
   const filteredEvents = events.filter((event) => {
     const eventDate = new Date(event.event_date);
     if (activeTab === "upcoming") {
@@ -655,7 +657,6 @@ const AdminEvent = () => {
                     <th>Venue</th>
                     <th>Time</th>
                     <th>Yes Count</th>
-                    <th>No Count</th>
                     <th>Maybe Count</th>
                   </tr>
                 </thead>
@@ -665,9 +666,8 @@ const AdminEvent = () => {
                       <td>{event.event_name}</td>
                       <td>{event.venue}</td>
                       <td>{new Date(event.event_date).toLocaleTimeString()}</td>
-                      <td>{event.yes_count || 0}</td>
-                      <td>{event.no_count || 0}</td>
-                      <td>{event.maybe_count || 0}</td>
+                      <td>{event.participant_count || 0}</td>
+                      <td>{event.count_maybe || 0}</td>
                     </tr>
                   ))}
                 </tbody>
@@ -715,18 +715,18 @@ const AdminEvent = () => {
         </div>
         <div className="all-event-tabs2">
           <span
+            className={`event-tab ${activeTab === "past" ? "active-tab" : ""}`}
+            onClick={() => setActiveTab("past")}
+          >
+            Past Events
+          </span>
+          <span
             className={`event-tab ${
               activeTab === "upcoming" ? "active-tab" : ""
             }`}
             onClick={() => setActiveTab("upcoming")}
           >
             Upcoming Events
-          </span>
-          <span
-            className={`event-tab ${activeTab === "past" ? "active-tab" : ""}`}
-            onClick={() => setActiveTab("past")}
-          >
-            Past Events
           </span>
         </div>
         {loading ? (

@@ -308,7 +308,7 @@ body {
 /* Task Board: vertical scrolling inside right panel */
 .task-board {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(270px, 1fr));
   gap: 0.5rem;
   /* max-height: calc(100vh - 250px); */
   overflow-y: auto;

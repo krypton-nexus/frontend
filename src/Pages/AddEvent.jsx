@@ -6,6 +6,10 @@ import AdminSidebar from "../Components/AdminSidebar";
 import Snackbar from "@mui/material/Snackbar";
 import Alert from "@mui/material/Alert";
 
+
+const BASE_URL = process.env.REACT_APP_BASE_URL;
+
+
 AWS.config.update({
   accessKeyId: "AKIAUQ4L3D64ZBVKU2W4",
   secretAccessKey: "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",
@@ -110,7 +114,7 @@ const AddEvent = () => {
     };
 
     try {
-      const response = await fetch("http://43.205.202.255:5000/event/create", {
+      const response = await fetch(`{$BASE_URL}/event/create`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

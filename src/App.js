@@ -226,14 +226,14 @@ const App = () => {
             </NoButtonLayout>
           }
         />
-        {/* <Route
-          path="/communication"
+        <Route
+          path="/add-product"
           element={
             <NoButtonLayout>
-              <Communication />
+              <AddProduct />
             </NoButtonLayout>
           }
-        /> */}
+        />
       </Routes>
     </Router>
   );
