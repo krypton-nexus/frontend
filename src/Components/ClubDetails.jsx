@@ -3,6 +3,18 @@ import { useParams, Link, useNavigate } from "react-router-dom";
 import { jwtDecode } from "jwt-decode";
 import "../CSS/ClubDetails.css";
 import { FaArrowLeft } from "react-icons/fa";
+import img1 from "../Images/activity1.jpg";
+import img2 from "../Images/activity2.jpg";
+import img3 from "../Images/activity3.jpg";
+import img4 from "../Images/activity4.jpg";
+import img5 from "../Images/activity5.jpg";
+import img6 from "../Images/activity6.jpg";
+import img7 from "../Images/activity7.jpg";
+import img8 from "../Images/activity8.jpg";
+import img9 from "../Images/activity9.jpg";
+import img10 from "../Images/activity10.jpg";
+import img11 from "../Images/activity.jpg";
+import img12 from "../Images/activity11.jpg";
 
 const BASE_URL = process.env.REACT_APP_BASE_URL;
 
@@ -88,8 +100,7 @@ const ClubDetails = () => {
           <Link
             to="/viewclubs"
             className="back-arrow"
-            aria-label="Back to club list"
-          >
+            aria-label="Back to club list">
             <FaArrowLeft />
           </Link>
           <h1 className="club-title">{club.title || "Untitled Club"}</h1>
@@ -103,11 +114,12 @@ const ClubDetails = () => {
           />
         )}
       </div>
-
+      <div className="club-welcome-section"></div>
       <div className="club-content">
         {club.welcome_msg && (
           <p className="club-welcome-message">{club.welcome_msg}</p>
         )}
+
         {club.welcome_short_para && (
           <p className="club-short-message">{club.welcome_short_para}</p>
         )}
@@ -119,10 +131,35 @@ const ClubDetails = () => {
           </section>
         )}
 
+        <div className="activity-card-grid">
+          {[img9, img10, img11, img12].map((src, index) => (
+            <div className="activity-card" key={index}>
+              <img src={src} alt={`Activity ${index + 1}`} />
+            </div>
+          ))}
+        </div>
+
+        {/* {club.our_activities && (
+          <section className="club-section">
+            <h2>Our Activities</h2>
+            <p>{club.our_activities}</p>
+          </section>
+        )} */}
+
         {club.our_activities && (
           <section className="club-section">
             <h2>Our Activities</h2>
             <p>{club.our_activities}</p>
+
+            <div className="activity-card-grid">
+              {[img1, img2, img3, img4, img5, img6, img7, img8].map(
+                (src, index) => (
+                  <div className="activity-card" key={index}>
+                    <img src={src} alt={`Activity ${index + 1}`} />
+                  </div>
+                )
+              )}
+            </div>
           </section>
         )}
 
