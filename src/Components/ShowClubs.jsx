@@ -6,6 +6,7 @@ import { FaUserCircle, FaSearch } from "react-icons/fa";
 import axios from "axios";
 import "../CSS/ShowClubs.css";
 import UserProfile from "./UserProfile";
+import Skeleton from "@mui/material/Skeleton";
 
 const BASE_URL = process.env.REACT_APP_BASE_URL;
 
@@ -140,7 +141,70 @@ const ShowClubs = () => {
         <h1>Club List</h1>
 
         {loading ? (
-          <div className="loading-message">Loading clubs...</div>
+          <div
+            style={{
+              display: "grid",
+              gridTemplateColumns: "repeat(4, 1fr)",
+              gap: 20,
+              paddingLeft: 0,
+              marginLeft: 0,
+              width: "100%",
+            }}
+          >
+            {[...Array(8)].map((_, i) => (
+              <div
+                key={i}
+                style={{
+                  borderRadius: 8,
+                  overflow: "hidden",
+                  boxShadow: "0 2px 6px rgba(0,0,0,0.1)",
+                  backgroundColor: "#fff",
+                  display: "flex",
+                  flexDirection: "column",
+                  gap: 12,
+                  padding: 12,
+                }}
+              >
+                {/* Image placeholder */}
+                <Skeleton variant="rectangular" height={120} animation="wave" />
+                {/* Title */}
+                <Skeleton
+                  variant="text"
+                  width="80%"
+                  height={30}
+                  animation="wave"
+                />
+                {/* Date or details */}
+                <Skeleton
+                  variant="text"
+                  width="60%"
+                  height={20}
+                  animation="wave"
+                />
+                {/* Buttons */}
+                <div style={{ display: "flex", gap: 8 }}>
+                  <Skeleton
+                    variant="rectangular"
+                    width={40}
+                    height={30}
+                    animation="wave"
+                  />
+                  <Skeleton
+                    variant="rectangular"
+                    width={40}
+                    height={30}
+                    animation="wave"
+                  />
+                  <Skeleton
+                    variant="rectangular"
+                    width={40}
+                    height={30}
+                    animation="wave"
+                  />
+                </div>
+              </div>
+            ))}
+          </div>
         ) : error ? (
           <div className="error-message">{error}</div>
         ) : (

@@ -211,7 +211,7 @@ const AdminSidebar = () => {
   const handleLogout = () => {
     localStorage.removeItem("admin_access_token");
     sessionStorage.clear();
-    navigate("/home", { replace: true });
+    navigate("admin", { replace: true });
   };
 
   const menuItems = [

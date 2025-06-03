@@ -48,7 +48,6 @@
 .tabs {
   display: flex;
   overflow-x: auto;
-  border-bottom: 2px solid var(--border-color);
   background-color: var(--light-gray);
   padding: 10px;
   gap: 10px;
@@ -91,7 +90,7 @@
 }
 
 .messages-section-error {
-  text-align: left;
+  text-align: center !important;
   padding: 10px;
   background: #ede9fe;
   box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);

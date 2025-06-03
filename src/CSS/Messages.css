@@ -1,18 +1,32 @@
-/* Container for messages */
 .messages-container {
   display: flex;
   flex-direction: column;
   gap: 0;
   overflow-y: auto;
-  width: 80%;
-  height: 78%;
+  width: 98%;           /* Prevent overflow */
+  height: 77vh;              /* Use viewport height for responsiveness */
   padding: 10px;
   background-color: #fadadd;
   border-radius: 10px;
   border: 1px solid #e0e0e0;
   scrollbar-width: thin;
   scrollbar-color: #ccc #f9f9f9;
-  position: absolute;
+  position: relative;   
+}
+
+/* Media queries for smaller screens */
+@media (max-width: 768px) {
+  .messages-container {
+    height: 60vh;            /* Smaller height on tablets */
+    padding: 8px;
+  }
+}
+
+@media (max-width: 480px) {
+  .messages-container {
+    height: 50vh;            /* Smaller height on mobiles */
+    padding: 6px;
+  }
 }
 
 /* Date separator style */

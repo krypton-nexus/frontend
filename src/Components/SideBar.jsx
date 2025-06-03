@@ -28,7 +28,7 @@ const Sidebar = () => {
     { path: "/viewevents", label: "View Events", icon: <FaCalendarAlt /> },
     { path: "/communication", label: "Communication", icon: <FaComment /> },
     { path: "/merchandise", label: "Merchandise", icon: <FaListAlt /> },
-    { path: "/notifications", label: "Notification", icon: <FaRegBell /> },
+    { path: "/notification", label: "Notification", icon: <FaRegBell /> },
   ];
 
   return (
