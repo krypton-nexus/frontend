@@ -62,3 +62,12 @@
   color: #8b1f3a;
   margin-bottom: 1rem;
 }
+.stats-grid, .products-table, .orders-table {
+  gap: 16px;
+}
+.skeleton-card, .MuiSkeleton-root {
+  border-radius: 8px;
+}
+.orders-table {
+  margin-top: 8px;
+}

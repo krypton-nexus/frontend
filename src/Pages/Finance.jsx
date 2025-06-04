@@ -13,6 +13,7 @@ import {
   Pie,
   Cell,
 } from "recharts";
+import { Skeleton, Stack, Card, CardContent, Box } from "@mui/material";
 import { format, subMonths } from "date-fns";
 import AdminSidebar from "../Components/AdminSidebar";
 import "../CSS/Finance.css";
@@ -29,7 +30,209 @@ import {
   Filter,
   Trash2,
 } from "lucide-react";
+import { useTheme } from "@mui/material/styles";
 
+
+const LoadingSkeleton = () => {
+  const theme = useTheme();
+
+  return (
+    <div className="dashboard">
+      <Box sx={{ width: "100%", mb: 4, p: { xs: 1, md: 3 } }}>
+        <Stack spacing={4}>
+          {/* Header Skeleton */}
+          <Stack
+            direction="row"
+            justifyContent="space-between"
+            alignItems="center"
+            sx={{ mb: 2 }}
+          >
+            <Skeleton variant="text" width={220} height={44} />
+            <Skeleton
+              variant="rectangular"
+              width={180}
+              height={44}
+              sx={{ borderRadius: 2 }}
+            />
+          </Stack>
+
+          {/* Summary Cards Skeleton */}
+          <Stack direction={{ xs: "column", md: "row" }} spacing={3}>
+            {[1, 2, 3].map((item) => (
+              <Card
+                key={item}
+                sx={{
+                  flex: 1,
+                  minWidth: 220,
+                  p: 0,
+                  boxShadow: 3,
+                  borderRadius: 3,
+                }}
+              >
+                <CardContent>
+                  <Stack spacing={1}>
+                    <Stack direction="row" spacing={2} alignItems="center">
+                      <Skeleton variant="circular" width={48} height={48} />
+                      <Skeleton variant="text" width={90} height={22} />
+                    </Stack>
+                    <Skeleton
+                      variant="text"
+                      width="65%"
+                      height={36}
+                      sx={{ mt: 1 }}
+                    />
+                    <Skeleton variant="text" width="45%" height={20} />
+                  </Stack>
+                </CardContent>
+              </Card>
+            ))}
+          </Stack>
+
+          {/* Charts Skeleton */}
+          <Stack direction={{ xs: "column", md: "row" }} spacing={3}>
+            <Card
+              sx={{
+                flex: 2,
+                minWidth: 300,
+                p: 0,
+                boxShadow: 3,
+                borderRadius: 3,
+              }}
+            >
+              <CardContent>
+                <Skeleton
+                  variant="text"
+                  width={140}
+                  height={30}
+                  sx={{ mb: 1 }}
+                />
+                <Skeleton
+                  variant="rectangular"
+                  height={320}
+                  sx={{
+                    borderRadius: 2,
+                    mb: 2,
+                    width: "100%",
+                  }}
+                />
+                <Skeleton variant="text" width="40%" />
+              </CardContent>
+            </Card>
+            <Stack spacing={3} sx={{ flex: 1, minWidth: 270 }}>
+              <Card sx={{ p: 0, boxShadow: 3, borderRadius: 3 }}>
+                <CardContent>
+                  <Skeleton
+                    variant="text"
+                    width={120}
+                    height={26}
+                    sx={{ mb: 1 }}
+                  />
+                  <Skeleton
+                    variant="circular"
+                    width={160}
+                    height={160}
+                    sx={{ display: "block", mx: "auto", my: 2 }}
+                  />
+                  <Skeleton variant="text" width="50%" />
+                </CardContent>
+              </Card>
+              <Card sx={{ p: 0, boxShadow: 3, borderRadius: 3 }}>
+                <CardContent>
+                  <Skeleton
+                    variant="text"
+                    width={120}
+                    height={26}
+                    sx={{ mb: 1 }}
+                  />
+                  <Skeleton
+                    variant="rectangular"
+                    width="90%"
+                    height={40}
+                    sx={{ mx: "auto", my: 1, borderRadius: 1 }}
+                  />
+                  <Skeleton
+                    variant="rectangular"
+                    width="70%"
+                    height={28}
+                    sx={{ mx: "auto", my: 1, borderRadius: 1 }}
+                  />
+                </CardContent>
+              </Card>
+            </Stack>
+          </Stack>
+
+          {/* Transactions Table Skeleton */}
+          <Card sx={{ boxShadow: 3, borderRadius: 3 }}>
+            <CardContent>
+              <Stack spacing={3}>
+                <Stack
+                  direction="row"
+                  justifyContent="space-between"
+                  alignItems="center"
+                  sx={{ mb: 1 }}
+                >
+                  <Skeleton variant="text" width={180} height={28} />
+                  <Skeleton
+                    variant="rectangular"
+                    width={130}
+                    height={36}
+                    sx={{ borderRadius: 2 }}
+                  />
+                </Stack>
+                {/* Table headers */}
+                <Stack
+                  direction="row"
+                  spacing={2}
+                  alignItems="center"
+                  sx={{ mb: 2 }}
+                >
+                  <Skeleton variant="text" width={90} height={20} />
+                  <Skeleton variant="text" width={90} height={20} />
+                  <Skeleton variant="text" width={70} height={20} />
+                  <Skeleton variant="text" width={70} height={20} />
+                  <Skeleton variant="text" width={50} height={20} />
+                  <Skeleton variant="text" width={40} height={20} />
+                </Stack>
+                {/* Transaction rows */}
+                <Stack spacing={1}>
+                  {[1, 2, 3, 4, 5].map((item) => (
+                    <Stack
+                      key={item}
+                      direction="row"
+                      spacing={2}
+                      alignItems="center"
+                    >
+                      <Skeleton variant="circular" width={28} height={28} />
+                      <Skeleton
+                        variant="text"
+                        width={120 + Math.random() * 80}
+                        height={18}
+                      />
+                      <Skeleton variant="text" width={60} height={18} />
+                      <Skeleton variant="text" width={70} height={18} />
+                      <Skeleton
+                        variant="rectangular"
+                        width={36}
+                        height={36}
+                        sx={{ borderRadius: 2 }}
+                      />
+                      <Skeleton
+                        variant="rectangular"
+                        width={26}
+                        height={36}
+                        sx={{ borderRadius: 2 }}
+                      />
+                    </Stack>
+                  ))}
+                </Stack>
+              </Stack>
+            </CardContent>
+          </Card>
+        </Stack>
+      </Box>
+    </div>
+  );
+};
 const BASE_URL = process.env.REACT_APP_BASE_URL;
 
 const Finance = () => {
@@ -414,6 +617,14 @@ const Finance = () => {
     "#9C27B0",
     "#673AB7",
   ];
+  if (loading) {
+    return (
+      <div className="view-events-container">
+        <AdminSidebar />
+        <LoadingSkeleton />
+      </div>
+    );
+  }
 
   return (
     <div className="view-events-container">
@@ -423,7 +634,8 @@ const Finance = () => {
           <h1>Financial Dashboard</h1>
           <button
             className="add-transaction-btn"
-            onClick={() => setShowAddTransaction(true)}>
+            onClick={() => setShowAddTransaction(true)}
+          >
             <Plus size={20} /> Add Transaction
           </button>
         </header>
@@ -436,17 +648,20 @@ const Finance = () => {
             <div className="filter-options">
               <button
                 className={timeFilter === "month" ? "active" : ""}
-                onClick={() => setTimeFilter("month")}>
+                onClick={() => setTimeFilter("month")}
+              >
                 Month
               </button>
               <button
                 className={timeFilter === "quarter" ? "active" : ""}
-                onClick={() => setTimeFilter("quarter")}>
+                onClick={() => setTimeFilter("quarter")}
+              >
                 Quarter
               </button>
               <button
                 className={timeFilter === "year" ? "active" : ""}
-                onClick={() => setTimeFilter("year")}>
+                onClick={() => setTimeFilter("year")}
+              >
                 Year
               </button>
             </div>
@@ -491,7 +706,8 @@ const Finance = () => {
             <ResponsiveContainer width="100%" height={450}>
               <BarChart
                 data={getBarChartData()}
-                margin={{ top: 20, right: 30, left: 20, bottom: 5 }}>
+                margin={{ top: 20, right: 30, left: 20, bottom: 5 }}
+              >
                 <CartesianGrid strokeDasharray="3 3" />
                 <XAxis dataKey="month" />
                 <YAxis />
@@ -542,7 +758,8 @@ const Finance = () => {
                           textAnchor="middle"
                           dominantBaseline="middle"
                           fill={fillColor}
-                          fontSize={14}>
+                          fontSize={14}
+                        >
                           <tspan x={x} dy="-0.6em">
                             {line1}
                           </tspan>
@@ -551,7 +768,8 @@ const Finance = () => {
                           </tspan>
                         </text>
                       );
-                    }}>
+                    }}
+                  >
                     {getPieChartData("income").map((entry, index) => (
                       <Cell
                         key={`cell-${index}`}
@@ -623,7 +841,8 @@ const Finance = () => {
                           textAnchor="middle"
                           dominantBaseline="middle"
                           fill={fillColor}
-                          fontSize={12}>
+                          fontSize={12}
+                        >
                           <tspan x={x} dy="-0.6em">
                             {line1}
                           </tspan>
@@ -632,7 +851,8 @@ const Finance = () => {
                           </tspan>
                         </text>
                       );
-                    }}>
+                    }}
+                  >
                     {getPieChartData("expense").map((entry, index) => (
                       <Cell
                         key={`cell-${index}`}
@@ -653,7 +873,8 @@ const Finance = () => {
               <h2>Recent Transactions</h2>
               <button
                 className="toggle-transactions-btn"
-                onClick={() => setShowAllTransactions(!showAllTransactions)}>
+                onClick={() => setShowAllTransactions(!showAllTransactions)}
+              >
                 {showAllTransactions
                   ? "Show Recent Only"
                   : "Show All Transactions"}
@@ -695,7 +916,8 @@ const Finance = () => {
                           onClick={() =>
                             handleDeleteTransaction(transaction.id)
                           }
-                          disabled={deletingId === transaction.id}>
+                          disabled={deletingId === transaction.id}
+                        >
                           {deletingId === transaction.id ? (
                             "Deleting..."
                           ) : (
@@ -715,7 +937,8 @@ const Finance = () => {
                   onClick={() =>
                     setCurrentPage((prev) => Math.max(prev - 1, 1))
                   }
-                  disabled={currentPage === 1}>
+                  disabled={currentPage === 1}
+                >
                   Previous
                 </button>
 
@@ -723,7 +946,8 @@ const Finance = () => {
                   <button
                     key={i + 1}
                     onClick={() => setCurrentPage(i + 1)}
-                    className={currentPage === i + 1 ? "active" : ""}>
+                    className={currentPage === i + 1 ? "active" : ""}
+                  >
                     {i + 1}
                   </button>
                 ))}
@@ -732,7 +956,8 @@ const Finance = () => {
                   onClick={() =>
                     setCurrentPage((prev) => Math.min(prev + 1, totalPages))
                   }
-                  disabled={currentPage === totalPages}>
+                  disabled={currentPage === totalPages}
+                >
                   Next
                 </button>
               </div>
@@ -744,12 +969,14 @@ const Finance = () => {
             <div className="category-tabs">
               <button
                 className={newCategoryType === "income" ? "active" : ""}
-                onClick={() => setNewCategoryType("income")}>
+                onClick={() => setNewCategoryType("income")}
+              >
                 Income
               </button>
               <button
                 className={newCategoryType === "expense" ? "active" : ""}
-                onClick={() => setNewCategoryType("expense")}>
+                onClick={() => setNewCategoryType("expense")}
+              >
                 Expense
               </button>
             </div>
@@ -782,7 +1009,8 @@ const Finance = () => {
                 <h2>Add Transaction</h2>
                 <button
                   className="close-btn"
-                  onClick={() => setShowAddTransaction(false)}>
+                  onClick={() => setShowAddTransaction(false)}
+                >
                   <X size={20} />
                 </button>
               </div>
@@ -790,12 +1018,14 @@ const Finance = () => {
               <div className="transaction-type-tabs">
                 <button
                   className={transactionType === "income" ? "active" : ""}
-                  onClick={() => setTransactionType("income")}>
+                  onClick={() => setTransactionType("income")}
+                >
                   <ArrowUp size={16} /> Income
                 </button>
                 <button
                   className={transactionType === "expense" ? "active" : ""}
-                  onClick={() => setTransactionType("expense")}>
+                  onClick={() => setTransactionType("expense")}
+                >
                   <ArrowDown size={16} /> Expense
                 </button>
               </div>
@@ -849,7 +1079,8 @@ const Finance = () => {
                     name="category"
                     value={newTransaction.category}
                     onChange={handleTransactionChange}
-                    required>
+                    required
+                  >
                     <option value="">Select a category</option>
                     {categories[transactionType].map((category) => (
                       <option key={category} value={category}>
@@ -868,14 +1099,16 @@ const Finance = () => {
                     value={newTransaction.description}
                     onChange={handleTransactionChange}
                     placeholder="Enter description"
-                    rows="3"></textarea>
+                    rows="3"
+                  ></textarea>
                 </div>
               </div>
 
               <div className="modal-footer">
                 <button
                   className="cancel-btn"
-                  onClick={() => setShowAddTransaction(false)}>
+                  onClick={() => setShowAddTransaction(false)}
+                >
                   Cancel
                 </button>
                 <button className="add-btn" onClick={handleAddTransaction}>

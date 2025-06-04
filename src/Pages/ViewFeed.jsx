@@ -4,8 +4,6 @@ import Skeleton from "@mui/material/Skeleton";
 import { FaSortAmountDown, FaSortAmountUp } from "react-icons/fa";
 import "../CSS/ViewFeed.css";
 
-const BASE_URL = process.env.REACT_APP_BASE_URL;
-
 const ViewFeed = () => {
   const [posts, setPosts] = useState([]);
   const [loading, setLoading] = useState(true);

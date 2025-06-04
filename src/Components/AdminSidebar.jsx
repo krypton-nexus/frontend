@@ -7,113 +7,18 @@ import {
   FaTasks,
   FaRss,
   FaWallet,
-  FaStore,
   FaListAlt,
   FaRegBell,
   FaSignOutAlt,
 } from "react-icons/fa";
 import logo1short from "../Images/logo1short.png";
 import "../CSS/SideBar.css";
+import { Skeleton } from "@mui/material";
+import { height } from "@mui/system";
+import NotificationPopup from "./NotificationPopup";
+
 
 const BASE_URL = process.env.REACT_APP_BASE_URL;
-
-const NotificationPopup = ({
-  notifications,
-  filter,
-  setFilter,
-  markAllAsRead,
-  onClose,
-}) => {
-  const sortedNotifications = notifications
-    .slice()
-    .sort((a, b) => new Date(b.created_at) - new Date(a.created_at))
-    .map((notif) => ({
-      ...notif,
-      formattedDate: new Date(notif.created_at).toLocaleString(),
-    }));
-
-  return (
-    <div
-      className="notification-popup"
-      style={{
-        position: "fixed",
-        top: "60px", // Adjusted top value
-        left: "250px", // Adjusted left value
-        zIndex: 99999, // High z-index to appear on top
-        backgroundColor: "#fff",
-        color: "#000",
-        boxShadow: "0 2px 8px rgba(0, 0, 0, 0.25)",
-        width: "320px",
-        padding: "10px",
-        borderRadius: "5px",
-      }}>
-      <div
-        className="notification-dropdown-header"
-        style={{
-          marginBottom: "10px",
-          display: "flex",
-          justifyContent: "space-between",
-          alignItems: "center",
-        }}>
-        <button
-          onClick={markAllAsRead}
-          style={{
-            background: "#1a1a1a",
-            color: "#fff",
-            border: "none",
-            padding: "5px 10px",
-            cursor: "pointer",
-            borderRadius: "3px",
-          }}>
-          Mark All as Read
-        </button>
-        <button
-          onClick={onClose}
-          style={{
-            background: "transparent",
-            border: "none",
-            fontSize: "24px",
-            cursor: "pointer",
-          }}>
-          &times;
-        </button>
-      </div>
-      {sortedNotifications.length > 0 ? (
-        <ul style={{ listStyle: "none", margin: 0, padding: 0 }}>
-          {sortedNotifications.map((notif) => (
-            <li
-              key={notif.id}
-              style={{
-                fontWeight: notif.is_read ? "normal" : "bold",
-                borderBottom: "1px solid #ccc",
-                padding: "5px 0",
-              }}>
-              <div>{notif.notification}</div>
-              <div style={{ fontSize: "0.8em", color: "#666" }}>
-                {notif.formattedDate}
-              </div>
-            </li>
-          ))}
-        </ul>
-      ) : (
-        <div>No notifications available.</div>
-      )}
-      <div
-        className="notification-filters"
-        style={{ marginTop: "10px", textAlign: "center" }}>
-        <button onClick={() => setFilter("all")} style={{ margin: "0 5px" }}>
-          All
-        </button>
-        <button onClick={() => setFilter("unread")} style={{ margin: "0 5px" }}>
-          Unread
-        </button>
-        <button onClick={() => setFilter("read")} style={{ margin: "0 5px" }}>
-          Read
-        </button>
-      </div>
-    </div>
-  );
-};
 
 const AdminSidebar = () => {
   const location = useLocation();
@@ -129,7 +34,20 @@ const AdminSidebar = () => {
   const [unreadCount, setUnreadCount] = useState(0);
   const [showNotifications, setShowNotifications] = useState(false);
   const [filter, setFilter] = useState("all");
-
+  const [notifLoading, setNotifLoading] = useState(false);
+  const popupPositionStyle = {
+    position: "fixed",
+    top: "50px",
+    left: "200px",
+    zIndex: 99999,
+    backgroundColor: "#fff",
+    color: "#000",
+    boxShadow: "0 2px 8px rgba(0, 0, 0, 0.25)",
+    width: "320px",
+    height: "400px",
+    padding: "10px",
+    borderRadius: "5px",
+  };
   // Helper GET function
   const apiGet = async (endpoint) => {
     const res = await fetch(`${BASE_URL}${endpoint}`, {
@@ -146,33 +64,29 @@ const AdminSidebar = () => {
     return await res.json();
   };
 
-  useEffect(() => {
-    if (!adminEmail) return;
-    const fetchNotifications = async () => {
-      try {
-        const countData = await apiGet(
-          `/notification_admin/unread/count?admin_email=${adminEmail}`
-        );
-        setUnreadCount(countData.unread_count || 0);
-        const allData = await apiGet(
-          `/notification_admin/all?admin_email=${adminEmail}`
-        );
-        setNotifications(allData.all_notifications || []);
-      } catch (error) {
-        console.error("Failed to fetch notifications:", error);
-      }
-    };
-    fetchNotifications();
-  }, [adminEmail, adminAccessToken]);
+  const fetchNotificationsOnBell = async () => {
+    setShowNotifications(true);
+    setNotifLoading(true);
+    try {
+      const countData = await apiGet(
+        `/notification_admin/unread/count?admin_email=${adminEmail}`
+      );
+      setUnreadCount(countData.unread_count || 0);
+
+      const allData = await apiGet(
+        `/notification_admin/all?admin_email=${adminEmail}`
+      );
+      setNotifications(allData.all_notifications || []);
+    } catch (error) {
+      console.error("Failed to fetch notifications:", error);
+    }
+    setNotifLoading(false);
+  };
 
   useEffect(() => {
     const count = notifications.filter((n) => n.is_read === 0).length;
     setUnreadCount(count);
   }, [notifications]);
-
-  const toggleNotificationsDropdown = () => {
-    setShowNotifications((prev) => !prev);
-  };
 
   const markAllAsRead = async () => {
     try {
@@ -214,6 +128,31 @@ const AdminSidebar = () => {
     navigate("admin", { replace: true });
   };
 
+  const handleCloseNotifications = () => {
+    setShowNotifications(false);
+    setFilter("all");
+  };
+
+  const NotificationPopupSkeleton = () => (
+    <div style={popupPositionStyle}>
+      <Skeleton
+        variant="text"
+        width={120}
+        height={28}
+        style={{ marginBottom: 10 }}
+      />
+      {[...Array(5)].map((_, i) => (
+        <Skeleton
+          key={i}
+          variant="rectangular"
+          width="100%"
+          height={38}
+          style={{ marginBottom: 8, borderRadius: 5 }}
+        />
+      ))}
+    </div>
+  );
+
   const menuItems = [
     { path: "/admindashboard", label: "Membership", icon: <FaUsers /> },
     { path: "/adminevent", label: "Events", icon: <FaCalendarAlt /> },
@@ -244,7 +183,8 @@ const AdminSidebar = () => {
           {menuItems.map(({ path, label, icon }) => (
             <li
               key={label}
-              className={location.pathname === path ? "active" : ""}>
+              className={location.pathname === path ? "active" : ""}
+            >
               <Link to={path}>
                 {icon} {label}
               </Link>
@@ -253,8 +193,9 @@ const AdminSidebar = () => {
           <li>
             <div
               className="notifications"
-              onClick={toggleNotificationsDropdown}
-              style={{ cursor: "pointer" }}>
+              onClick={fetchNotificationsOnBell}
+              style={{ cursor: "pointer" }}
+            >
               <FaRegBell /> Notification{" "}
               <span className="badge">{unreadCount}</span>
             </div>
@@ -266,13 +207,32 @@ const AdminSidebar = () => {
       </aside>
 
       {showNotifications && (
-        <NotificationPopup
-          notifications={filteredNotifications}
-          filter={filter}
-          setFilter={setFilter}
-          markAllAsRead={markAllAsRead}
-          onClose={toggleNotificationsDropdown}
-        />
+        <>
+          {/* Overlay to catch outside clicks */}
+          <div
+            onClick={handleCloseNotifications}
+            style={{
+              position: "fixed",
+              top: 0,
+              left: 0,
+              right: 0,
+              bottom: 0,
+              zIndex: 99998,
+              backgroundColor: "transparent",
+            }}
+          />
+          {notifLoading ? (
+            <NotificationPopupSkeleton />
+          ) : (
+            <NotificationPopup
+              notifications={filteredNotifications}
+              filter={filter}
+              setFilter={setFilter}
+              markAllAsRead={markAllAsRead}
+              onClose={handleCloseNotifications}
+            />
+          )}
+        </>
       )}
     </>
   );
