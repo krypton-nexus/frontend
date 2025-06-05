@@ -156,8 +156,8 @@ const ClubCard = ({ club }) => {
         }
       } else {
         const errData = await response.json();
-        const errMsg = errData.message || "Failed to send membership request.";
-        showSnackbar(errMsg, "error");
+        let errMsg = errData?.message || "Request failed.";
+        if (Array.isArray(errMsg)) errMsg = errMsg.join(", ");
       }
     } catch (error) {
       console.error("Membership Error:", error);
@@ -166,6 +166,15 @@ const ClubCard = ({ club }) => {
       setIsRequestInProgress(false);
     }
   };
+  if (club.status === "Approved") {
+    return showSnackbar("You are already a member of this club.", "info");
+  }
+  if (club.status === "Pending") {
+    return showSnackbar(
+      "Your membership request is already pending approval.",
+      "info"
+    );
+  }
 
   return (
     <>
@@ -195,8 +204,10 @@ const ClubCard = ({ club }) => {
               className="join-now"
               onClick={handleJoinNow}
               disabled={isRequestInProgress}
+              aria-busy={isRequestInProgress}
+              aria-label={`Join ${club.title}`}
             >
-              {isRequestInProgress ? "Processing..." : "Join Now"}
+              {isRequestInProgress ? <span className="spinner" /> : "Join Now"}
             </button>
           </div>
         </div>

@@ -138,6 +138,7 @@ const Signup = () => {
             <input
               name="firstName"
               placeholder="First Name"
+              required
               className="input-field"
               value={formData.firstName}
               onChange={handleChange}
@@ -253,14 +254,15 @@ const Signup = () => {
             {loading ? "Registering..." : "Register"}
           </button>
 
-          {Object.values(formErrors).map(
-            (msg, idx) =>
-              msg && (
-                <p key={idx} className="error-message">
-                  {msg}
+          {Object.entries(formErrors).map(
+            ([key, error]) =>
+              error && (
+                <p className="error-message" key={key}>
+                  {error}
                 </p>
               )
           )}
+
           {serverError && <p className="error-message">{serverError}</p>}
         </form>
 

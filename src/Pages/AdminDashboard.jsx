@@ -1,4 +1,10 @@
-import React, { useState, useEffect, useCallback, useRef } from "react";
+import React, {
+  useState,
+  useEffect,
+  useCallback,
+  useRef,
+  useMemo,
+} from "react";
 import { useNavigate } from "react-router-dom";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
@@ -13,7 +19,6 @@ import NotificationPopup from "../Components/NotificationPopup";
 import UserDetailModal from "../Components/UserDetailModal";
 import MembershipTable from "../Components/MembershipTable";
 
-// ============= API UTILS =============
 const BASE_URL = process.env.REACT_APP_BASE_URL;
 
 const apiGet = async (endpoint, token) => {
@@ -84,9 +89,7 @@ const apiDelete = async (endpoint, token, body) => {
   return res.json();
 };
 
-// ============= SKELETON COMPONENTS =============
-
-const TableSkeleton = ({ title = "Loading..." }) => (
+const TableSkeleton = () => (
   <Box
     sx={{
       background: "#fff",
@@ -116,6 +119,7 @@ const TableSkeleton = ({ title = "Loading..." }) => (
     ))}
   </Box>
 );
+
 const ChartSkeleton = () => (
   <Box
     sx={{
@@ -130,10 +134,7 @@ const ChartSkeleton = () => (
       alignItems: "center",
     }}
   >
-    {/* Title Skeleton */}
     <Skeleton variant="text" width={120} height={26} sx={{ mb: 2 }} />
-
-    {/* Pie chart circle with a "value" in center */}
     <Box
       sx={{
         position: "relative",
@@ -156,8 +157,6 @@ const ChartSkeleton = () => (
         }}
       />
     </Box>
-
-    {/* Pie Legend (3-4 lines, like chart key/labels) */}
     <Stack spacing={1} sx={{ width: "80%", mt: 2 }}>
       {[...Array(4)].map((_, i) => (
         <Stack key={i} direction="row" alignItems="center" spacing={1}>
@@ -183,17 +182,14 @@ const ChartsRowSkeleton = () => (
     <ChartSkeleton />
   </Stack>
 );
-// ============= MAIN COMPONENT =============
 
 const AdminDashboard = () => {
-  // ---------------------- State Declarations ----------------------
   const [unreadCount, setUnreadCount] = useState(0);
   const [allNotifications, setAllNotifications] = useState([]);
   const [filteredNotifications, setFilteredNotifications] = useState([]);
   const [notificationFilter, setNotificationFilter] = useState("all");
   const [isNotificationsVisible, setIsNotificationsVisible] = useState(false);
   const [isLoadingPopup, setIsLoadingPopup] = useState(false);
-
   const [newMembershipRequests, setNewMembershipRequests] = useState([]);
   const [currentMembers, setCurrentMembers] = useState([]);
   const [clubId, setClubId] = useState(null);
@@ -203,17 +199,13 @@ const AdminDashboard = () => {
 
   const navigate = useNavigate();
   const adminAccessToken = localStorage.getItem("admin_access_token");
-
-  // ---- Notification Popup ref (for outside click) ----
   const popupRef = useRef();
 
-  // ---------------------- Helper Functions ----------------------
   const getAdminEmailFromToken = useCallback((token) => {
     try {
       const decodedToken = jwtDecode(token);
       return decodedToken.email;
-    } catch (error) {
-      console.error("Failed to decode token:", error);
+    } catch {
       return null;
     }
   }, []);
@@ -225,99 +217,67 @@ const AdminDashboard = () => {
     if (!adminEmail) navigate("/admin");
   }, [adminEmail, navigate]);
 
-  // ---------------------- API Fetching Functions ----------------------
-  const fetchAdminDetails = async () => {
-    try {
-      const data = await apiGet(
-        `/admin/email?email=${adminEmail}`,
-        adminAccessToken
-      );
-      setClubId(data.club_id);
-    } catch (error) {
-      console.error("Failed to fetch admin's club ID:", error);
+  useEffect(() => {
+    const initDashboard = async () => {
+      setIsLoadingDashboard(true);
+      try {
+        const adminData = await apiGet(
+          `/admin/email?email=${adminEmail}`,
+          adminAccessToken
+        );
+        setClubId(adminData.club_id);
+
+        const [membershipData, studentData] = await Promise.all([
+          apiGet(
+            `/membership/list?club_id=${adminData.club_id}`,
+            adminAccessToken
+          ),
+          apiGet("/student/list", adminAccessToken),
+        ]);
+
+        const memberships = membershipData.memberships || [];
+        const allStudents = studentData.students || [];
+
+        const emailToStudentDataMap = allStudents.reduce((acc, student) => {
+          acc[student.email] = {
+            firstName: student.first_name,
+            lastName: student.last_name,
+            courseName: student.course_name,
+            year: student.year,
+            faculty: student.faculty,
+          };
+          return acc;
+        }, {});
+
+        const enriched = memberships.map((member) => ({
+          ...member,
+          ...emailToStudentDataMap[member.email],
+        }));
+
+        setNewMembershipRequests(
+          enriched.filter((m) => m.status === "Pending")
+        );
+        setCurrentMembers(enriched.filter((m) => m.status === "Approved"));
+      } catch {}
+      setIsLoadingDashboard(false);
+    };
+
+    if (adminEmail) {
+      initDashboard();
+      fetchUnreadNotificationCount();
     }
-  };
+  }, [adminEmail, adminAccessToken]);
 
   const fetchUnreadNotificationCount = async () => {
     try {
-      const endpoint = `/notification_admin/unread/count?admin_email=${adminEmail}`;
-      const data = await apiGet(endpoint, adminAccessToken);
-      setUnreadCount(data.unread_count || 0);
-    } catch (error) {
-      console.error("Failed to fetch unread notification count:", error);
-    }
-  };
-
-  // Membership data
-  const fetchMembershipData = async () => {
-    if (!clubId) return;
-    try {
-      const membershipPromise = apiGet(
-        `/membership/list?club_id=${clubId}`,
+      const data = await apiGet(
+        `/notification_admin/unread/count?admin_email=${adminEmail}`,
         adminAccessToken
       );
-      const studentPromise = apiGet("/student/list", adminAccessToken);
-      const [membershipData, studentData] = await Promise.all([
-        membershipPromise,
-        studentPromise,
-      ]);
-      const memberships = membershipData.memberships || [];
-      const allStudents = studentData.students || [];
-      const emailToStudentDataMap = allStudents.reduce((acc, student) => {
-        acc[student.email] = {
-          firstName: student.first_name,
-          lastName: student.last_name,
-          courseName: student.course_name,
-          year: student.year,
-          faculty: student.faculty,
-        };
-        return acc;
-      }, {});
-      const enrichedMemberships = memberships.map((member) => ({
-        ...member,
-        firstName: emailToStudentDataMap[member.email]?.firstName || "Unknown",
-        lastName: emailToStudentDataMap[member.email]?.lastName || "Unknown",
-        courseName:
-          emailToStudentDataMap[member.email]?.courseName || "Unknown",
-        year: emailToStudentDataMap[member.email]?.year || "Unknown",
-        faculty: emailToStudentDataMap[member.email]?.faculty || "Unknown",
-      }));
-      setNewMembershipRequests(
-        enrichedMemberships.filter((m) => m.status === "Pending")
-      );
-      setCurrentMembers(
-        enrichedMemberships.filter((m) => m.status === "Approved")
-      );
-    } catch (error) {
-      console.error("Failed to fetch membership data:", error);
-    }
+      setUnreadCount(data.unread_count || 0);
+    } catch {}
   };
 
-  // ---------------------- Initial Dashboard Data ----------------------
-  useEffect(() => {
-    let isMounted = true;
-    setIsLoadingDashboard(true);
-    if (!adminEmail) return;
-    Promise.all([fetchAdminDetails(), fetchUnreadNotificationCount()]).finally(
-      () => {
-        if (isMounted) setIsLoadingDashboard(false);
-      }
-    );
-    return () => {
-      isMounted = false;
-    };
-    // eslint-disable-next-line
-  }, [adminEmail, adminAccessToken]);
-
-  useEffect(() => {
-    if (clubId) {
-      setIsLoadingDashboard(true);
-      fetchMembershipData().finally(() => setIsLoadingDashboard(false));
-    }
-  }, [clubId, adminAccessToken]);
-
-  // ---------------------- NOTIFICATION POPUP LOGIC ----------------------
-  // Only load notifications when popup opens
   const fetchNotifications = async () => {
     setIsLoadingPopup(true);
     try {
@@ -333,14 +293,13 @@ const AdminDashboard = () => {
     setIsLoadingPopup(false);
   };
 
-  // Open/close popup
   const openNotifications = () => {
     setIsNotificationsVisible(true);
     fetchNotifications();
   };
+
   const closeNotifications = () => setIsNotificationsVisible(false);
 
-  // Outside click to close notification popup
   useEffect(() => {
     if (!isNotificationsVisible) return;
     function handleClickOutside(event) {
@@ -352,7 +311,6 @@ const AdminDashboard = () => {
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, [isNotificationsVisible]);
 
-  // Filtered notifications based on filter
   useEffect(() => {
     const filtered =
       notificationFilter === "all"
@@ -365,13 +323,11 @@ const AdminDashboard = () => {
     setFilteredNotifications(filtered);
   }, [notificationFilter, allNotifications]);
 
-  // Mark all as read (for current filter)
   const markAllAsRead = async () => {
     const unreadNotifs =
       notificationFilter === "all"
         ? allNotifications.filter((n) => n.is_read === 0)
         : filteredNotifications.filter((n) => n.is_read === 0);
-
     if (unreadNotifs.length === 0) return;
     try {
       await apiPatch(`/notification_admin/mark-as-read`, adminAccessToken, {
@@ -381,20 +337,17 @@ const AdminDashboard = () => {
       toast.success("Marked as read.");
       fetchNotifications();
       fetchUnreadNotificationCount();
-    } catch (error) {
+    } catch {
       toast.error("Failed to mark notifications as read.");
     }
   };
 
-  // When switching to "unread", mark all unread notifications as read
   useEffect(() => {
     if (notificationFilter === "unread" && filteredNotifications.length > 0) {
       markAllAsRead();
     }
-    // eslint-disable-next-line
   }, [notificationFilter]);
 
-  // ---------------------- OTHER HANDLERS ----------------------
   const handleLogout = () => {
     localStorage.removeItem("admin_access_token");
     sessionStorage.clear();
@@ -407,36 +360,25 @@ const AdminDashboard = () => {
       const data = await apiGet(`/student/${email}`, adminAccessToken);
       setModalUserData(data);
       setIsModalOpen(true);
-    } catch (error) {
+    } catch {
       toast.error("Failed to load user details.");
     }
   };
 
   const handleMembershipStatus = async (action, email) => {
     try {
-      const requestBody = {
+      await apiPut(`/membership/update/status`, adminAccessToken, {
         student_email: email,
         club_id: clubId,
         status: action,
-      };
-      await apiPut(`/membership/update/status`, adminAccessToken, requestBody);
-      toast.success(
-        `${
-          action === "Approved" ? "Approved" : "Rejected"
-        } membership request for ${email}.`
-      );
-      setNewMembershipRequests((prev) =>
-        prev.filter((member) => member.email !== email)
-      );
+      });
+      toast.success(`${action} membership request for ${email}.`);
+      setNewMembershipRequests((prev) => prev.filter((m) => m.email !== email));
       if (action === "Approved") {
-        const approvedMember = newMembershipRequests.find(
-          (member) => member.email === email
-        );
-        if (approvedMember) {
-          setCurrentMembers((prev) => [...prev, approvedMember]);
-        }
+        const approved = newMembershipRequests.find((m) => m.email === email);
+        if (approved) setCurrentMembers((prev) => [...prev, approved]);
       }
-    } catch (error) {
+    } catch {
       toast.error("Failed to update membership status.");
     }
   };
@@ -444,16 +386,17 @@ const AdminDashboard = () => {
   const handleMemberDeletion = async (email) => {
     if (!window.confirm("Are you sure you want to delete this member?")) return;
     try {
-      const requestBody = { student_id: email, club_id: clubId };
-      await apiDelete(`/membership/delete`, adminAccessToken, requestBody);
+      await apiDelete(`/membership/delete`, adminAccessToken, {
+        student_id: email,
+        club_id: clubId,
+      });
       toast.success(`Member ${email} has been removed from the club.`);
-      fetchMembershipData();
-    } catch (error) {
+      fetchUnreadNotificationCount();
+    } catch {
       toast.error("Failed to delete member.");
     }
   };
 
-  // ---------------------- Render ----------------------
   return (
     <div
       className="view-clubs-container"
@@ -470,8 +413,7 @@ const AdminDashboard = () => {
         notifications={filteredNotifications}
         toggleNotifications={openNotifications}
         handleLogout={handleLogout}
-      />  
-
+      />
       <main className="main-content-admin">
         <section className="membership-section">
           <div className="membership-header">
@@ -487,7 +429,6 @@ const AdminDashboard = () => {
             </div>
             <FaUserCircle className="membership-avatar" size={30} />
           </div>
-          {/* Membership Tables */}
           {isLoadingDashboard ? (
             <>
               <TableSkeleton />

@@ -4,6 +4,8 @@ import { jwtDecode } from "jwt-decode";
 
 const useAuthCheck = () => {
   const navigate = useNavigate();
+  const now = Date.now();
+
 
   useEffect(() => {
     const currentPath = window.location.pathname;
@@ -46,14 +48,14 @@ const useAuthCheck = () => {
     ];
     const isSpecialAdminPath = specialAdminPaths.includes(currentPath);
     if (isAdminPath || isSpecialAdminPath) {
-      if (!adminToken || !adminExpiry || new Date().getTime() >= adminExpiry) {
+      if (!adminToken || !adminExpiry || now >= adminExpiry) {
         localStorage.removeItem("admin_access_token");
         navigate("/admin");
         return;
       }
     }
 
-    if (userToken && userExpiry && new Date().getTime() >= userExpiry) {
+    if (userToken && userExpiry && now >= userExpiry) {
       localStorage.removeItem("access_token");
       navigate("/home");
       return;

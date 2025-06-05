@@ -14,7 +14,6 @@ import {
 import logo1short from "../Images/logo1short.png";
 import "../CSS/SideBar.css";
 import { Skeleton } from "@mui/material";
-import { height } from "@mui/system";
 import NotificationPopup from "./NotificationPopup";
 
 const BASE_URL = process.env.REACT_APP_BASE_URL;
@@ -28,7 +27,6 @@ const AdminSidebar = () => {
     ? jwtDecode(adminAccessToken).email
     : null;
 
-  // Notifications state
   const [notifications, setNotifications] = useState([]);
   const [unreadCount, setUnreadCount] = useState(0);
   const [showNotifications, setShowNotifications] = useState(false);
@@ -36,14 +34,14 @@ const AdminSidebar = () => {
   const [notifLoading, setNotifLoading] = useState(false);
   const popupPositionStyle = {
     position: "fixed",
-    top: "50px",
-    left: "200px",
+    top: "40px",
+    left: "220px",
     zIndex: 99999,
     backgroundColor: "#fff",
     color: "#000",
     boxShadow: "0 2px 8px rgba(0, 0, 0, 0.25)",
-    width: "320px",
-    height: "400px",
+    width: "400px",
+    height: "450px",
     padding: "10px",
     borderRadius: "5px",
   };
@@ -64,6 +62,7 @@ const AdminSidebar = () => {
   };
 
   const fetchNotificationsOnBell = async () => {
+    if (showNotifications || notifLoading) return;
     setShowNotifications(true);
     setNotifLoading(true);
     try {
@@ -182,7 +181,8 @@ const AdminSidebar = () => {
           {menuItems.map(({ path, label, icon }) => (
             <li
               key={label}
-              className={location.pathname === path ? "active" : ""}>
+              className={location.pathname === path ? "active" : ""}
+            >
               <Link to={path}>
                 {icon} {label}
               </Link>
@@ -192,7 +192,9 @@ const AdminSidebar = () => {
             <div
               className="notifications"
               onClick={fetchNotificationsOnBell}
-              style={{ cursor: "pointer" }}>
+              style={{ cursor: "pointer" }}
+              aria-label="Open notifications"
+            >
               <FaRegBell /> Notification{" "}
               <span className="badge">{unreadCount}</span>
             </div>

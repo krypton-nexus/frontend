@@ -18,6 +18,8 @@ const Sidebar = () => {
 
   const handleLogout = () => {
     localStorage.removeItem("access_token");
+    localStorage.removeItem("user_clubs");
+    localStorage.removeItem("all_clubs");
     sessionStorage.clear();
     navigate("/home", { replace: true });
   };
