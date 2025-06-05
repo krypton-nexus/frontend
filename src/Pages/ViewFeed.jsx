@@ -147,7 +147,7 @@ const ViewFeed = () => {
     return (
       <div className="view-feed-container">
         <Sidebar />
-        <main className="main-content">
+        <main className="feed-main-content">
           <div className="feed-header">
             <h2 className="feed-title">Feed</h2>
             <div className="feed-controls">
@@ -188,8 +188,7 @@ const ViewFeed = () => {
             <select
               value={filter}
               onChange={(e) => setFilter(e.target.value)}
-              className="filter-select"
-            >
+              className="filter-select">
               <option value="all">All Types</option>
               <option value="club">Club Posts</option>
               <option value="announcement">Announcements</option>
@@ -200,8 +199,7 @@ const ViewFeed = () => {
               onClick={() =>
                 setSortBy((prev) => (prev === "newest" ? "oldest" : "newest"))
               }
-              className="sort-button"
-            >
+              className="sort-button">
               {sortBy === "newest" ? (
                 <>
                   <FaSortAmountDown /> Newest First

@@ -189,6 +189,11 @@ thead {
   color: white;
 }
 
+thead:hover {
+  background-color: #a91d3a;
+  color: #fff;
+}
+
 th,
 td {
   padding: 12px;
@@ -197,9 +202,9 @@ td {
   border-bottom: 1px solid #ddd;
 }
 
-tr:hover {
+/* tr:hover {
   background: #f5f5f5;
-}
+} */
 
 .event-menu-container {
   position: absolute;

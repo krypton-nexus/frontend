@@ -42,7 +42,7 @@ const Notification = () => {
         {
           id: 2,
           message:
-            "Gavel Club posted: 'Meeting on Public Speaking at 5 PM tomorrow.'",
+            "Gavel Club posted: 'Meeting on Public Speaking at 5 PM tomorrow.",
           time: "2024-06-01T15:45:00Z",
           type: "post",
           read: false,
@@ -206,8 +206,7 @@ const Notification = () => {
                 <select
                   value={filter}
                   onChange={(e) => setFilter(e.target.value)}
-                  className="filter-select"
-                >
+                  className="filter-select">
                   <option value="all">All ({notifications.length})</option>
                   <option value="unread">Unread ({unreadCount})</option>
                   <option value="read">
@@ -217,8 +216,7 @@ const Notification = () => {
                 <select
                   value={sortBy}
                   onChange={(e) => setSortBy(e.target.value)}
-                  className="sort-select"
-                >
+                  className="sort-select">
                   <option value="newest">Newest First</option>
                   <option value="oldest">Oldest First</option>
                 </select>
@@ -248,8 +246,7 @@ const Notification = () => {
                   className={`notification-card ${
                     !notification.read ? "unread" : ""
                   } ${notification.type}`}
-                  key={notification.id}
-                >
+                  key={notification.id}>
                   <div className="notification-content">
                     <div className="notification-type-indicator">
                       {notification.type === "action" && <FaUsers />}
@@ -276,9 +273,8 @@ const Notification = () => {
                             onClick={() =>
                               handleJoinRequestAction(notification.id, "accept")
                             }
-                            className="accept-btn"
-                            title="Accept"
-                          >
+                            className="notification-accept-btn"
+                            title="Accept">
                             <FaCheck />
                           </button>
                           <button
@@ -289,8 +285,7 @@ const Notification = () => {
                               )
                             }
                             className="decline-btn"
-                            title="Decline"
-                          >
+                            title="Decline">
                             <FaTimes />
                           </button>
                         </div>
@@ -301,24 +296,21 @@ const Notification = () => {
                         <button
                           onClick={() => markAsUnread(notification.id)}
                           className="mark-unread-btn"
-                          title="Mark as unread"
-                        >
+                          title="Mark as unread">
                           <FaEye />
                         </button>
                       ) : (
                         <button
                           onClick={() => markAsRead(notification.id)}
                           className="mark-read-btn"
-                          title="Mark as read"
-                        >
+                          title="Mark as read">
                           <FaEye />
                         </button>
                       )}
                       <button
                         onClick={() => deleteNotification(notification.id)}
-                        className="delete-btn"
-                        title="Delete notification"
-                      >
+                        className="notification-delete-btn"
+                        title="Delete notification">
                         <FaTrash />
                       </button>
                     </div>

@@ -19,17 +19,18 @@ const NotificationPopup = ({
 
   const popupPositionStyle = {
     position: "fixed",
-    top: "60px",
-    left: "400px",
+    top: "100px",
+    left: "500px",
+    // alignItems: "center",
     zIndex: 99999,
     backgroundColor: "#fff",
     color: "#000",
     boxShadow: "0 2px 8px rgba(0,0,0,0.25)",
-    width: "340px",
+    width: "400px",
     borderRadius: "10px",
     display: "flex",
     flexDirection: "column",
-    maxHeight: "420px",
+    maxHeight: "450px",
     minHeight: "200px",
   };
 
@@ -80,21 +81,22 @@ const NotificationPopup = ({
       <div
         className="notification-popup"
         style={popupPositionStyle}
-        onClick={(e) => e.stopPropagation()}
-      >
+        onClick={(e) => e.stopPropagation()}>
         {/* HEADER - Always visible */}
         <div style={headerStyle}>
           <span style={{ fontWeight: 600, fontSize: 16 }}>Notifications</span>
           <button
             onClick={onClose}
             style={{
-              background: "transparent",
+              // background: "transparent",
+              background: "none",
               border: "none",
-              fontSize: "22px",
+              color: "red",
+              fontSize: "28px",
+              fontWeight: "200",
               cursor: "pointer",
             }}
-            aria-label="Close notifications"
-          >
+            aria-label="Close notifications">
             &times;
           </button>
         </div>
@@ -111,8 +113,7 @@ const NotificationPopup = ({
               cursor: "pointer",
               borderRadius: "3px",
               fontSize: "14px",
-            }}
-          >
+            }}>
             Mark All as Read
           </button>
           <div>
@@ -124,9 +125,9 @@ const NotificationPopup = ({
                 border: "none",
                 borderRadius: 4,
                 padding: "2px 8px",
+                color: "#000",
                 cursor: "pointer",
-              }}
-            >
+              }}>
               All
             </button>
             <button
@@ -138,8 +139,7 @@ const NotificationPopup = ({
                 borderRadius: 4,
                 padding: "2px 8px",
                 cursor: "pointer",
-              }}
-            >
+              }}>
               Unread
             </button>
             <button
@@ -151,8 +151,7 @@ const NotificationPopup = ({
                 borderRadius: 4,
                 padding: "2px 8px",
                 cursor: "pointer",
-              }}
-            >
+              }}>
               Read
             </button>
           </div>
@@ -169,8 +168,7 @@ const NotificationPopup = ({
                     fontWeight: notif.is_read ? "normal" : "bold",
                     padding: "10px 0 10px 0",
                     borderBottom: "1px solid #f2f2f2",
-                  }}
-                >
+                  }}>
                   <div>{notif.notification}</div>
                   <div style={{ fontSize: "0.8em", color: "#666" }}>
                     {notif.formattedDate}

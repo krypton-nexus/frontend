@@ -17,7 +17,6 @@ import { Skeleton } from "@mui/material";
 import { height } from "@mui/system";
 import NotificationPopup from "./NotificationPopup";
 
-
 const BASE_URL = process.env.REACT_APP_BASE_URL;
 
 const AdminSidebar = () => {
@@ -183,19 +182,17 @@ const AdminSidebar = () => {
           {menuItems.map(({ path, label, icon }) => (
             <li
               key={label}
-              className={location.pathname === path ? "active" : ""}
-            >
+              className={location.pathname === path ? "active" : ""}>
               <Link to={path}>
                 {icon} {label}
               </Link>
             </li>
           ))}
-          <li>
+          <li className={showNotifications ? "active" : ""}>
             <div
               className="notifications"
               onClick={fetchNotificationsOnBell}
-              style={{ cursor: "pointer" }}
-            >
+              style={{ cursor: "pointer" }}>
               <FaRegBell /> Notification{" "}
               <span className="badge">{unreadCount}</span>
             </div>
@@ -218,7 +215,9 @@ const AdminSidebar = () => {
               right: 0,
               bottom: 0,
               zIndex: 99998,
-              backgroundColor: "transparent",
+              // backgroundColor: "transparent",
+              backgroundColor: "rgba(0, 0, 0, 0.5)", // dark transparent
+              zIndex: 999,
             }}
           />
           {notifLoading ? (

@@ -1,6 +1,3 @@
-/* ViewFeed.css */
-
-/* Overall container with sidebar + content */
 .view-feed-container {
   display: flex;
   min-height: 100vh;
@@ -8,8 +5,7 @@
   overflow-x: hidden;
 }
 
-/* Main content area (to the right of Sidebar) */
-.main-content {
+.feed-main-content {
   flex: 1;
   display: flex;
   flex-direction: column;
