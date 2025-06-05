@@ -14,6 +14,7 @@ import {
   BarChart,
   Bar,
 } from "recharts";
+import { Box, Typography } from "@mui/material";
 
 // Refined color palette for the charts
 const COLORS = [
@@ -42,7 +43,7 @@ const groupData = (data, key) => {
 
 // ------------------ Basic Visualizations ------------------
 
-// Donut chart for distribution by year with custom labels showing percentages and "year" prefix
+// Donut chart for distribution by year with custom labels showing percentages and "Year" prefix
 const YearDonutChart = ({ data, title }) => {
   const groupedData = groupData(data, "year");
   if (!groupedData || groupedData.length === 0) return null;
@@ -67,20 +68,36 @@ const YearDonutChart = ({ data, title }) => {
       <text
         x={x}
         y={y}
-        fill="#000"
+        fill="#333"
         textAnchor="middle"
         dominantBaseline="central"
-        style={{ fontSize: "12px" }}
+        style={{ fontSize: "11px", fontWeight: 500 }}
       >
-        {`year ${item.name}: ${percentage}%`}
+        {`${item.name}: ${percentage}%`}
       </text>
     );
   };
 
   return (
-    <div style={{ textAlign: "center" }}>
-      <h3 style={{ marginBottom: "0.5rem", color: "#333" }}>{title}</h3>
-      <ResponsiveContainer width="100%" height={300}>
+    <Box
+      sx={{
+        bgcolor: "#fff",
+        boxShadow: 1,
+        borderRadius: 2,
+        p: 2,
+        flex: 1,
+        display: "flex",
+        flexDirection: "column",
+      }}
+    >
+      <Typography
+        variant="subtitle1"
+        align="center"
+        sx={{ mb: 1, fontWeight: 600, color: "#444" }}
+      >
+        {title}
+      </Typography>
+      <ResponsiveContainer width="100%" height={260}>
         <PieChart>
           <Pie
             data={groupedData}
@@ -89,10 +106,11 @@ const YearDonutChart = ({ data, title }) => {
             cx="50%"
             cy="50%"
             outerRadius={80}
-            innerRadius={40} // Creates the donut effect
+            innerRadius={45} // Smaller inner radius for more “donut” thickness
             fill="#8884d8"
             label={renderCustomizedLabel}
             labelLine={false}
+            paddingAngle={2}
           >
             {groupedData.map((entry, index) => (
               <Cell
@@ -104,18 +122,23 @@ const YearDonutChart = ({ data, title }) => {
           <Tooltip
             formatter={(value, name) => {
               const percentage = ((value / total) * 100).toFixed(0);
-              return [`${percentage}% (${value})`, `year ${name}`];
+              return [`${percentage}% (${value})`, `Year ${name}`];
             }}
-            contentStyle={{ backgroundColor: "#fff", border: "1px solid #ccc" }}
+            contentStyle={{
+              backgroundColor: "#f9f9f9",
+              border: "1px solid #ddd",
+              borderRadius: "4px",
+            }}
           />
           <Legend
             verticalAlign="bottom"
-            height={36}
-            formatter={(value) => `year ${value}`}
+            height={30}
+            iconType="circle"
+            formatter={(value) => `Year ${value}`}
           />
         </PieChart>
       </ResponsiveContainer>
-    </div>
+    </Box>
   );
 };
 
@@ -124,19 +147,54 @@ const CourseBarChart = ({ data, title }) => {
   const groupedData = groupData(data, "courseName");
   if (!groupedData || groupedData.length === 0) return null;
   return (
-    <div style={{ textAlign: "center" }}>
-      <h3 style={{ marginBottom: "0.5rem", color: "#333" }}>{title}</h3>
-      <ResponsiveContainer width="100%" height={300}>
+    <Box
+      sx={{
+        bgcolor: "#fff",
+        boxShadow: 1,
+        borderRadius: 2,
+        p: 2,
+        flex: 1,
+        display: "flex",
+        flexDirection: "column",
+      }}
+    >
+      <Typography
+        variant="subtitle1"
+        align="center"
+        sx={{ mb: 1, fontWeight: 600, color: "#444" }}
+      >
+        {title}
+      </Typography>
+      <ResponsiveContainer width="100%" height={260}>
         <BarChart
           data={groupedData}
-          margin={{ top: 20, right: 30, left: 20, bottom: 5 }}
+          margin={{ top: 16, right: 16, left: 16, bottom: 40 }}
+          barSize={28}
         >
-          <CartesianGrid strokeDasharray="3 3" />
-          <XAxis dataKey="name" />
-          <YAxis allowDecimals={false} />
-          <Tooltip />
-          <Legend />
-          <Bar dataKey="value" fill="#82ca9d">
+          <CartesianGrid stroke="#e0e0e0" strokeDasharray="4 2" />
+          <XAxis
+            dataKey="name"
+            angle={-45}
+            textAnchor="end"
+            interval={0}
+            tick={{ fontSize: 11 }}
+            height={40}
+          />
+          <YAxis allowDecimals={false} tick={{ fontSize: 11 }} />
+          <Tooltip
+            contentStyle={{
+              backgroundColor: "#f9f9f9",
+              border: "1px solid #ddd",
+              borderRadius: "4px",
+            }}
+          />
+          <Legend
+            verticalAlign="top"
+            height={24}
+            iconType="rect"
+            formatter={(value) => `${value}`}
+          />
+          <Bar dataKey="value" radius={[4, 4, 0, 0]}>
             {groupedData.map((entry, index) => (
               <Cell
                 key={`cell-course-${index}`}
@@ -146,7 +204,7 @@ const CourseBarChart = ({ data, title }) => {
           </Bar>
         </BarChart>
       </ResponsiveContainer>
-    </div>
+    </Box>
   );
 };
 
@@ -157,39 +215,66 @@ const MembershipGrowthChart = ({ newRequests, approvedMembers }) => {
   const allMembers = [...newRequests, ...approvedMembers];
   const growthDataMap = {};
   allMembers.forEach((member) => {
-    // Use the member's "year" field (if available)
     const year = member.year || "Unknown";
     growthDataMap[year] = (growthDataMap[year] || 0) + 1;
   });
   const growthData = Object.entries(growthDataMap)
     .map(([year, count]) => ({ year, count }))
-    // Sort numerically when possible; "Unknown" will appear at the end.
-    .sort((a, b) => (isNaN(a.year) || isNaN(b.year) ? 0 : a.year - b.year));
+    .sort((a, b) => {
+      if (isNaN(a.year) || isNaN(b.year)) return a.year.localeCompare(b.year);
+      return +a.year - +b.year;
+    });
   if (growthData.length === 0) return null;
+
   return (
-    <div style={{ textAlign: "center" }}>
-      <h3 style={{ marginBottom: "0.5rem", color: "#333" }}>
+    <Box
+      sx={{
+        bgcolor: "#fff",
+        boxShadow: 1,
+        borderRadius: 2,
+        p: 2,
+        flex: 1,
+        display: "flex",
+        flexDirection: "column",
+      }}
+    >
+      <Typography
+        variant="subtitle1"
+        align="center"
+        sx={{ mb: 1, fontWeight: 600, color: "#444" }}
+      >
         Membership Growth Trend
-      </h3>
-      <ResponsiveContainer width="100%" height={300}>
+      </Typography>
+      <ResponsiveContainer width="100%" height={260}>
         <LineChart
           data={growthData}
-          margin={{ top: 20, right: 30, left: 20, bottom: 5 }}
+          margin={{ top: 16, right: 16, left: 16, bottom: 32 }}
         >
-          <CartesianGrid strokeDasharray="3 3" />
-          <XAxis dataKey="year" />
-          <YAxis allowDecimals={false} />
-          <Tooltip />
+          <CartesianGrid stroke="#e0e0e0" strokeDasharray="4 2" />
+          <XAxis
+            dataKey="year"
+            tick={{ fontSize: 11 }}
+            padding={{ left: 10, right: 10 }}
+          />
+          <YAxis allowDecimals={false} tick={{ fontSize: 11 }} />
+          <Tooltip
+            contentStyle={{
+              backgroundColor: "#f9f9f9",
+              border: "1px solid #ddd",
+              borderRadius: "4px",
+            }}
+          />
           <Line
             type="monotone"
             dataKey="count"
             stroke="#8884d8"
             strokeWidth={2}
-            activeDot={{ r: 8 }}
+            dot={{ r: 3, strokeWidth: 2, fill: "#8884d8" }}
+            activeDot={{ r: 6, fill: "#FF8042" }}
           />
         </LineChart>
       </ResponsiveContainer>
-    </div>
+    </Box>
   );
 };
 
@@ -198,8 +283,14 @@ const FacultyDonutChart = ({ members }) => {
   const data = groupData(members, "faculty");
   if (data.length === 0) return null;
   const total = data.reduce((sum, item) => sum + item.value, 0);
-  const renderLabel = (props) => {
-    const { cx, cy, midAngle, innerRadius, outerRadius, index } = props;
+  const renderLabel = ({
+    cx,
+    cy,
+    midAngle,
+    innerRadius,
+    outerRadius,
+    index,
+  }) => {
     const radius = innerRadius + (outerRadius - innerRadius) * 0.5;
     const x = cx + radius * Math.cos(-midAngle * (Math.PI / 180));
     const y = cy + radius * Math.sin(-midAngle * (Math.PI / 180));
@@ -211,19 +302,33 @@ const FacultyDonutChart = ({ members }) => {
         y={y}
         textAnchor="middle"
         dominantBaseline="central"
-        fontSize={12}
-        fill="#000"
+        fontSize={10}
+        fill="#333"
       >
-        {`Faculty ${item.name}: ${percentage}%`}
+        {`${item.name}: ${percentage}%`}
       </text>
     );
   };
   return (
-    <div style={{ textAlign: "center" }}>
-      <h3 style={{ marginBottom: "0.5rem", color: "#333" }}>
+    <Box
+      sx={{
+        bgcolor: "#fff",
+        boxShadow: 1,
+        borderRadius: 2,
+        p: 2,
+        flex: 1,
+        display: "flex",
+        flexDirection: "column",
+      }}
+    >
+      <Typography
+        variant="subtitle1"
+        align="center"
+        sx={{ mb: 1, fontWeight: 600, color: "#444" }}
+      >
         Faculty Distribution
-      </h3>
-      <ResponsiveContainer width="100%" height={300}>
+      </Typography>
+      <ResponsiveContainer width="100%" height={260}>
         <PieChart>
           <Pie
             data={data}
@@ -232,9 +337,10 @@ const FacultyDonutChart = ({ members }) => {
             cx="50%"
             cy="50%"
             outerRadius={80}
-            innerRadius={40}
+            innerRadius={45}
             label={renderLabel}
             labelLine={false}
+            paddingAngle={2}
           >
             {data.map((entry, index) => (
               <Cell
@@ -243,15 +349,22 @@ const FacultyDonutChart = ({ members }) => {
               />
             ))}
           </Pie>
-          <Tooltip />
+          <Tooltip
+            contentStyle={{
+              backgroundColor: "#f9f9f9",
+              border: "1px solid #ddd",
+              borderRadius: "4px",
+            }}
+          />
           <Legend
-            formatter={(value) => `Faculty ${value}`}
             verticalAlign="bottom"
-            height={36}
+            height={30}
+            iconType="circle"
+            formatter={(value) => `Faculty ${value}`}
           />
         </PieChart>
       </ResponsiveContainer>
-    </div>
+    </Box>
   );
 };
 
@@ -269,8 +382,14 @@ const NotificationsDonutChart = ({ notifications }) => {
   ];
   if (data.every((item) => item.value === 0)) return null;
   const total = data.reduce((sum, item) => sum + item.value, 0);
-  const renderLabel = (props) => {
-    const { cx, cy, midAngle, innerRadius, outerRadius, index } = props;
+  const renderLabel = ({
+    cx,
+    cy,
+    midAngle,
+    innerRadius,
+    outerRadius,
+    index,
+  }) => {
     const radius = innerRadius + (outerRadius - innerRadius) * 0.5;
     const x = cx + radius * Math.cos(-midAngle * (Math.PI / 180));
     const y = cy + radius * Math.sin(-midAngle * (Math.PI / 180));
@@ -282,19 +401,33 @@ const NotificationsDonutChart = ({ notifications }) => {
         y={y}
         textAnchor="middle"
         dominantBaseline="central"
-        fontSize={12}
-        fill="#000"
+        fontSize={10}
+        fill="#333"
       >
-        {`Notification ${item.name}: ${percentage}%`}
+        {`${item.name}: ${percentage}%`}
       </text>
     );
   };
   return (
-    <div style={{ textAlign: "center" }}>
-      <h3 style={{ marginBottom: "0.5rem", color: "#333" }}>
+    <Box
+      sx={{
+        bgcolor: "#fff",
+        boxShadow: 1,
+        borderRadius: 2,
+        p: 2,
+        flex: 1,
+        display: "flex",
+        flexDirection: "column",
+      }}
+    >
+      <Typography
+        variant="subtitle1"
+        align="center"
+        sx={{ mb: 1, fontWeight: 600, color: "#444" }}
+      >
         Notifications Breakdown
-      </h3>
-      <ResponsiveContainer width="100%" height={300}>
+      </Typography>
+      <ResponsiveContainer width="100%" height={260}>
         <PieChart>
           <Pie
             data={data}
@@ -303,9 +436,10 @@ const NotificationsDonutChart = ({ notifications }) => {
             cx="50%"
             cy="50%"
             outerRadius={80}
-            innerRadius={40}
+            innerRadius={45}
             label={renderLabel}
             labelLine={false}
+            paddingAngle={2}
           >
             {data.map((entry, index) => (
               <Cell
@@ -314,20 +448,27 @@ const NotificationsDonutChart = ({ notifications }) => {
               />
             ))}
           </Pie>
-          <Tooltip />
+          <Tooltip
+            contentStyle={{
+              backgroundColor: "#f9f9f9",
+              border: "1px solid #ddd",
+              borderRadius: "4px",
+            }}
+          />
           <Legend
-            formatter={(value) => `Notification ${value}`}
             verticalAlign="bottom"
-            height={36}
+            height={30}
+            iconType="circle"
+            formatter={(value) => `Notification ${value}`}
           />
         </PieChart>
       </ResponsiveContainer>
-    </div>
+    </Box>
   );
 };
 
 // ---------------- Container Component: MemberAnalysisCharts ----------------
-// This component renders all visualizations in a single horizontal line (small grid format) using a grid with auto-flow column.
+// This component renders all visualizations in a responsive grid layout.
 const MemberAnalysisCharts = ({
   data,
   titlePrefix,
@@ -335,48 +476,29 @@ const MemberAnalysisCharts = ({
   approvedMembers,
   notifications,
 }) => {
-  // Create a single container that flows items as columns in one row.
   return (
-    <div>
-      {/* Basic Analysis Section: arranged in a horizontal grid */}
-      <div
-        style={{
-          display: "grid",
-          gridAutoFlow: "column",
-          gridAutoColumns: "minmax(300px, 1fr)",
-          gap: "20px",
-          marginTop: "1rem",
-          width: "100%",
-        }}
-      >
-        <YearDonutChart data={data} title={`${titlePrefix} Members by Year`} />
-        <CourseBarChart
-          data={data}
-          title={`${titlePrefix} Members by Course`}
-        />
-      </div>
-
-      {/* Additional Visualizations Section (if additional props provided) in a single horizontal line */}
-      {newRequests && approvedMembers && notifications && (
-        <div
-          style={{
-            display: "grid",
-            gridAutoFlow: "column",
-            gridAutoColumns: "minmax(300px, 1fr)",
-            gap: "20px",
-            marginTop: "2rem",
-            width: "100%",
-            }}
-        >
-          <MembershipGrowthChart
-            newRequests={newRequests}
-            approvedMembers={approvedMembers}
-          />
-          <FacultyDonutChart members={data} />
-          <NotificationsDonutChart notifications={notifications} />
-        </div>
-      )}
-    </div>
+    <Box
+      sx={{
+        display: "grid",
+        gridTemplateColumns: {
+          xs: "1fr",
+          sm: "1fr 1fr",
+          lg: "1fr 1fr 1fr",
+        },
+        gap: 2,
+        width: "100%",
+        mt: 2,
+      }}
+    >
+      <YearDonutChart data={data} title={`${titlePrefix} Members by Year`} />
+      <CourseBarChart data={data} title={`${titlePrefix} Members by Course`} />
+      <MembershipGrowthChart
+        newRequests={newRequests}
+        approvedMembers={approvedMembers}
+      />
+      <FacultyDonutChart members={data} />
+      <NotificationsDonutChart notifications={notifications} />
+    </Box>
   );
 };
 

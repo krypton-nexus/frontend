@@ -1,0 +1,236 @@
+.view-feed-container {
+  display: flex;
+  min-height: 100vh;
+  background-color: #f5f5f5;
+  overflow-x: hidden;
+}
+
+.feed-main-content {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  padding: 24px;
+  box-sizing: border-box;
+  overflow-y: auto;
+}
+
+/* ----- FEED HEADER & CONTROLS ----- */
+.feed-header {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 24px;
+}
+
+.feed-title {
+  font-size: 2rem;
+  font-weight: 600;
+  color: #333;
+  margin: 0;
+}
+
+.feed-controls {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  align-items: center;
+  margin-top: 8px;
+}
+
+/* Filter dropdown */
+.filter-select {
+  font-size: 1rem;
+  padding: 8px 12px;
+  border: 1px solid #ccc;
+  border-radius: 6px;
+  background-color: #fff;
+  color: #333;
+  cursor: pointer;
+  transition: border-color 0.2s ease;
+}
+
+.filter-select:hover,
+.filter-select:focus {
+  border-color: #a05252;
+  outline: none;
+}
+
+/* Sort button */
+.sort-button {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  background-color: #fff;
+  border: 1px solid #a05252;
+  color: #a05252;
+  font-size: 1rem;
+  font-weight: 600;
+  padding: 8px 12px;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: background-color 0.2s ease, color 0.2s ease;
+}
+
+.sort-button:hover,
+.sort-button:focus {
+  background-color: #a05252;
+  color: #fff;
+  border-color: #a05252;
+  outline: none;
+}
+
+/* ----- GRID LAYOUT FOR CARDS ----- */
+.feed-grid {
+  display: grid;
+  gap: 20px;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+}
+
+/* Base card styling */
+.feed-card {
+  background-color: #fff;
+  border-radius: 10px;
+  box-shadow: 0 0 12px rgba(0, 0, 0, 0.06);
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  border-left: 6px solid transparent;
+}
+
+/* Card hover elevation */
+.feed-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.12);
+}
+
+/* Colored left border by post type */
+.feed-card-club {
+  border-left-color: #a05252;
+}
+
+.feed-card-announcement {
+  border-left-color: #4a90e2;
+}
+
+.feed-card-event {
+  border-left-color: #f5a623;
+}
+
+/* Card header */
+.feed-card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 12px;
+}
+
+.feed-card-title {
+  font-size: 1.25rem;
+  margin: 0;
+  color: #333;
+  flex: 1;
+}
+
+.feed-card-date {
+  font-size: 0.875rem;
+  color: #777;
+  margin-left: 12px;
+  white-space: nowrap;
+}
+
+/* Card body text */
+.feed-card-body {
+  margin: 0;
+  font-size: 1rem;
+  line-height: 1.6;
+  color: #555;
+  flex: 1;
+}
+
+/* When there are no posts after filtering */
+.no-posts {
+  text-align: center;
+  font-size: 1.1rem;
+  color: #666;
+  padding: 40px 20px;
+}
+
+/* Error state styling */
+.feed-error {
+  text-align: center;
+  padding: 60px 20px;
+  color: #a05252;
+}
+
+.retry-btn {
+  background-color: #a05252;
+  color: #fff;
+  border: none;
+  padding: 10px 16px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 1rem;
+  transition: background-color 0.2s ease;
+}
+
+.retry-btn:hover {
+  background-color: #8b413f;
+}
+
+/* Skeleton card base styling */
+.skeleton-card {
+  background-color: #fff;
+  border-radius: 10px;
+  box-shadow: 0 0 12px rgba(0, 0, 0, 0.06);
+  padding: 16px;
+}
+
+/* ----- RESPONSIVE BREAKPOINTS ----- */
+@media (max-width: 1024px) {
+  .main-content {
+    padding: 20px;
+  }
+  .feed-controls {
+    margin-top: 12px;
+  }
+}
+
+@media (max-width: 768px) {
+  .main-content {
+    padding: 16px;
+  }
+  .feed-controls {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 8px;
+  }
+  .filter-select,
+  .sort-button {
+    width: 100%;
+    text-align: center;
+  }
+}
+
+@media (max-width: 480px) {
+  .main-content {
+    padding: 12px;
+  }
+  .feed-title {
+    font-size: 1.6rem;
+  }
+  .feed-card {
+    padding: 16px;
+  }
+  .feed-card-title {
+    font-size: 1.1rem;
+  }
+  .feed-card-date {
+    font-size: 0.75rem;
+  }
+  .feed-card-body {
+    font-size: 0.9rem;
+  }
+}

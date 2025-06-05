@@ -3,6 +3,7 @@ import { collection, query, orderBy, onSnapshot } from "firebase/firestore";
 import { db } from "../firebase";
 import { jwtDecode } from "jwt-decode";
 import "../CSS/Messages.css";
+import Skeleton from "@mui/material/Skeleton";
 
 const BASE_URL = process.env.REACT_APP_BASE_URL;
 
@@ -28,12 +29,10 @@ const Messages = ({ clubId }) => {
   const fetchUserNames = useCallback(async (emails) => {
     const result = {};
     const token = localStorage.getItem("access_token");
-
     if (!token) {
       console.error("Missing token for user name fetch.");
       return result;
     }
-
     for (const email of emails) {
       if (!email) continue;
       try {
@@ -43,7 +42,6 @@ const Messages = ({ clubId }) => {
             Authorization: `Bearer ${token}`,
           },
         });
-
         if (response.ok) {
           const data = await response.json();
           result[email] = `${data.first_name || "Anonymous"} ${
@@ -120,17 +118,96 @@ const Messages = ({ clubId }) => {
     return () => unsubscribe();
   }, [clubId, fetchUserNames]);
 
-useEffect(() => {
-  if (!isLoading && messagesEndRef.current) {
-    messagesEndRef.current.scrollIntoView({ behavior: "smooth", block: "end" });
-  }
-}, [messages, isLoading]);
+  useEffect(() => {
+    if (!isLoading && messagesEndRef.current) {
+      messagesEndRef.current.scrollIntoView({
+        behavior: "smooth",
+        block: "end",
+      });
+    }
+  }, [messages, isLoading]);
 
+  // === RENDER ===
 
   if (isLoading) {
     return (
       <div className="messages-container">
-        <p>Loading messages...</p>
+        {/* Date separator skeleton */}
+        <div className="date-separator">
+          <Skeleton
+            variant="text"
+            width={80}
+            height={20}
+            animation="wave"
+            style={{ margin: "0 auto" }}
+          />
+        </div>
+
+        {/* Message skeletons */}
+        {[...Array(6)].map((_, i) => {
+          const isSentByUser = i % 3 === 0; // Mix of user and other messages
+          return (
+            <div
+              key={i}
+              className={`message ${
+                isSentByUser ? "message-right" : "message-left"
+              }`}
+            >
+              {!isSentByUser && (
+                <Skeleton
+                  className="message-avatar"
+                  variant="circular"
+                  width={40}
+                  height={40}
+                  animation="wave"
+                />
+              )}
+              <div
+                className={`message-bubble ${
+                  isSentByUser ? "sent" : "received"
+                }`}
+              >
+                {!isSentByUser && (
+                  <div className="message-sender-name">
+                    <Skeleton
+                      variant="text"
+                      width={80}
+                      height={16}
+                      animation="wave"
+                    />
+                  </div>
+                )}
+                <div className="message-text">
+                  <div className="message-content">
+                    <Skeleton
+                      variant="text"
+                      width={Math.random() * 200 + 100}
+                      height={16}
+                      animation="wave"
+                      style={{ marginBottom: 4 }}
+                    />
+                    {Math.random() > 0.5 && (
+                      <Skeleton
+                        variant="text"
+                        width={Math.random() * 150 + 80}
+                        height={16}
+                        animation="wave"
+                      />
+                    )}
+                  </div>
+                  <div className="message-timestamp">
+                    <Skeleton
+                      variant="text"
+                      width={50}
+                      height={12}
+                      animation="wave"
+                    />
+                  </div>
+                </div>
+              </div>
+            </div>
+          );
+        })}
       </div>
     );
   }
@@ -212,3 +289,4 @@ useEffect(() => {
 };
 
 export default Messages;
+ 

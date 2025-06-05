@@ -2,9 +2,14 @@ import React, { useState, useEffect } from "react";
 import { FaPlus, FaClipboardList, FaBoxOpen, FaUsers } from "react-icons/fa";
 import AdminSidebar from "../Components/AdminSidebar";
 import "../CSS/Merchandise.css";
-// import "../CSS/AdminMarketplace.css";
+import Skeleton from "@mui/material/Skeleton";
+import Stack from "@mui/material/Stack";
+import Card from "@mui/material/Card";
+import CardContent from "@mui/material/CardContent";
 import { useNavigate } from "react-router-dom";
 import { jwtDecode } from "jwt-decode";
+import Box from "@mui/material/Box";
+
 
 const BASE_URL = process.env.REACT_APP_BASE_URL;
 
@@ -20,6 +25,196 @@ const AdminMarketplace = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [userEmail, setUserEmail] = useState("");
+  const DashboardSkeleton = () => (
+    <div className="admin-dashboard">
+      {/* Dashboard Title */}
+      <Skeleton variant="text" width={210} height={36} sx={{ mb: 2 }} />
+
+      {/* Summary Stat Cards */}
+      <Stack direction="row" spacing={3} sx={{ mb: 4 }}>
+        {[1, 2, 3, 4].map((i) => (
+          <Card key={i} sx={{ flex: 1, borderRadius: 3, boxShadow: 2 }}>
+            <CardContent>
+              <Stack spacing={2} alignItems="center">
+                <Skeleton variant="circular" width={48} height={48} />
+                <Skeleton variant="text" width="60%" height={22} />
+                <Skeleton variant="text" width="40%" height={32} />
+              </Stack>
+            </CardContent>
+          </Card>
+        ))}
+      </Stack>
+
+      {/* Status Chips */}
+      <Box sx={{ mb: 4 }}>
+        <Skeleton variant="text" width={150} height={28} sx={{ mb: 2 }} />
+        <Stack direction="row" spacing={2}>
+          {[1, 2, 3].map((i) => (
+            <Skeleton
+              key={i}
+              variant="rectangular"
+              width={90}
+              height={32}
+              sx={{ borderRadius: 16 }}
+            />
+          ))}
+        </Stack>
+      </Box>
+
+      {/* Recent Orders Table */}
+      <Box sx={{ mt: 4 }}>
+        <Skeleton variant="text" width={180} height={28} sx={{ mb: 2 }} />
+        <div className="orders-table" style={{ width: "100%" }}>
+          {/* Table Head */}
+          <Stack direction="row" spacing={3} sx={{ mb: 1 }}>
+            {[1, 2, 3, 4, 5].map((i) => (
+              <Skeleton key={i} variant="text" width={80} height={20} />
+            ))}
+          </Stack>
+          {/* Rows */}
+          {[1, 2, 3, 4, 5].map((i) => (
+            <Stack
+              key={i}
+              direction="row"
+              spacing={3}
+              alignItems="center"
+              sx={{
+                mb: 1,
+                p: 1,
+                borderRadius: 2,
+                background: "#fafbfc",
+              }}
+            >
+              <Skeleton variant="circular" width={36} height={36} />
+              <Skeleton variant="text" width={90} height={20} />
+              <Skeleton variant="rectangular" width={60} height={20} />
+              <Skeleton variant="rectangular" width={70} height={20} />
+              <Skeleton
+                variant="rectangular"
+                width={76}
+                height={28}
+                sx={{ borderRadius: 8 }}
+              />
+            </Stack>
+          ))}
+        </div>
+      </Box>
+    </div>
+  );
+
+  const ProductsTableSkeleton = () => (
+    <div className="product-management">
+      <div
+        className="section-header"
+        style={{ display: "flex", alignItems: "center", gap: 12 }}
+      >
+        <Skeleton variant="text" width={180} height={32} />
+        <Skeleton
+          variant="rectangular"
+          width={120}
+          height={38}
+          sx={{ borderRadius: 2 }}
+        />
+      </div>
+      <div className="products-table" style={{ width: "100%", marginTop: 16 }}>
+        {/* Table Head */}
+        <Stack direction="row" spacing={3} sx={{ mb: 1 }}>
+          {[1, 2, 3, 4, 5].map((i) => (
+            <Skeleton key={i} variant="text" width={90} height={20} />
+          ))}
+        </Stack>
+        {/* Table Rows */}
+        {[1, 2, 3, 4, 5].map((i) => (
+          <Stack
+            key={i}
+            direction="row"
+            alignItems="center"
+            spacing={2}
+            sx={{
+              mb: 2,
+              p: 1,
+              borderRadius: 2,
+              background: "#f6f7fa",
+            }}
+          >
+            <Skeleton
+              variant="rectangular"
+              width={60}
+              height={50}
+              sx={{ borderRadius: 2 }}
+            />
+            <Stack flex={1}>
+              <Skeleton variant="text" width={120} height={20} />
+              <Skeleton variant="text" width={80} height={18} />
+            </Stack>
+            <Skeleton variant="rectangular" width={65} height={18} />
+            <Skeleton variant="rectangular" width={60} height={18} />
+            {/* Action Buttons */}
+            <Stack direction="row" spacing={1}>
+              <Skeleton
+                variant="rectangular"
+                width={44}
+                height={34}
+                sx={{ borderRadius: 1 }}
+              />
+              <Skeleton
+                variant="rectangular"
+                width={44}
+                height={34}
+                sx={{ borderRadius: 1 }}
+              />
+            </Stack>
+          </Stack>
+        ))}
+      </div>
+    </div>
+  );
+
+  const OrdersTableSkeleton = () => (
+    <div className="order-management admin-dashboard">
+      <Skeleton variant="text" width={220} height={38} sx={{ mb: 2 }} />
+      <div className="orders-table" style={{ width: "100%" }}>
+        {/* Table Head */}
+        <Stack direction="row" spacing={2} sx={{ mb: 2 }}>
+          {[1, 2, 3, 4, 5, 6, 7, 8].map((i) => (
+            <Skeleton key={i} variant="text" width={70} height={20} />
+          ))}
+        </Stack>
+        {/* Table Rows */}
+        {[1, 2, 3, 4, 5].map((i) => (
+          <Stack
+            key={i}
+            direction="row"
+            alignItems="center"
+            spacing={2}
+            sx={{
+              mb: 2,
+              p: 1,
+              borderRadius: 2,
+              background: "#f6f7fa",
+            }}
+          >
+            <Skeleton variant="circular" width={32} height={32} />
+            <Stack flex={1} spacing={0.5}>
+              <Skeleton variant="text" width={80} height={18} />
+              <Skeleton variant="text" width={70} height={14} />
+            </Stack>
+            <Skeleton variant="text" width={110} height={18} />
+            <Skeleton variant="rectangular" width={48} height={22} />
+            <Skeleton variant="rectangular" width={46} height={22} />
+            {/* Badge and Select Skeleton */}
+            <Skeleton variant="rounded" width={66} height={28} />
+            <Skeleton
+              variant="rectangular"
+              width={88}
+              height={32}
+              sx={{ borderRadius: 1 }}
+            />
+          </Stack>
+        ))}
+      </div>
+    </div>
+  );
 
   useEffect(() => {
     const token = localStorage.getItem("admin_access_token");
@@ -669,9 +864,22 @@ const AdminMarketplace = () => {
           </div>
 
           <div className="admin-content">
-            {activeAdminTab === "dashboard" && renderAdminDashboard()}
-            {activeAdminTab === "products" && renderProductManagement()}
-            {activeAdminTab === "orders" && renderOrderManagement()}
+            {activeAdminTab === "dashboard" && loading && <DashboardSkeleton />}
+            {activeAdminTab === "dashboard" &&
+              !loading &&
+              renderAdminDashboard()}
+            {activeAdminTab === "products" && loading && (
+              <ProductsTableSkeleton />
+            )}
+            {activeAdminTab === "products" &&
+              !loading &&
+              renderProductManagement()}
+            {activeAdminTab === "orders" && ordersLoading && (
+              <OrdersTableSkeleton />
+            )}
+            {activeAdminTab === "orders" &&
+              !ordersLoading &&
+              renderOrderManagement()}
           </div>
         </div>
       </div>
