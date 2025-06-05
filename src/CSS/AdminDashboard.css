@@ -146,8 +146,8 @@ header {
   display: flex;
   align-items: center;
   width: 95%;
-  /* border: 1px solid #ddd; */
-  /* border-radius: 5px; */
+  border: 1px solid #ddd;
+  border-radius: 5px;
   overflow: hidden;
 }
 
@@ -300,6 +300,7 @@ header {
   text-align: left;
   border-bottom: 1px solid #ddd;
   font-size: 14px;
+  width: fit-content;
 }
 
 .membership-table th {
@@ -322,8 +323,9 @@ header {
 .delete-btn,
 .view-btn,
 .close-btn {
+  width: 70px;
   border: none;
-  border-radius: 8px;
+  border-radius: 4px;
   padding: 8px 16px;
   font-size: 14px;
   font-weight: bold;
@@ -343,8 +345,8 @@ header {
 
 .reject-btn,
 .delete-btn {
-  background-color: #dc3545;
-  color: #fff;
+  background-color: #dc3545 !important;
+  color: #fff !important;
 }
 
 .reject-btn:hover,

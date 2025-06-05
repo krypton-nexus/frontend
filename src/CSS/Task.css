@@ -35,7 +35,7 @@ body {
   display: flex;
   flex-direction: column;
   gap: 0.2rem;
-  height: auto;
+  height: 99vh;
   overflow-y: auto;
 }
 
@@ -70,6 +70,9 @@ body {
 
 /* Panel Box: Card look */
 .panel-box {
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
   background-color: white;
   border-radius: 0.5rem;
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
@@ -88,6 +91,7 @@ body {
 /* Left Panel - Add Task Form */
 .add-task-form {
   display: flex;
+  flex-direction: row;
   margin-bottom: 1rem;
 }
 .add-task-form input {
@@ -199,8 +203,8 @@ body {
 } */
 
 .task-app .header-content {
+  width: 60%;
   display: flex;
-  justify-content: space-between;
   align-items: flex-end; /* Align bottom of greeting & buttons */
   gap: 1rem;
   flex-wrap: wrap;

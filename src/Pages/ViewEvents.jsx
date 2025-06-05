@@ -7,19 +7,21 @@ import { FaUserCircle, FaSearch, FaMapPin } from "react-icons/fa";
 import Snackbar from "@mui/material/Snackbar";
 import Alert from "@mui/material/Alert";
 import UserProfile from "../Components/UserProfile";
+import Skeleton from "@mui/material/Skeleton";
 
 const BASE_URL = process.env.REACT_APP_BASE_URL;
 
 const ViewEvents = () => {
   const [events, setEvents] = useState([]);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false);
   const [studentEmail, setStudentEmail] = useState("");
   const [token, setToken] = useState(null);
   const [participantCounts, setParticipantCounts] = useState({});
   const [trendingImages, setTrendingImages] = useState([]);
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const [activeTab, setActiveTab] = useState("today");
-  const [clubs, setClubs] = useState([]);
+  const [clubs, setClubs] = useState(null);
+
   const [profileOpen, setProfileOpen] = useState(false);
   const [user, setUser] = useState(null);
   const [snackbarOpen, setSnackbarOpen] = useState(false);
@@ -36,13 +38,14 @@ const ViewEvents = () => {
     if (reason !== "clickaway") setSnackbarOpen(false);
   };
 
+  // Decode JWT on mount
   useEffect(() => {
-    const token = localStorage.getItem("access_token");
-    if (token) {
+    const access = localStorage.getItem("access_token");
+    if (access) {
       try {
-        const decoded = jwtDecode(token);
+        const decoded = jwtDecode(access);
         setStudentEmail(decoded.email);
-        setToken(token);
+        setToken(access);
       } catch {
         showSnackbar("Invalid token. Please log in again.", "error");
       }
@@ -51,8 +54,11 @@ const ViewEvents = () => {
     }
   }, []);
 
+  // Fetch clubs once token & studentEmail are known
   useEffect(() => {
-    if (!token) return;
+    if (!token || !studentEmail) return;
+
+    setLoading(true);
     const fetchClubs = async () => {
       try {
         const res = await fetch(`${BASE_URL}/student/clubs/${studentEmail}`, {
@@ -62,24 +68,38 @@ const ViewEvents = () => {
           },
         });
         const data = await res.json();
+        // Even if data.clubs is undefined, default to []
         setClubs(data.clubs || []);
       } catch {
+        setClubs([]); // treat as “no clubs” on error
         showSnackbar("Failed to load clubs.", "error");
+      } finally {
+        setLoading(false);
       }
     };
     fetchClubs();
   }, [token, studentEmail]);
 
+  // Fetch all events only if clubs is a non-empty array
   useEffect(() => {
-    if (!token || clubs.length === 0) return;
+    // If clubs === null => not fetched yet. If clubs.length === 0 => user has no clubs
+    if (!token || clubs === null) return;
+
+    if (clubs.length === 0) {
+      // No clubs → we’re “done loading” (no need to fetch events)
+      setLoading(false);
+      return;
+    }
+
+    setLoading(true);
     const fetchAllEvents = async () => {
       try {
         const allEvents = [];
         const allImages = [];
 
-        for (let club of clubs) {
+        for (let clubId of clubs) {
           const res = await fetch(
-            `${BASE_URL}/event/get_events?club_id=${club}`,
+            `${BASE_URL}/event/get_events?club_id=${clubId}`,
             {
               headers: {
                 Authorization: `Bearer ${token}`,
@@ -88,14 +108,19 @@ const ViewEvents = () => {
             }
           );
           const data = await res.json();
+
           if (Array.isArray(data.events)) {
             allEvents.push(...data.events);
+
+            // Collect the first valid image URL from each event
             const images = data.events
               .map((event) => getImageUrl(event.images))
               .filter((img) => img !== "");
             allImages.push(...images);
-            data.events.forEach((event) =>
-              fetchParticipantCount(event.club_id, event.id)
+
+            // Fetch each event’s participant count in parallel (fire-and-forget)
+            data.events.forEach((evt) =>
+              fetchParticipantCount(evt.club_id, evt.id)
             );
           }
         }
@@ -112,15 +137,17 @@ const ViewEvents = () => {
     fetchAllEvents();
   }, [token, clubs]);
 
+  // Rotate trending images every 4 seconds
   useEffect(() => {
-    if (trendingImages.length > 1) {
-      const interval = setInterval(() => {
-        setCurrentImageIndex((i) =>
-          i === trendingImages.length - 1 ? 0 : i + 1
-        );
-      }, 4000);
-      return () => clearInterval(interval);
-    }
+    if (trendingImages.length <= 1) return;
+
+    const interval = setInterval(() => {
+      setCurrentImageIndex((i) =>
+        i === trendingImages.length - 1 ? 0 : i + 1
+      );
+    }, 4000);
+
+    return () => clearInterval(interval);
   }, [trendingImages]);
 
   const fetchParticipantCount = async (clubId, eventId) => {
@@ -150,7 +177,7 @@ const ViewEvents = () => {
     }
 
     try {
-      const res = await fetch(`${BASE_URL}/event/add_participant`, {
+      await fetch(`${BASE_URL}/event/add_participant`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -162,8 +189,6 @@ const ViewEvents = () => {
           student_email: studentEmail,
         }),
       });
-      await res.json();
-      // After a successful vote, update the count for this event
       fetchParticipantCount(eventItem.club_id, eventItem.id);
       updateEventParticipants(eventItem.id, [...participants, studentEmail]);
       showSnackbar("Participation confirmed.", "success");
@@ -173,15 +198,15 @@ const ViewEvents = () => {
   };
 
   const handleNoVote = async (eventItem) => {
-    if (!window.confirm("Are you sure, you want to left from this event?"))
-          return;
+    if (!window.confirm("Are you sure you want to leave this event?")) return;
+
     const participants = JSON.parse(eventItem.participants || "[]");
     if (!participants.includes(studentEmail)) {
       return showSnackbar("You're not a participant.", "warning");
     }
 
     try {
-      const res = await fetch(`${BASE_URL}/event/delete_participant`, {
+      await fetch(`${BASE_URL}/event/delete_participant`, {
         method: "DELETE",
         headers: {
           "Content-Type": "application/json",
@@ -193,8 +218,6 @@ const ViewEvents = () => {
           student_email: studentEmail,
         }),
       });
-      await res.json();
-      // After a successful removal, update the count for this event
       fetchParticipantCount(eventItem.club_id, eventItem.id);
       updateEventParticipants(
         eventItem.id,
@@ -290,14 +313,16 @@ const ViewEvents = () => {
                 className={`event-tab ${
                   activeTab === "today" ? "active-tab" : ""
                 }`}
-                onClick={() => setActiveTab("today")}>
+                onClick={() => setActiveTab("today")}
+              >
                 Today’s Events
               </span>
               <span
                 className={`event-tab ${
                   activeTab === "upcoming" ? "active-tab" : ""
                 }`}
-                onClick={() => setActiveTab("upcoming")}>
+                onClick={() => setActiveTab("upcoming")}
+              >
                 Upcoming Events
               </span>
             </div>
@@ -326,14 +351,24 @@ const ViewEvents = () => {
             <span
               key={tab}
               className={`event-tab ${activeTab === tab ? "active-tab" : ""}`}
-              onClick={() => setActiveTab(tab)}>
+              onClick={() => setActiveTab(tab)}
+            >
               {tab.charAt(0).toUpperCase() + tab.slice(1)} Events
             </span>
           ))}
         </div>
 
-        {loading ? (
-          <div>Loading events...</div>
+        {clubs === null || loading ? (
+          <div style={{ padding: 20 }}>
+            <Skeleton variant="rectangular" height={50} />
+            <Skeleton variant="text" width="90%" />
+            <Skeleton variant="text" width="70%" />
+            <Skeleton variant="text" width="50%" />
+          </div>
+        ) : clubs.length === 0 ? (
+          <div className="no-membership-request">
+            <h2>Join any clubs to view the events!</h2>
+          </div>
         ) : filteredEvents.length > 0 ? (
           <div className="events-grid">
             {filteredEvents.map((event) => (
@@ -354,12 +389,14 @@ const ViewEvents = () => {
                   <div className="event-buttons">
                     <button
                       className="yes-btn"
-                      onClick={() => handleYesVote(event)}>
+                      onClick={() => handleYesVote(event)}
+                    >
                       Yes
                     </button>
                     <button
                       className="no-btn"
-                      onClick={() => handleNoVote(event)}>
+                      onClick={() => handleNoVote(event)}
+                    >
                       No
                     </button>
                     <button className="maybe-btn" onClick={handleMaybeVote}>
@@ -381,11 +418,13 @@ const ViewEvents = () => {
         open={snackbarOpen}
         autoHideDuration={4000}
         onClose={handleSnackbarClose}
-        anchorOrigin={{ vertical: "bottom", horizontal: "center" }}>
+        anchorOrigin={{ vertical: "bottom", horizontal: "center" }}
+      >
         <Alert
           severity={snackbarSeverity}
           sx={{ width: "100%" }}
-          onClose={handleSnackbarClose}>
+          onClose={handleSnackbarClose}
+        >
           {snackbarMessage}
         </Alert>
       </Snackbar>

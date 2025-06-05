@@ -3,6 +3,7 @@ import { useNavigate, Link } from "react-router-dom";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import {jwtDecode} from "jwt-decode";
+import { Skeleton, Stack, Card, CardContent, Box } from "@mui/material";
 import AdminSidebar from "../Components/AdminSidebar";
 import "../CSS/ViewEvents.css";
 import "../CSS/AddEvent.css";
@@ -92,319 +93,126 @@ const apiDelete = async (endpoint, token, body) => {
   return res.json();
 };
 
-// ------------------ NotificationPopup with Overlay ------------------
-const NotificationPopup = ({
-  notifications,
-  filter,
-  setFilter,
-  markAllAsRead,
-  onClose,
-}) => {
-  const sortedNotifications = notifications
-    .slice()
-    .sort((a, b) => new Date(b.created_at) - new Date(a.created_at))
-    .map((notif) => ({
-      ...notif,
-      formattedDate: new Date(notif.created_at).toLocaleString(),
-    }));
+// // ------------------ NotificationPopup with Overlay ------------------
+// const NotificationPopup = ({
+//   notifications,
+//   filter,
+//   setFilter,
+//   markAllAsRead,
+//   onClose,
+// }) => {
+//   const sortedNotifications = notifications
+//     .slice()
+//     .sort((a, b) => new Date(b.created_at) - new Date(a.created_at))
+//     .map((notif) => ({
+//       ...notif,
+//       formattedDate: new Date(notif.created_at).toLocaleString(),
+//     }));
 
-  return (
-    <>
-      {/* Overlay to close the popup when clicked */}
-      <div
-        onClick={onClose}
-        style={{
-          position: "fixed",
-          top: 0,
-          left: 0,
-          right: 0,
-          bottom: 0,
-          zIndex: 99998,
-          backgroundColor: "transparent",
-        }}
-      />
-      <div
-        className="notification-popup"
-        style={{
-          position: "fixed",
-          top: "60px",
-          left: "250px",
-          zIndex: 99999,
-          backgroundColor: "#fff",
-          color: "#000",
-          boxShadow: "0 2px 8px rgba(0, 0, 0, 0.25)",
-          width: "320px",
-          padding: "10px",
-          borderRadius: "5px",
-        }}
-        onClick={(e) => e.stopPropagation()}
-      >
-        <div
-          className="notification-dropdown-header"
-          style={{
-            marginBottom: "10px",
-            display: "flex",
-            justifyContent: "space-between",
-            alignItems: "center",
-          }}
-        >
-          <button
-            onClick={markAllAsRead}
-            style={{
-              background: "#1a1a1a",
-              color: "#fff",
-              border: "none",
-              padding: "5px 10px",
-              cursor: "pointer",
-              borderRadius: "3px",
-            }}
-          >
-            Mark All as Read
-          </button>
-          <button
-            onClick={onClose}
-            style={{
-              background: "transparent",
-              border: "none",
-              fontSize: "24px",
-              cursor: "pointer",
-            }}
-          >
-            &times;
-          </button>
-        </div>
-        {sortedNotifications.length > 0 ? (
-          <ul style={{ listStyle: "none", margin: 0, padding: 0 }}>
-            {sortedNotifications.map((notif) => (
-              <li
-                key={notif.id}
-                style={{
-                  fontWeight: notif.is_read ? "normal" : "bold",
-                  borderBottom: "1px solid #ccc",
-                  padding: "5px 0",
-                }}
-              >
-                <div>{notif.notification}</div>
-                <div style={{ fontSize: "0.8em", color: "#666" }}>
-                  {notif.formattedDate}
-                </div>
-              </li>
-            ))}
-          </ul>
-        ) : (
-          <div>No notifications available.</div>
-        )}
-        <div style={{ marginTop: "10px", textAlign: "center" }}>
-          <button onClick={() => setFilter("all")} style={{ margin: "0 5px" }}>
-            All
-          </button>
-          <button
-            onClick={() => setFilter("unread")}
-            style={{ margin: "0 5px" }}
-          >
-            Unread
-          </button>
-          <button onClick={() => setFilter("read")} style={{ margin: "0 5px" }}>
-            Read
-          </button>
-        </div>
-      </div>
-    </>
-  );
-};
-
-// ------------------ UserDetailModal Component ------------------
-const UserDetailModal = ({ isOpen, onClose, user }) => {
-  if (!isOpen || !user) return null;
-  return (
-    <div className="modal-overlay">
-      <div className="modal-content">
-        <button className="close-btn" onClick={onClose}>
-          ✖
-        </button>
-        <h2 className="modal-title">Member Details</h2>
-        <div className="user-info">
-          <div className="info-item">
-            <strong>First Name:</strong> <span>{user.first_name || "N/A"}</span>
-          </div>
-          <div className="info-item">
-            <strong>Last Name:</strong> <span>{user.last_name || "N/A"}</span>
-          </div>
-          <div className="info-item">
-            <strong>Email:</strong> <span>{user.email || "N/A"}</span>
-          </div>
-          <div className="info-item">
-            <strong>Phone Number:</strong>{" "}
-            <span>{user.phone_number || "N/A"}</span>
-          </div>
-          <div className="info-item">
-            <strong>Date of Birth:</strong>{" "}
-            <span>
-              {user.dob
-                ? new Date(user.dob).toLocaleDateString("en-US", {
-                    timeZone: "Asia/Colombo",
-                    dateStyle: "long",
-                  })
-                : "N/A"}
-            </span>
-          </div>
-          <div className="info-item">
-            <strong>Student Number:</strong>{" "}
-            <span>{user.student_number || "N/A"}</span>
-          </div>
-          <div className="info-item">
-            <strong>Year:</strong> <span>{user.year || "N/A"}</span>
-          </div>
-          <div className="info-item">
-            <strong>Course Name:</strong>{" "}
-            <span>{user.course_name || "N/A"}</span>
-          </div>
-          <div className="info-item">
-            <strong>Department:</strong> <span>{user.department || "N/A"}</span>
-          </div>
-          <div className="info-item">
-            <strong>Faculty:</strong> <span>{user.faculty || "N/A"}</span>
-          </div>
-        </div>
-      </div>
-    </div>
-  );
-};
-
-// ------------------ MembershipTable Component ------------------
-const MembershipTable = ({
-  title,
-  data,
-  isCurrentMembers,
-  onViewDetails,
-  onStatusChange,
-  onMemberDeletion,
-}) => {
-  if (!Array.isArray(data) || data.length === 0) {
-    return (
-      <div>
-        <div className="membership-header">
-          <div className="search-container">
-            <input
-              type="text"
-              placeholder="Search members..."
-              className="membership-search"
-            />
-            <button className="searchIcon">
-              <FaSearch />
-            </button>
-          </div>
-          <FaUserCircle className="membership-avatar" size={30} />
-        </div>
-        <hr className="section-divider" />
-        <div className="no-membership-request">
-          <h2>
-            <span className="ban-icon">
-              <Ban size={18} className="text-red-400" />
-            </span>
-            No {title.toLowerCase()} available.
-          </h2>
-        </div>
-      </div>
-    );
-  }
-
-  const yearCounts = data.reduce((acc, member) => {
-    const year = member.year || "Unknown";
-    acc[year] = (acc[year] || 0) + 1;
-    return acc;
-  }, {});
-
-  const total = Object.values(yearCounts).reduce(
-    (sum, count) => sum + count,
-    0
-  );
-  const colors = ["#a91d3a", "#007bff", "#28a745", "#ffc107", "#6610f2"];
-  const getColor = (index) => colors[index % colors.length];
-
-  return (
-    <div className="membership-table-container">
-      <div className="year-analysis">
-        <h2>Year-wise Analysis</h2>
-        <ul>
-          {Object.entries(yearCounts).map(([year, count]) => (
-            <li key={year}>
-              Year {year}: {count} student{count > 1 ? "s" : ""}
-            </li>
-          ))}
-        </ul>
-      </div>
-      <br />
-      <h2>{title}</h2>
-      <table className="membership-table">
-        <thead>
-          <tr>
-            <th>Name</th>
-            <th>Last Name</th>
-            <th>Course Name</th>
-            <th>Year</th>
-            <th>Faculty</th>
-            <th>Actions</th>
-          </tr>
-        </thead>
-        <tbody>
-          {data.map((member) => (
-            <tr key={member.student_email}>
-              <td>{member.firstName}</td>
-              <td>{member.lastName}</td>
-              <td>{member.courseName}</td>
-              <td>{member.year}</td>
-              <td>{member.faculty}</td>
-              <td>
-                {isCurrentMembers ? (
-                  <>
-                    <button
-                      className="view-btn"
-                      onClick={() => onViewDetails(member.student_email)}
-                    >
-                      View
-                    </button>
-                    <button
-                      className="delete-btn"
-                      onClick={() => onMemberDeletion(member.student_email)}
-                    >
-                      Delete
-                    </button>
-                  </>
-                ) : (
-                  <>
-                    <button
-                      className="view-btn"
-                      onClick={() => onViewDetails(member.student_email)}
-                    >
-                      View
-                    </button>
-                    <button
-                      className="accept-btn"
-                      onClick={() =>
-                        onStatusChange("Approved", member.student_email)
-                      }
-                    >
-                      Accept
-                    </button>
-                    <button
-                      className="reject-btn"
-                      onClick={() =>
-                        onStatusChange("rejected", member.student_email)
-                      }
-                    >
-                      Reject
-                    </button>
-                  </>
-                )}
-              </td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
-    </div>
-  );
-};
+//   return (
+//     <>
+//       {/* Overlay to close the popup when clicked */}
+//       <div
+//         onClick={onClose}
+//         style={{
+//           position: "fixed",
+//           top: 0,
+//           left: 0,
+//           right: 0,
+//           bottom: 0,
+//           zIndex: 99998,
+//           backgroundColor: "transparent",
+//         }}
+//       />
+//       <div
+//         className="notification-popup"
+//         style={{
+//           position: "fixed",
+//           top: "60px",
+//           left: "250px",
+//           zIndex: 99999,
+//           backgroundColor: "#fff",
+//           color: "#000",
+//           boxShadow: "0 2px 8px rgba(0, 0, 0, 0.25)",
+//           width: "320px",
+//           padding: "10px",
+//           borderRadius: "5px",
+//         }}
+//         onClick={(e) => e.stopPropagation()}
+//       >
+//         <div
+//           className="notification-dropdown-header"
+//           style={{
+//             marginBottom: "10px",
+//             display: "flex",
+//             justifyContent: "space-between",
+//             alignItems: "center",
+//           }}
+//         >
+//           <button
+//             onClick={markAllAsRead}
+//             style={{
+//               background: "#1a1a1a",
+//               color: "#fff",
+//               border: "none",
+//               padding: "5px 10px",
+//               cursor: "pointer",
+//               borderRadius: "3px",
+//             }}
+//           >
+//             Mark All as Read
+//           </button>
+//           <button
+//             onClick={onClose}
+//             style={{
+//               background: "transparent",
+//               border: "none",
+//               fontSize: "24px",
+//               cursor: "pointer",
+//             }}
+//           >
+//             &times;
+//           </button>
+//         </div>
+//         {sortedNotifications.length > 0 ? (
+//           <ul style={{ listStyle: "none", margin: 0, padding: 0 }}>
+//             {sortedNotifications.map((notif) => (
+//               <li
+//                 key={notif.id}
+//                 style={{
+//                   fontWeight: notif.is_read ? "normal" : "bold",
+//                   borderBottom: "1px solid #ccc",
+//                   padding: "5px 0",
+//                 }}
+//               >
+//                 <div>{notif.notification}</div>
+//                 <div style={{ fontSize: "0.8em", color: "#666" }}>
+//                   {notif.formattedDate}
+//                 </div>
+//               </li>
+//             ))}
+//           </ul>
+//         ) : (
+//           <div>No notifications available.</div>
+//         )}
+//         <div style={{ marginTop: "10px", textAlign: "center" }}>
+//           <button onClick={() => setFilter("all")} style={{ margin: "0 5px" }}>
+//             All
+//           </button>
+//           <button
+//             onClick={() => setFilter("unread")}
+//             style={{ margin: "0 5px" }}
+//           >
+//             Unread
+//           </button>
+//           <button onClick={() => setFilter("read")} style={{ margin: "0 5px" }}>
+//             Read
+//           </button>
+//         </div>
+//       </div>
+//     </>
+//   );
+// };
 
 // ------------------ Main AdminEvent Component ------------------
 const AdminEvent = () => {
@@ -417,12 +225,13 @@ const AdminEvent = () => {
   const [participantCounts, setParticipantCounts] = useState({});
   const [trendingImages, setTrendingImages] = useState([]);
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
-  const [activeTab, setActiveTab] = useState("upcoming");
   const [menuOpen, setMenuOpen] = useState(null);
   const [editModalOpen, setEditModalOpen] = useState(false);
   const [editEvent, setEditEvent] = useState(null);
   const [modalUserData, setModalUserData] = useState(null);
   const navigate = useNavigate();
+  const [activeTab, setActiveTab] = useState("upcoming");
+  const [searchTerm, setSearchTerm] = useState("");
 
   // Fetch and decode token from localStorage
   useEffect(() => {
@@ -607,20 +416,28 @@ const AdminEvent = () => {
     }
   };
 
-  // Filter events based on active tab
   const todayDate = new Date().toDateString();
-  console.log(events);
 
   const filteredEvents = events.filter((event) => {
     const eventDate = new Date(event.event_date);
+    let matchesTab = false;
+
     if (activeTab === "upcoming") {
-      return eventDate > new Date();
+      matchesTab = eventDate > new Date();
+    } else if (activeTab === "past") {
+      matchesTab = eventDate < new Date();
+    } else if (activeTab === "today") {
+      matchesTab = eventDate.toDateString() === todayDate;
     }
-    if (activeTab === "past") {
-      return eventDate < new Date();
-    }
-    // Default to today if activeTab is "today"
-    return eventDate.toDateString() === todayDate;
+
+    // Apply search filter: event name, description, or venue (case-insensitive)
+    const search = searchTerm.trim().toLowerCase();
+    const matchesSearch =
+      event.event_name?.toLowerCase().includes(search) ||
+      event.event_description?.toLowerCase().includes(search) ||
+      event.venue?.toLowerCase().includes(search);
+
+    return matchesTab && (search === "" || matchesSearch);
   });
 
   // ------------------ Render Section ------------------
@@ -632,10 +449,18 @@ const AdminEvent = () => {
           <div className="search-container">
             <input
               type="text"
-              placeholder="Discover Your Event..."
+              placeholder="Search events..."
               className="membership-search"
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
             />
-            <button className="searchIcon">
+            <button
+              className="searchIcon"
+              onClick={() => {
+                /* no-op, since filtering happens live */
+              }}
+              aria-label="Search"
+            >
               <FaSearch />
             </button>
           </div>
@@ -730,7 +555,73 @@ const AdminEvent = () => {
           </span>
         </div>
         {loading ? (
-          <div>Loading events...</div>
+          <div>
+            <Box sx={{ width: "100%", mb: 4 }}>
+              <Card>
+                <CardContent>
+                  <Stack spacing={2}>
+                    <Skeleton variant="text" height={40} width={200} />
+                    <Stack direction="row" spacing={2}>
+                      {[1, 2, 3, 4, 5].map((i) => (
+                        <Skeleton
+                          key={i}
+                          variant="rectangular"
+                          height={40}
+                          sx={{ flex: 1 }}
+                        />
+                      ))}
+                    </Stack>
+                    {[1, 2, 3].map((row) => (
+                      <Stack key={row} direction="row" spacing={2}>
+                        {[1, 2, 3, 4, 5].map((col) => (
+                          <Skeleton
+                            key={`${row}-${col}`}
+                            variant="text"
+                            sx={{ flex: 1 }}
+                            height={30}
+                          />
+                        ))}
+                      </Stack>
+                    ))}
+                  </Stack>
+                </CardContent>
+              </Card>
+            </Box>
+
+            <Box sx={{ width: "100%", mb: 4 }}>
+              <Stack spacing={2}>
+                <Skeleton variant="text" height={40} width={150} />
+                <Stack direction="row" spacing={2}>
+                  <Skeleton variant="rectangular" width={120} height={35} />
+                  <Skeleton variant="rectangular" width={120} height={35} />
+                </Stack>
+                {[1, 2, 3].map((i) => (
+                  <Skeleton key={i} variant="text" height={30} />
+                ))}
+              </Stack>
+            </Box>
+
+            <Box sx={{ mt: 4 }}>
+              <Stack spacing={2}>
+                <Skeleton variant="text" height={40} width={250} />
+                <div className="events-grid2">
+                  {[1, 2, 3, 4, 5, 6].map((i) => (
+                    <Card key={i} sx={{ height: "100%" }}>
+                      <CardContent>
+                        <Stack spacing={1}>
+                          <Skeleton variant="rectangular" height={160} />
+                          <Skeleton variant="text" height={30} width="80%" />
+                          <Skeleton variant="text" height={20} width="60%" />
+                          <Skeleton variant="text" height={20} width="40%" />
+                          <Skeleton variant="text" height={20} width="70%" />
+                        </Stack>
+                      </CardContent>
+                    </Card>
+                  ))}
+                </div>
+              </Stack>
+            </Box>
+          </div>
         ) : error ? (
           <div className="error-message">{error}</div>
         ) : filteredEvents.length > 0 ? (

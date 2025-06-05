@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef, useCallback } from "react";
+import React, { useState, useEffect, useCallback, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
@@ -7,10 +7,13 @@ import AdminSidebar from "../Components/AdminSidebar";
 import "../CSS/AdminDashboard.css";
 import "../CSS/SideBar.css";
 import { FaSearch, FaUserCircle } from "react-icons/fa";
-import { Ban } from "lucide-react";
+import { Skeleton, Box, Stack } from "@mui/material";
 import MemberAnalysisCharts from "../Components/MemberAnalysisCharts";
-import { color } from "@mui/system";
+import NotificationPopup from "../Components/NotificationPopup";
+import UserDetailModal from "../Components/UserDetailModal";
+import MembershipTable from "../Components/MembershipTable";
 
+// ============= API UTILS =============
 const BASE_URL = process.env.REACT_APP_BASE_URL;
 
 const apiGet = async (endpoint, token) => {
@@ -81,317 +84,131 @@ const apiDelete = async (endpoint, token, body) => {
   return res.json();
 };
 
-// ------------------ NotificationPopup with Overlay ------------------
-const NotificationPopup = ({
-  notifications,
-  filter,
-  setFilter,
-  markAllAsRead,
-  onClose,
-}) => {
-  const sortedNotifications = notifications
-    .slice()
-    .sort((a, b) => new Date(b.created_at) - new Date(a.created_at))
-    .map((notif) => ({
-      ...notif,
-      formattedDate: new Date(notif.created_at).toLocaleString(),
-    }));
+// ============= SKELETON COMPONENTS =============
 
-  return (
-    <>
-      {/* Overlay: clicking outside triggers onClose */}
-      <div
-        onClick={onClose}
-        style={{
-          position: "fixed",
-          top: 0,
-          left: 0,
-          right: 0,
-          bottom: 0,
-          zIndex: 99998,
-          backgroundColor: "transparent",
+const TableSkeleton = ({ title = "Loading..." }) => (
+  <Box
+    sx={{
+      background: "#fff",
+      borderRadius: 3,
+      p: 3,
+      boxShadow: "0 2px 24px 0 rgba(60,72,130,0.10)",
+      minHeight: 330,
+      mb: 4,
+    }}
+  >
+    <Skeleton variant="text" width="30%" height={34} sx={{ mb: 3 }} />
+    <Stack direction="row" spacing={2} sx={{ mb: 2 }}>
+      <Skeleton variant="rectangular" width="30%" height={28} />
+      <Skeleton variant="rectangular" width="20%" height={28} />
+      <Skeleton variant="rectangular" width="20%" height={28} />
+      <Skeleton variant="rectangular" width="20%" height={28} />
+      <Skeleton variant="rectangular" width={40} height={28} />
+    </Stack>
+    {[...Array(6)].map((_, i) => (
+      <Stack direction="row" spacing={2} key={i} sx={{ mb: 1 }}>
+        <Skeleton variant="text" width="30%" height={24} />
+        <Skeleton variant="text" width="20%" height={24} />
+        <Skeleton variant="text" width="20%" height={24} />
+        <Skeleton variant="text" width="20%" height={24} />
+        <Skeleton variant="circular" width={28} height={28} />
+      </Stack>
+    ))}
+  </Box>
+);
+const ChartSkeleton = () => (
+  <Box
+    sx={{
+      background: "#fff",
+      borderRadius: 3,
+      p: 3,
+      boxShadow: "0 2px 24px 0 rgba(60,72,130,0.08)",
+      minHeight: 270,
+      width: 310,
+      display: "flex",
+      flexDirection: "column",
+      alignItems: "center",
+    }}
+  >
+    {/* Title Skeleton */}
+    <Skeleton variant="text" width={120} height={26} sx={{ mb: 2 }} />
+
+    {/* Pie chart circle with a "value" in center */}
+    <Box
+      sx={{
+        position: "relative",
+        display: "flex",
+        justifyContent: "center",
+        mb: 2,
+      }}
+    >
+      <Skeleton variant="circular" width={120} height={120} />
+      <Skeleton
+        variant="rectangular"
+        width={48}
+        height={22}
+        sx={{
+          position: "absolute",
+          top: "50%",
+          left: "50%",
+          transform: "translate(-50%, -50%)",
+          borderRadius: 2,
         }}
       />
-      <div
-        className="notification-popup"
-        style={{
-          position: "fixed",
-          top: "60px",
-          left: "250px",
-          zIndex: 99999,
-          backgroundColor: "#fff",
-          color: "#000",
-          boxShadow: "0 2px 8px rgba(0,0,0,0.25)",
-          width: "320px",
-          padding: "10px",
-          borderRadius: "5px",
-        }}
-        onClick={(e) => e.stopPropagation()}
-      >
-        <div
-          className="notification-dropdown-header"
-          style={{
-            marginBottom: "10px",
-            display: "flex",
-            justifyContent: "space-between",
-            alignItems: "center",
-          }}
-        >
-          <button
-            onClick={markAllAsRead}
-            style={{
-              background: "#1a1a1a",
-              color: "#fff",
-              border: "none",
-              padding: "5px 10px",
-              cursor: "pointer",
-              borderRadius: "3px",
-            }}
-          >
-            Mark All as Read
-          </button>
-          <button
-            onClick={onClose}
-            style={{
-              background: "transparent",
-              border: "none",
-              fontSize: "24px",
-              cursor: "pointer",
-            }}
-          >
-            &times;
-          </button>
-        </div>
-        {sortedNotifications.length > 0 ? (
-          <ul style={{ listStyle: "none", margin: 0, padding: 0 }}>
-            {sortedNotifications.map((notif) => (
-              <li
-                key={notif.id}
-                style={{
-                  fontWeight: notif.is_read ? "normal" : "bold",
-                  padding: "5px 0",
-                }}
-              >
-                {notif.notification}
-                <div style={{ fontSize: "0.8em", color: "#666" }}>
-                  {new Date(notif.created_at).toLocaleString()}
-                </div>
-              </li>
-            ))}
-          </ul>
-        ) : (
-          <div>No notifications available.</div>
-        )}
-        <div
-          className="notification-filters"
-          style={{ marginTop: "10px", textAlign: "center" }}
-        >
-          <button onClick={() => setFilter("all")} style={{ margin: "0 5px" }}>
-            All
-          </button>
-          <button
-            onClick={() => setFilter("unread")}
-            style={{ margin: "0 5px" }}
-          >
-            Unread
-          </button>
-          <button onClick={() => setFilter("read")} style={{ margin: "0 5px" }}>
-            Read
-          </button>
-        </div>
-      </div>
-    </>
-  );
-};
+    </Box>
 
-// ------------------ UserDetailModal Component ------------------
-const UserDetailModal = ({ isOpen, onClose, user }) => {
-  if (!isOpen || !user) return null;
-  return (
-    <div className="modal-overlay">
-      <div className="modal-content">
-        <button className="close-btn" onClick={onClose}>
-          ✖
-        </button>
-        <h2 className="modal-title">Member Details</h2>
-        <div className="user-info">
-          <div className="info-item">
-            <strong>First Name:</strong> <span>{user.first_name || "N/A"}</span>
-          </div>
-          <div className="info-item">
-            <strong>Last Name:</strong> <span>{user.last_name || "N/A"}</span>
-          </div>
-          <div className="info-item">
-            <strong>Email:</strong> <span>{user.email || "N/A"}</span>
-          </div>
-          <div className="info-item">
-            <strong>Phone Number:</strong>{" "}
-            <span>{user.phone_number || "N/A"}</span>
-          </div>
-          <div className="info-item">
-            <strong>Date of Birth:</strong>{" "}
-            <span>
-              {user.dob
-                ? new Date(user.dob).toLocaleDateString("en-US", {
-                    timeZone: "Asia/Colombo",
-                    dateStyle: "long",
-                  })
-                : "N/A"}
-            </span>
-          </div>
-          <div className="info-item">
-            <strong>Student Number:</strong>{" "}
-            <span>{user.student_number || "N/A"}</span>
-          </div>
-          <div className="info-item">
-            <strong>Year:</strong> <span>{user.year || "N/A"}</span>
-          </div>
-          <div className="info-item">
-            <strong>Course Name:</strong>{" "}
-            <span>{user.course_name || "N/A"}</span>
-          </div>
-          <div className="info-item">
-            <strong>Department:</strong> <span>{user.department || "N/A"}</span>
-          </div>
-          <div className="info-item">
-            <strong>Faculty:</strong> <span>{user.faculty || "N/A"}</span>
-          </div>
-        </div>
-      </div>
-    </div>
-  );
-};
+    {/* Pie Legend (3-4 lines, like chart key/labels) */}
+    <Stack spacing={1} sx={{ width: "80%", mt: 2 }}>
+      {[...Array(4)].map((_, i) => (
+        <Stack key={i} direction="row" alignItems="center" spacing={1}>
+          <Skeleton
+            variant="rectangular"
+            width={18}
+            height={18}
+            sx={{ borderRadius: "50%" }}
+          />
+          <Skeleton variant="text" width={70 + i * 10} height={18} />
+        </Stack>
+      ))}
+    </Stack>
+  </Box>
+);
 
-const MembershipTable = ({
-  title,
-  data,
-  isCurrentMembers,
-  onViewDetails,
-  onStatusChange,
-  onMemberDeletion,
-}) => {
-  if (!Array.isArray(data) || data.length === 0) {
-    return (
-      <div>
-        <hr className="section-divider" />
-        <div className="no-membership-request">
-          <h2>
-            <span className="ban-icon">
-              <Ban size={18} className="text-red-400" />
-            </span>
-            No {title.toLowerCase()} available.
-          </h2>
-        </div>
-      </div>
-    );
-  }
-  const yearCounts = data.reduce((acc, member) => {
-    const year = member.year || "Unknown";
-    acc[year] = (acc[year] || 0) + 1;
-    return acc;
-  }, {});
-
-  const total = Object.values(yearCounts).reduce(
-    (sum, count) => sum + count,
-    0
-  );
-  const colors = ["#a91d3a", "#007bff", "#28a745", "#ffc107", "#6610f2"];
-  const getColor = (index) => colors[index % colors.length];
-
-  return (
-    <div className="membership-table-container">
-      <br />
-      <h2>{title}</h2>
-      <table className="membership-table">
-        <thead>
-          <tr>
-            <th>Name</th>
-            <th>Last Name</th>
-            <th>Course Name</th>
-            <th>Year</th>
-            <th>Faculty</th>
-            <th>Actions</th>
-          </tr>
-        </thead>
-        <tbody>
-          {data.map((member) => (
-            <tr key={member.email}>
-              <td>{member.firstName}</td>
-              <td>{member.lastName}</td>
-              <td>{member.courseName}</td>
-              <td>{member.year}</td>
-              <td>{member.faculty}</td>
-              <td>
-                {isCurrentMembers ? (
-                  <>
-                    <button
-                      className="view-btn"
-                      onClick={() => onViewDetails(member.email)}
-                    >
-                      View
-                    </button>
-                    <button
-                      className="delete-btn"
-                      onClick={() => onMemberDeletion(member.email)}
-                    >
-                      Delete
-                    </button>
-                  </>
-                ) : (
-                  <>
-                    <button
-                      className="view-btn"
-                      onClick={() => onViewDetails(member.email)}
-                    >
-                      View
-                    </button>
-                    <button
-                      className="accept-btn"
-                      onClick={() => onStatusChange("Approved", member.email)}
-                    >
-                      Accept
-                    </button>
-                    <button
-                      className="reject-btn"
-                      onClick={() => onStatusChange("rejected", member.email)}
-                    >
-                      Reject
-                    </button>
-                  </>
-                )}
-              </td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
-    </div>
-  );
-};
+const ChartsRowSkeleton = () => (
+  <Stack direction={{ xs: "column", sm: "row" }} spacing={3} sx={{ mb: 4 }}>
+    <ChartSkeleton />
+    <ChartSkeleton />
+    <ChartSkeleton />
+    <ChartSkeleton />
+    <ChartSkeleton />
+  </Stack>
+);
+// ============= MAIN COMPONENT =============
 
 const AdminDashboard = () => {
   // ---------------------- State Declarations ----------------------
-  const [unreadNotifications, setUnreadNotifications] = useState([]);
+  const [unreadCount, setUnreadCount] = useState(0);
   const [allNotifications, setAllNotifications] = useState([]);
   const [filteredNotifications, setFilteredNotifications] = useState([]);
+  const [notificationFilter, setNotificationFilter] = useState("all");
+  const [isNotificationsVisible, setIsNotificationsVisible] = useState(false);
+  const [isLoadingPopup, setIsLoadingPopup] = useState(false);
+
   const [newMembershipRequests, setNewMembershipRequests] = useState([]);
   const [currentMembers, setCurrentMembers] = useState([]);
   const [clubId, setClubId] = useState(null);
-  const [notificationFilter, setNotificationFilter] = useState("all");
-  const [unreadCount, setUnreadCount] = useState(0);
-  const [isNotificationsVisible, setIsNotificationsVisible] = useState(false);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [modalUserData, setModalUserData] = useState(null);
-  const [editModalOpen, setEditModalOpen] = useState(false);
-  const [editEvent, setEditEvent] = useState(null);
-  const [activeTab, setActiveTab] = useState("today");
+  const [isLoadingDashboard, setIsLoadingDashboard] = useState(true);
 
   const navigate = useNavigate();
   const adminAccessToken = localStorage.getItem("admin_access_token");
 
+  // ---- Notification Popup ref (for outside click) ----
+  const popupRef = useRef();
+
   // ---------------------- Helper Functions ----------------------
   const getAdminEmailFromToken = useCallback((token) => {
-    console.log(token);
-
     try {
       const decodedToken = jwtDecode(token);
       return decodedToken.email;
@@ -403,6 +220,7 @@ const AdminDashboard = () => {
   const adminEmail = adminAccessToken
     ? getAdminEmailFromToken(adminAccessToken)
     : null;
+
   useEffect(() => {
     if (!adminEmail) navigate("/admin");
   }, [adminEmail, navigate]);
@@ -420,16 +238,6 @@ const AdminDashboard = () => {
     }
   };
 
-  const fetchUnreadNotifications = async () => {
-    try {
-      const endpoint = `/notification_admin/unread?admin_email=${adminEmail}`;
-      const data = await apiGet(endpoint, adminAccessToken);
-      setUnreadNotifications(data.unread_notifications || []);
-    } catch (error) {
-      console.error("Failed to fetch unread notifications:", error);
-    }
-  };
-
   const fetchUnreadNotificationCount = async () => {
     try {
       const endpoint = `/notification_admin/unread/count?admin_email=${adminEmail}`;
@@ -440,18 +248,7 @@ const AdminDashboard = () => {
     }
   };
 
-  const fetchNotifications = async () => {
-    try {
-      const data = await apiGet(
-        `/notification_admin/all?admin_email=${adminEmail}`,
-        adminAccessToken
-      );
-      setAllNotifications(data.all_notifications || []);
-    } catch (error) {
-      console.error("Failed to fetch notifications:", error);
-    }
-  };
-
+  // Membership data
   const fetchMembershipData = async () => {
     if (!clubId) return;
     try {
@@ -496,21 +293,66 @@ const AdminDashboard = () => {
     }
   };
 
-  // ---------------------- useEffects for Data Fetching ----------------------
+  // ---------------------- Initial Dashboard Data ----------------------
   useEffect(() => {
+    let isMounted = true;
+    setIsLoadingDashboard(true);
     if (!adminEmail) return;
-    fetchAdminDetails();
-    fetchUnreadNotifications();
-    fetchUnreadNotificationCount();
-    fetchNotifications();
+    Promise.all([fetchAdminDetails(), fetchUnreadNotificationCount()]).finally(
+      () => {
+        if (isMounted) setIsLoadingDashboard(false);
+      }
+    );
+    return () => {
+      isMounted = false;
+    };
+    // eslint-disable-next-line
   }, [adminEmail, adminAccessToken]);
 
   useEffect(() => {
     if (clubId) {
-      fetchMembershipData();
+      setIsLoadingDashboard(true);
+      fetchMembershipData().finally(() => setIsLoadingDashboard(false));
     }
   }, [clubId, adminAccessToken]);
 
+  // ---------------------- NOTIFICATION POPUP LOGIC ----------------------
+  // Only load notifications when popup opens
+  const fetchNotifications = async () => {
+    setIsLoadingPopup(true);
+    try {
+      const data = await apiGet(
+        `/notification_admin/all?admin_email=${adminEmail}`,
+        adminAccessToken
+      );
+      setAllNotifications(data.all_notifications || []);
+    } catch {
+      toast.error("Failed to load notifications.");
+      setAllNotifications([]);
+    }
+    setIsLoadingPopup(false);
+  };
+
+  // Open/close popup
+  const openNotifications = () => {
+    setIsNotificationsVisible(true);
+    fetchNotifications();
+  };
+  const closeNotifications = () => setIsNotificationsVisible(false);
+
+  // Outside click to close notification popup
+  useEffect(() => {
+    if (!isNotificationsVisible) return;
+    function handleClickOutside(event) {
+      if (popupRef.current && !popupRef.current.contains(event.target)) {
+        setIsNotificationsVisible(false);
+      }
+    }
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, [isNotificationsVisible]);
+
+  // Filtered notifications based on filter
   useEffect(() => {
     const filtered =
       notificationFilter === "all"
@@ -523,7 +365,36 @@ const AdminDashboard = () => {
     setFilteredNotifications(filtered);
   }, [notificationFilter, allNotifications]);
 
-  // ---------------------- Handlers ----------------------
+  // Mark all as read (for current filter)
+  const markAllAsRead = async () => {
+    const unreadNotifs =
+      notificationFilter === "all"
+        ? allNotifications.filter((n) => n.is_read === 0)
+        : filteredNotifications.filter((n) => n.is_read === 0);
+
+    if (unreadNotifs.length === 0) return;
+    try {
+      await apiPatch(`/notification_admin/mark-as-read`, adminAccessToken, {
+        admin_email: adminEmail,
+        notification_ids: unreadNotifs.map((n) => n.id),
+      });
+      toast.success("Marked as read.");
+      fetchNotifications();
+      fetchUnreadNotificationCount();
+    } catch (error) {
+      toast.error("Failed to mark notifications as read.");
+    }
+  };
+
+  // When switching to "unread", mark all unread notifications as read
+  useEffect(() => {
+    if (notificationFilter === "unread" && filteredNotifications.length > 0) {
+      markAllAsRead();
+    }
+    // eslint-disable-next-line
+  }, [notificationFilter]);
+
+  // ---------------------- OTHER HANDLERS ----------------------
   const handleLogout = () => {
     localStorage.removeItem("admin_access_token");
     sessionStorage.clear();
@@ -537,41 +408,27 @@ const AdminDashboard = () => {
       setModalUserData(data);
       setIsModalOpen(true);
     } catch (error) {
-      console.error("Failed to fetch user details:", error);
       toast.error("Failed to load user details.");
     }
   };
 
   const handleMembershipStatus = async (action, email) => {
     try {
-      // build the correct request payload: student_id instead of email
       const requestBody = {
         student_email: email,
         club_id: clubId,
         status: action,
       };
-
-      // call PUT /membership/update/status
-      const data = await apiPut(
-        `/membership/update/status`,
-        adminAccessToken,
-        requestBody
-      );
-
+      await apiPut(`/membership/update/status`, adminAccessToken, requestBody);
       toast.success(
         `${
           action === "Approved" ? "Approved" : "Rejected"
         } membership request for ${email}.`
       );
-
-      // Remove that member from the “pending” list
       setNewMembershipRequests((prev) =>
         prev.filter((member) => member.email !== email)
       );
-
-      // If we approved, add them to “currentMembers”
       if (action === "Approved") {
-        // Find the now‐approved member’s record in newMembershipRequests
         const approvedMember = newMembershipRequests.find(
           (member) => member.email === email
         );
@@ -580,7 +437,6 @@ const AdminDashboard = () => {
         }
       }
     } catch (error) {
-      console.error("Failed to update membership status:", error);
       toast.error("Failed to update membership status.");
     }
   };
@@ -591,64 +447,31 @@ const AdminDashboard = () => {
       const requestBody = { student_id: email, club_id: clubId };
       await apiDelete(`/membership/delete`, adminAccessToken, requestBody);
       toast.success(`Member ${email} has been removed from the club.`);
-      fetchMembershipData(); // Refresh membership data after deletion
+      fetchMembershipData();
     } catch (error) {
-      console.error("Failed to delete member:", error);
       toast.error("Failed to delete member.");
-    }
-  };
-
-  const openNotifications = () => setIsNotificationsVisible(true);
-  const closeNotifications = () => setIsNotificationsVisible(false);
-
-  const markAllAsRead = async () => {
-    try {
-      const unreadIds = allNotifications
-        .filter((n) => n.is_read === 0)
-        .map((n) => n.id);
-      if (unreadIds.length === 0) return;
-      const res = await apiPatch(
-        `/notification_admin/mark-as-read`,
-        adminAccessToken,
-        {
-          admin_email: adminEmail,
-          notification_ids: unreadIds,
-        }
-      );
-      if (!res) throw new Error("Failed to mark notifications as read");
-      toast.success("All notifications marked as read.");
-      fetchNotifications();
-      fetchUnreadNotificationCount();
-    } catch (error) {
-      console.error("Failed to mark notifications as read:", error);
-      toast.error("Failed to mark notifications as read.");
     }
   };
 
   // ---------------------- Render ----------------------
   return (
-    <div className="view-clubs-container">
+    <div
+      className="view-clubs-container"
+      style={{
+        background: "#f5f7fb",
+        minHeight: "100vh",
+        width: "100vw",
+        overflowX: "hidden",
+      }}
+    >
       <ToastContainer />
       <AdminSidebar
         unreadCount={unreadCount}
         notifications={filteredNotifications}
         toggleNotifications={openNotifications}
         handleLogout={handleLogout}
-      />
-      <UserDetailModal
-        isOpen={isModalOpen}
-        onClose={() => setIsModalOpen(false)}
-        user={modalUserData}
-      />
-      {isNotificationsVisible && (
-        <NotificationPopup
-          notifications={filteredNotifications}
-          filter={notificationFilter}
-          setFilter={setNotificationFilter}
-          markAllAsRead={markAllAsRead}
-          onClose={closeNotifications}
-        />
-      )}
+      />  
+
       <main className="main-content-admin">
         <section className="membership-section">
           <div className="membership-header">
@@ -664,40 +487,49 @@ const AdminDashboard = () => {
             </div>
             <FaUserCircle className="membership-avatar" size={30} />
           </div>
-          <MembershipTable
-            title="New Membership Requests"
-            data={newMembershipRequests}
-            isCurrentMembers={false}
-            onViewDetails={handleViewDetails}
-            onStatusChange={handleMembershipStatus}
-          />
-          {/* Analysis charts below New Membership Requests table */}
-          {newMembershipRequests.length > 0 && (
-            <MemberAnalysisCharts
-              data={newMembershipRequests}
-              titlePrefix="New Request"
-              // Additional visualizations can be enabled by passing the extra props:
-              newRequests={newMembershipRequests}
-              approvedMembers={currentMembers}
-              notifications={allNotifications}
-            />
-          )}
-          <MembershipTable
-            title="Current Members List"
-            data={currentMembers}
-            isCurrentMembers={true}
-            onViewDetails={handleViewDetails}
-            onMemberDeletion={handleMemberDeletion}
-          />
-          {/* Analysis charts below Current Members table */}
-          {currentMembers.length > 0 && (
-            <MemberAnalysisCharts
-              data={currentMembers}
-              titlePrefix="Current"
-              newRequests={newMembershipRequests}
-              approvedMembers={currentMembers}
-              notifications={allNotifications}
-            />
+          {/* Membership Tables */}
+          {isLoadingDashboard ? (
+            <>
+              <TableSkeleton />
+              <ChartsRowSkeleton />
+              <TableSkeleton />
+              <ChartsRowSkeleton />
+            </>
+          ) : (
+            <>
+              <MembershipTable
+                title="New Membership Requests"
+                data={newMembershipRequests}
+                isCurrentMembers={false}
+                onViewDetails={handleViewDetails}
+                onStatusChange={handleMembershipStatus}
+              />
+              {newMembershipRequests.length > 0 && (
+                <MemberAnalysisCharts
+                  data={newMembershipRequests}
+                  titlePrefix="New Request"
+                  newRequests={newMembershipRequests}
+                  approvedMembers={currentMembers}
+                  notifications={allNotifications}
+                />
+              )}
+              <MembershipTable
+                title="Current Members List"
+                data={currentMembers}
+                isCurrentMembers={true}
+                onViewDetails={handleViewDetails}
+                onMemberDeletion={handleMemberDeletion}
+              />
+              {currentMembers.length > 0 && (
+                <MemberAnalysisCharts
+                  data={currentMembers}
+                  titlePrefix="Current"
+                  newRequests={newMembershipRequests}
+                  approvedMembers={currentMembers}
+                  notifications={allNotifications}
+                />
+              )}
+            </>
           )}
         </section>
       </main>

@@ -31,6 +31,7 @@ import Notification from "./Pages/Notification";
 import Merchandise from "./Pages/Merchandise";
 import Communication from "./Pages/Communication";
 import Task from "./Pages/Task";
+import ViewFeed from "./Pages/ViewFeed";
 
 // Layout Wrapper to include ChatBot in all pages
 const NoButtonLayout = ({ children }) => (
@@ -231,6 +232,14 @@ const App = () => {
           element={
             <NoButtonLayout>
               <AddProduct />
+            </NoButtonLayout>
+          }
+        />
+        <Route
+          path="/view-feed"
+          element={
+            <NoButtonLayout>
+              <ViewFeed />
             </NoButtonLayout>
           }
         />
