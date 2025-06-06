@@ -29,6 +29,7 @@ import Merchandise from "./Pages/Merchandise";
 import Communication from "./Pages/Communication";
 import Task from "./Pages/Task";
 import ViewFeed from "./Pages/ViewFeed";
+import SystemAdminDashboard from "./Pages/SystemAdminDashboard";
 
 // Layout Wrapper to include ChatBot in all pages
 const NoButtonLayout = ({ children }) => (
@@ -222,6 +223,14 @@ const App = () => {
           element={
             <NoButtonLayout>
               <ViewFeed />
+            </NoButtonLayout>
+          }
+        />
+        <Route
+          path="/system-admin-dashboard"
+          element={
+            <NoButtonLayout>
+              <SystemAdminDashboard />
             </NoButtonLayout>
           }
         />

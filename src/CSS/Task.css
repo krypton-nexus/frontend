@@ -55,7 +55,7 @@ body {
     flex-direction: row;
   }
   .task-app .left-panel {
-    flex: 0 0 30%; /* About 30% of width */
+    flex: 0 0 25%; /* About 30% of width */
     border-right: 1px solid #e5e7eb;
     /* margin-right: 1rem; */
     overflow-y: auto;
@@ -67,7 +67,11 @@ body {
     overflow-y: auto;
   }
 }
-
+#to_do_list{
+  display: flex;
+  flex-direction: column;
+  margin-top: 20px;
+}
 /* Panel Box: Card look */
 .panel-box {
   display: flex;
@@ -84,7 +88,7 @@ body {
 .panel-title {
   font-weight: 700;
   font-size: 1.125rem;
-  margin-bottom: 1rem;
+  margin-bottom: 10px;
   color: #a91d3a;
 }
 

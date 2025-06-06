@@ -36,9 +36,10 @@ const Task = () => {
   // Fetch token and club details
   useEffect(() => {
     const token = localStorage.getItem("admin_access_token");
+    
     if (token) {
       try {
-        const decoded = jwtDecode(token);
+        const decoded = jwtDecode(token);        
         setStudentEmail(decoded.email);
         setClubId(decoded.club_id);
         setToken(token);
@@ -588,7 +589,7 @@ const Task = () => {
           {/* Left Panel (25% Width) */}
           <div className="left-panel">
             {/* My To-Do List */}
-            <div className="panel-box">
+            <div id="to_do_list">
               <h2 className="panel-title">My To-Do List</h2>
               <div className="add-task-form">
                 {loadingTasks ? (
@@ -653,16 +654,16 @@ const Task = () => {
             </div>
 
             {/* Task Summary */}
-            <div className="panel-box">
+            <div id="to_do_list">
               <h2 className="panel-title">Task Summary</h2>
               {loadingTasks ? (
                 <SummarySkeleton />
               ) : (
                 <div className="summary-section">
                   <div>
-                    <h3 className="summary-title overdue">
+                    <div className="summary-title overdue">
                       Overdue Tasks ({overdueTasks.length})
-                    </h3>
+                    </div>
                     <ul className="summary-list">
                       {overdueTasks.map((task) => (
                         <li key={task.id} className="summary-item">

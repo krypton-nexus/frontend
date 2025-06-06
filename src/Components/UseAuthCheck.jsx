@@ -45,6 +45,7 @@ const useAuthCheck = () => {
       "/adminevent",
       "/add-product",
       "/addevent",
+      "/system-admin-dashboard",
     ];
     const isSpecialAdminPath = specialAdminPaths.includes(currentPath);
     if (isAdminPath || isSpecialAdminPath) {
