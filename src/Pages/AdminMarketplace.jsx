@@ -10,7 +10,6 @@ import { useNavigate } from "react-router-dom";
 import { jwtDecode } from "jwt-decode";
 import Box from "@mui/material/Box";
 
-
 const BASE_URL = process.env.REACT_APP_BASE_URL;
 
 const AdminMarketplace = () => {
@@ -83,8 +82,7 @@ const AdminMarketplace = () => {
                 p: 1,
                 borderRadius: 2,
                 background: "#fafbfc",
-              }}
-            >
+              }}>
               <Skeleton variant="circular" width={36} height={36} />
               <Skeleton variant="text" width={90} height={20} />
               <Skeleton variant="rectangular" width={60} height={20} />
@@ -106,8 +104,7 @@ const AdminMarketplace = () => {
     <div className="product-management">
       <div
         className="section-header"
-        style={{ display: "flex", alignItems: "center", gap: 12 }}
-      >
+        style={{ display: "flex", alignItems: "center", gap: 12 }}>
         <Skeleton variant="text" width={180} height={32} />
         <Skeleton
           variant="rectangular"
@@ -135,8 +132,7 @@ const AdminMarketplace = () => {
               p: 1,
               borderRadius: 2,
               background: "#f6f7fa",
-            }}
-          >
+            }}>
             <Skeleton
               variant="rectangular"
               width={60}
@@ -192,8 +188,7 @@ const AdminMarketplace = () => {
               p: 1,
               borderRadius: 2,
               background: "#f6f7fa",
-            }}
-          >
+            }}>
             <Skeleton variant="circular" width={32} height={32} />
             <Stack flex={1} spacing={0.5}>
               <Skeleton variant="text" width={80} height={18} />
@@ -629,8 +624,7 @@ const AdminMarketplace = () => {
                 <span
                   className={`status ${order.order_status
                     .toLowerCase()
-                    .replace(" ", "-")}`}
-                >
+                    .replace(" ", "-")}`}>
                   {order.order_status}
                 </span>
               </div>
@@ -673,19 +667,17 @@ const AdminMarketplace = () => {
               // }}
             />
             <span>{product.product_name}</span>
-            <span>${product.product_price}</span>
+            <span>Rs.{product.product_price}</span>
             <span>{product.product_quantity}</span>
             <div className="actions">
               <button
                 className="edit-btn"
-                onClick={() => handleEditProduct(product)}
-              >
+                onClick={() => handleEditProduct(product)}>
                 Edit
               </button>
               <button
                 className="delete-btn"
-                onClick={() => handleDeleteProduct(product.id)}
-              >
+                onClick={() => handleDeleteProduct(product.id)}>
                 Delete
               </button>
             </div>
@@ -722,8 +714,7 @@ const AdminMarketplace = () => {
             <span
               className={`status ${order.order_status
                 .toLowerCase()
-                .replace(" ", "-")}`}
-            >
+                .replace(" ", "-")}`}>
               {order.order_status}
             </span>
             <select
@@ -731,8 +722,7 @@ const AdminMarketplace = () => {
               onChange={(e) =>
                 updateOrderStatus(order.order_id, e.target.value)
               }
-              className="status-select"
-            >
+              className="status-select">
               <option value="Processing">Processing</option>
               <option value="On Track">On Track</option>
               <option value="Completed">Completed</option>
@@ -817,8 +807,7 @@ const AdminMarketplace = () => {
                 className="complete-btn"
                 onClick={
                   editingProduct ? handleUpdateProduct : handleAddProduct
-                }
-              >
+                }>
                 {editingProduct ? "Update Product" : "Add Product"}
               </button>
               <button
@@ -827,8 +816,7 @@ const AdminMarketplace = () => {
                   setShowProductForm(false);
                   setEditingProduct(null);
                   resetProductForm();
-                }}
-              >
+                }}>
                 Cancel
               </button>
             </div>
@@ -845,20 +833,17 @@ const AdminMarketplace = () => {
           <div className="admin-tabs">
             <button
               className={activeAdminTab === "dashboard" ? "active" : ""}
-              onClick={() => setActiveAdminTab("dashboard")}
-            >
+              onClick={() => setActiveAdminTab("dashboard")}>
               Dashboard
             </button>
             <button
               className={activeAdminTab === "products" ? "active" : ""}
-              onClick={() => setActiveAdminTab("products")}
-            >
+              onClick={() => setActiveAdminTab("products")}>
               Product Management
             </button>
             <button
               className={activeAdminTab === "orders" ? "active" : ""}
-              onClick={() => setActiveAdminTab("orders")}
-            >
+              onClick={() => setActiveAdminTab("orders")}>
               Order Management
             </button>
           </div>
