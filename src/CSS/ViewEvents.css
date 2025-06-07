@@ -115,9 +115,9 @@ html {
   color: #a91d3a;
 }
 .events-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-  gap: 20px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 50px;
   padding-bottom: 70px;
   padding-left: 30px;
   align-items: start;

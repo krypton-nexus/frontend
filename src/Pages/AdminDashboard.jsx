@@ -407,6 +407,11 @@ const AdminDashboard = () => {
         overflowX: "hidden",
       }}
     >
+      <UserDetailModal
+        isOpen={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
+        user={modalUserData}
+      />
       <ToastContainer />
       <AdminSidebar
         unreadCount={unreadCount}

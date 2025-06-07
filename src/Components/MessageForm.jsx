@@ -12,6 +12,7 @@ import { jwtDecode } from "jwt-decode";
 import "../CSS/MessageForm.css";
 import { FaPaperPlane } from "react-icons/fa";
 import { bgcolor, color } from "@mui/system";
+import { deleteField } from "firebase/firestore";
 
 const BASE_URL = process.env.REACT_APP_BASE_URL;
 const TYPING_TIMEOUT = 2000;
@@ -54,7 +55,9 @@ const MessageForm = ({ clubId, userEmail }) => {
       try {
         await setDoc(
           typingDocRef,
-          { [userEmail]: typing ? serverTimestamp() : null },
+          typing
+            ? { [userEmail]: serverTimestamp() }
+            : { [userEmail]: deleteField() },
           { merge: true }
         );
       } catch (error) {
@@ -191,7 +194,7 @@ const MessageForm = ({ clubId, userEmail }) => {
           disabled={disabled}
           style={{
             backgroundColor: disabled && "black",
-            cursor: disabled && "not-allowed", 
+            cursor: disabled && "not-allowed",
             opacity: disabled && 0.1,
           }}
         >

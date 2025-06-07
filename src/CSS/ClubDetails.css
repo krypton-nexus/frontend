@@ -27,6 +27,32 @@
   position: relative;
 }
 
+.skeleton .skeleton-box {
+  background: linear-gradient(90deg, #eee 25%, #ddd 37%, #eee 63%);
+  background-size: 400% 100%;
+  animation: skeleton-loading 1.4s ease-in-out infinite;
+  border-radius: 7px;
+  min-height: 10px;
+}
+
+/* Animation */
+@keyframes skeleton-loading {
+  0% {
+    background-position: 100% 0;
+  }
+  100% {
+    background-position: 0 0;
+  }
+}
+
+/* Optional: Prevent layout shift */
+.skeleton .club-content,
+.skeleton .club-section,
+.skeleton .activity-card-grid,
+.skeleton .activity-card {
+  min-height: unset;
+}
+
 .back-arrow {
   position: absolute;
   left: 0;

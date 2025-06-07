@@ -190,8 +190,24 @@ const SystemAdminDashboard = () => {
   };
 
   return (
-    <Box sx={{ minHeight: "100vh", bgcolor: "background.default", py: 4 }}>
-      <Box sx={{ maxWidth: 800, mx: "auto", px: 2 }}>
+    <Box
+      sx={{
+        display: "flex",
+        flexDirection: "column",
+        height: "100vh",
+        bgcolor: "background.default",
+        overflowY: "auto",
+      }}
+    >
+      <Box
+        sx={{
+          flex: 1,
+          width: "900px",
+          mx: "auto",
+          px: 2,
+          py: 3,
+        }}
+      >
         <Typography variant="h3" align="center" gutterBottom>
           System Admin Dashboard
         </Typography>
@@ -203,7 +219,15 @@ const SystemAdminDashboard = () => {
           value={tabIndex}
           onChange={handleTabChange}
           centered
-          sx={{ mb: 3 }}
+          sx={{
+            mb: 3,
+            "& .MuiTabs-indicator": {
+              backgroundColor: "#a91d3a",
+            },
+            "& .Mui-selected": {
+              color: "#a91d3a !important",
+            },
+          }}
         >
           <Tab
             label={
@@ -225,7 +249,7 @@ const SystemAdminDashboard = () => {
           <Card elevation={3}>
             <CardHeader
               title="Create New Club"
-              sx={{ bgcolor: "primary.main", color: "common.white" }}
+              sx={{ bgcolor: "#a91d3a", color: "common.white" }}
             />
             <CardContent>
               <Box component="form" onSubmit={handleCreateClub}>
@@ -351,7 +375,6 @@ const SystemAdminDashboard = () => {
                       <Button
                         type="submit"
                         variant="contained"
-                        color="primary"
                         disabled={isCreatingClub}
                         startIcon={
                           isCreatingClub ? (
@@ -360,6 +383,10 @@ const SystemAdminDashboard = () => {
                             <Building2 size={20} />
                           )
                         }
+                        sx={{
+                          bgcolor: "#a91d3a",
+                          "&:hover": { bgcolor: "#87162e" },
+                        }}
                       >
                         {isCreatingClub ? "Creating Club..." : "Create Club"}
                       </Button>
@@ -470,7 +497,6 @@ const SystemAdminDashboard = () => {
                       <Button
                         type="submit"
                         variant="contained"
-                        color="success"
                         disabled={isAddingAdmin || !adminForm.role}
                         startIcon={
                           isAddingAdmin ? (
@@ -479,6 +505,10 @@ const SystemAdminDashboard = () => {
                             <UserPlus size={20} />
                           )
                         }
+                        sx={{
+                          bgcolor: "#a91d3a",
+                          "&:hover": { bgcolor: "#87162e" },
+                        }}
                       >
                         {isAddingAdmin
                           ? "Registering Admin..."

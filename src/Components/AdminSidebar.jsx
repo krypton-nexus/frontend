@@ -123,7 +123,7 @@ const AdminSidebar = () => {
   const handleLogout = () => {
     localStorage.removeItem("admin_access_token");
     sessionStorage.clear();
-    navigate("admin", { replace: true });
+    navigate("/admin", { replace: true });
   };
 
   const handleCloseNotifications = () => {
