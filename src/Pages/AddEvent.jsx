@@ -5,22 +5,20 @@ import "../CSS/AddEvent.css";
 import AdminSidebar from "../Components/AdminSidebar";
 import Snackbar from "@mui/material/Snackbar";
 import Alert from "@mui/material/Alert";
-
+import { jwtDecode } from "jwt-decode";
 
 const BASE_URL = process.env.REACT_APP_BASE_URL;
 
-
 AWS.config.update({
-  accessKeyId: "AKIAUQ4L3D64ZBVKU2W4",
-  secretAccessKey: "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",
-  region: "ap-south-1",
+  accessKeyId: process.env.REACT_APP_S3_ACCESS_KEY_ID,
+  secretAccessKey: process.env.REACT_APP_S3_SECRET_ACCESS_KEY,
+  region: process.env.REACT_APP_S3_REGION,
 });
-
 const s3 = new AWS.S3();
 
 const AddEvent = () => {
   const [eventData, setEventData] = useState({
-    club_id: "club_gavel",
+    club_id: "",
     event_name: "",
     event_date: "",
     event_time: "",
@@ -59,11 +57,29 @@ const AddEvent = () => {
     if (!file) return;
 
     const timestamp = Date.now();
+
+    // Get club_id from token in localStorage
+    let rawClubId = "";
+    try {
+      const token = localStorage.getItem("admin_access_token");
+      if (token) {
+      const decoded = jwtDecode(token);
+      rawClubId = decoded?.club_id || "";
+      }
+    } catch (error) {
+      console.error("Failed to decode token:", error);
+    }
+
+    const folderName = rawClubId
+      .replace(/^club_/, "")
+      .replace(/[^a-zA-Z0-9]/g, "")
+      .replace(/^\w/, (c) => c.toUpperCase());
+
     const fileName = `${timestamp}-${file.name}`;
-    const folderPath = `Gavel/Event`;
+    const folderPath = `${folderName}/Event`;
 
     const params = {
-      Bucket: "nexus-se-bucket",
+      Bucket: process.env.REACT_APP_S3_BUCKET_NAME,
       Key: `${folderPath}/${fileName}`,
       Body: file,
       ContentType: file.type,
@@ -101,20 +117,20 @@ const AddEvent = () => {
     }
 
     const payload = {
-      club_id: eventData.club_id,
+      club_id: jwtDecode(localStorage.getItem("admin_access_token")).club_id,
       event_name: eventData.event_name,
       event_date: eventData.event_date,
       event_time: eventData.event_time,
       venue: eventData.venue,
       mode: eventData.mode,
       event_description: eventData.event_description,
-      images: eventData.imageUrl, 
+      images: eventData.imageUrl,
       category: eventData.category,
       ispublic: eventData.ispublic,
     };
 
     try {
-      const response = await fetch(`{$BASE_URL}/event/create`, {
+      const response = await fetch(`${BASE_URL}/event/create`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
