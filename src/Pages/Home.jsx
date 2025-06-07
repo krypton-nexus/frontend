@@ -11,10 +11,11 @@ import img1 from "../Images/img1.png";
 import "../CSS/Home.css";
 import { FaComment } from "react-icons/fa";
 import profilePic from "../Images/User.jpg";
-
+import UserDetailModal from "../Components/UserDetailModal";
+import { jwtDecode } from "jwt-decode";
 import { Menu, MenuItem } from "@mui/material";
 import Avatar from "@mui/material/Avatar";
-
+const BASE_URL= process.env.REACT_APP_BASE_URL;
 const Home = () => {
   const [formData, setFormData] = useState({
     name: "",
@@ -25,6 +26,8 @@ const Home = () => {
 
   const [responseMessage, setResponseMessage] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [modalUserData, setModalUserData] = useState(null);
+  const [isModalOpen, setIsModalOpen] = useState(false);
 
   // Handle form data change
   const handleChange = (e) => {
@@ -42,7 +45,6 @@ const Home = () => {
         "http://localhost:5000/send-email",
         formData
       );
-      console.log(response); // You can log the response if you want to inspect it
       setResponseMessage("Your message has been sent successfully!");
       setFormData({ name: "", email: "", subject: "", message: "" }); // Clear form after success
     } catch (error) {
@@ -58,7 +60,6 @@ const Home = () => {
   const [anchorEl, setAnchorEl] = useState(null);
   useEffect(() => {
     const token = localStorage.getItem("access_token");
-    console.log("Token:", token); // Check if token is null or valid
     setIsAuthenticated(!!token);
   }, []);
 
@@ -85,6 +86,26 @@ const Home = () => {
     handleClose(); // Close the menu after navigation
   };
 
+  const handleMyProfile = async () => {
+    const accessToken = localStorage.getItem("access_token");
+    if (!accessToken) return;
+
+    try {
+      const decoded = jwtDecode(accessToken);
+      const email = decoded.email;
+
+      const response = await axios.get(`${BASE_URL}/student/${email}`, {
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+        },
+      });
+
+      setModalUserData(response.data);
+      setIsModalOpen(true);
+    } catch (err) {
+      console.error("Failed to fetch user profile:", err);
+    }
+  };
   return (
     <div className="home-container">
       {/* Hero Section */}
@@ -108,8 +129,10 @@ const Home = () => {
                   open={Boolean(anchorEl)}
                   onClose={handleClose}
                   anchorOrigin={{ vertical: "bottom", horizontal: "right" }}
-                  transformOrigin={{ vertical: "top", horizontal: "right" }}>
+                  transformOrigin={{ vertical: "top", horizontal: "right" }}
+                >
                   <MenuItem onClick={handleViewClubs}>View Clubs</MenuItem>
+                  <MenuItem onClick={handleMyProfile}>My Profile</MenuItem>
                   <MenuItem onClick={handleLogout}>Logout</MenuItem>
                 </Menu>
               </div>
@@ -117,12 +140,14 @@ const Home = () => {
               <>
                 <button
                   className="btn login-btn"
-                  onClick={() => navigate("/login")}>
+                  onClick={() => navigate("/login")}
+                >
                   Login
                 </button>
                 <button
                   className="btn register-btn"
-                  onClick={() => navigate("/signup")}>
+                  onClick={() => navigate("/signup")}
+                >
                   Register
                 </button>
               </>
@@ -145,12 +170,14 @@ const Home = () => {
             <div className="hero-nav-buttons">
               <button
                 className="btn login-btn"
-                onClick={() => navigate("/login")}>
+                onClick={() => navigate("/login")}
+              >
                 Login
               </button>
               <button
                 className="btn register-btn"
-                onClick={() => navigate("/signup")}>
+                onClick={() => navigate("/signup")}
+              >
                 Register Now
               </button>
             </div>
@@ -297,7 +324,8 @@ const Home = () => {
               placeholder="Please type your comments..."
               value={formData.message}
               onChange={handleChange}
-              required></textarea>
+              required
+            ></textarea>
           </div>
           <button type="submit" className="submit-btn" disabled={isSubmitting}>
             {isSubmitting ? "Sending..." : "Send Message"}
@@ -305,6 +333,11 @@ const Home = () => {
         </form>
         {responseMessage && <p>{responseMessage}</p>}
       </section>
+      <UserDetailModal
+        isOpen={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
+        user={modalUserData}
+      />
 
       {/* Footer Section */}
       <footer className="footer-section">

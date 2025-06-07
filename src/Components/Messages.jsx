@@ -12,8 +12,11 @@ const Messages = ({ clubId }) => {
   const [userEmail, setUserEmail] = useState(null);
   const [userNames, setUserNames] = useState({});
   const [isLoading, setIsLoading] = useState(true);
+  const [isUserMember, setIsUserMember] = useState(false);
+  const [membershipCheckDone, setMembershipCheckDone] = useState(false);
   const messagesEndRef = useRef(null);
 
+  // Step 1: Get user email from token
   useEffect(() => {
     const token = localStorage.getItem("access_token");
     if (token) {
@@ -26,37 +29,80 @@ const Messages = ({ clubId }) => {
     }
   }, []);
 
+  // Step 2: Check membership from localStorage user_clubs
+  useEffect(() => {
+    setMembershipCheckDone(false);
+    const stored = JSON.parse(localStorage.getItem("user_clubs") || "[]");
+    const isMember = stored.some((club) => club === clubId);
+    setIsUserMember(isMember);
+    setMembershipCheckDone(true);
+  }, [clubId]);
+
   const fetchUserNames = useCallback(async (emails) => {
     const result = {};
     const token = localStorage.getItem("access_token");
-    if (!token) {
-      console.error("Missing token for user name fetch.");
-      return result;
-    }
+    if (!token) return result;
+
     for (const email of emails) {
       if (!email) continue;
       try {
-        const response = await fetch(`${BASE_URL}/student/${email}`, {
+        const res = await fetch(`${BASE_URL}/student/${email}`, {
           headers: {
             "Content-Type": "application/json",
             Authorization: `Bearer ${token}`,
           },
         });
-        if (response.ok) {
-          const data = await response.json();
+        if (res.ok) {
+          const data = await res.json();
           result[email] = `${data.first_name || "Anonymous"} ${
             data.last_name || ""
           }`.trim();
-        } else {
-          console.error(`Failed to get name for ${email}`);
         }
       } catch (err) {
-        console.error(`Error getting name for ${email}:`, err);
+        console.error(`Error fetching name for ${email}:`, err);
       }
     }
     return result;
   }, []);
 
+  // Step 4: Firestore messages listener (only if member)
+  useEffect(() => {
+    if (!clubId || !isUserMember) return;
+
+    const q = query(
+      collection(db, "messages", clubId, "messages"),
+      orderBy("timestamp", "asc")
+    );
+    const unsubscribe = onSnapshot(q, async (snapshot) => {
+      const messageData = snapshot.docs.map((doc) => ({
+        id: doc.id,
+        ...doc.data(),
+      }));
+      setMessages(messageData);
+
+      const uniqueEmails = [
+        ...new Set(messageData.map((m) => m.sendersEmail).filter(Boolean)),
+      ];
+      const nameMap = await fetchUserNames(uniqueEmails);
+      setUserNames((prev) => ({ ...prev, ...nameMap }));
+
+      setIsLoading(false);
+    });
+
+    return () => unsubscribe();
+  }, [clubId, isUserMember, fetchUserNames]);
+
+  // Step 5: Scroll to bottom on update
+  useEffect(() => {
+    if (!isLoading && messagesEndRef.current) {
+      messagesEndRef.current.scrollIntoView({
+        behavior: "smooth",
+        block: "end",
+      });
+    }
+  }, [messages, isLoading]);
+
+  // Step 6: Date grouping logic
   const getDateLabel = (date) => {
     const today = new Date();
     const yesterday = new Date(today);
@@ -90,119 +136,68 @@ const Messages = ({ clubId }) => {
     return grouped;
   };
 
-  useEffect(() => {
-    if (!clubId) return;
+  // === UI Render Section ===
 
-    const q = query(
-      collection(db, "messages", clubId, "messages"),
-      orderBy("timestamp", "asc")
+  if (!membershipCheckDone) {
+    return (
+      <div className="messages-container">
+        <Skeleton width={150} height={20} animation="wave" />
+      </div>
     );
+  }
 
-    const unsubscribe = onSnapshot(q, async (snapshot) => {
-      const messageData = snapshot.docs.map((doc) => ({
-        id: doc.id,
-        ...doc.data(),
-      }));
-
-      setMessages(messageData);
-
-      const uniqueEmails = [
-        ...new Set(messageData.map((m) => m.sendersEmail).filter(Boolean)),
-      ];
-      const nameMap = await fetchUserNames(uniqueEmails);
-      setUserNames((prev) => ({ ...prev, ...nameMap }));
-
-      setIsLoading(false);
-    });
-
-    return () => unsubscribe();
-  }, [clubId, fetchUserNames]);
-
-  useEffect(() => {
-    if (!isLoading && messagesEndRef.current) {
-      messagesEndRef.current.scrollIntoView({
-        behavior: "smooth",
-        block: "end",
-      });
-    }
-  }, [messages, isLoading]);
-
-  // === RENDER ===
+  if (!isUserMember) {
+    return (
+      <div className="messages-container">
+        <div className="membership_error"> You must be a member of this club to access messages.</div>
+      </div>
+    );
+  }
 
   if (isLoading) {
     return (
       <div className="messages-container">
-        {/* Date separator skeleton */}
         <div className="date-separator">
           <Skeleton
-            variant="text"
             width={80}
             height={20}
             animation="wave"
             style={{ margin: "0 auto" }}
           />
         </div>
-
-        {/* Message skeletons */}
-        {[...Array(6)].map((_, i) => {
-          const isSentByUser = i % 3 === 0; // Mix of user and other messages
+        {[...Array(5)].map((_, i) => {
+          const isRight = i % 2 === 0;
           return (
             <div
               key={i}
               className={`message ${
-                isSentByUser ? "message-right" : "message-left"
+                isRight ? "message-right" : "message-left"
               }`}
             >
-              {!isSentByUser && (
+              {!isRight && (
                 <Skeleton
                   className="message-avatar"
                   variant="circular"
                   width={40}
                   height={40}
-                  animation="wave"
                 />
               )}
               <div
-                className={`message-bubble ${
-                  isSentByUser ? "sent" : "received"
-                }`}
+                className={`message-bubble ${isRight ? "sent" : "received"}`}
               >
-                {!isSentByUser && (
+                {!isRight && (
                   <div className="message-sender-name">
-                    <Skeleton
-                      variant="text"
-                      width={80}
-                      height={16}
-                      animation="wave"
-                    />
+                    <Skeleton width={80} height={16} />
                   </div>
                 )}
                 <div className="message-text">
-                  <div className="message-content">
-                    <Skeleton
-                      variant="text"
-                      width={Math.random() * 200 + 100}
-                      height={16}
-                      animation="wave"
-                      style={{ marginBottom: 4 }}
-                    />
-                    {Math.random() > 0.5 && (
-                      <Skeleton
-                        variant="text"
-                        width={Math.random() * 150 + 80}
-                        height={16}
-                        animation="wave"
-                      />
-                    )}
-                  </div>
-                  <div className="message-timestamp">
-                    <Skeleton
-                      variant="text"
-                      width={50}
-                      height={12}
-                      animation="wave"
-                    />
-                  </div>
+                  <Skeleton
+                    width={180}
+                    height={16}
+                    style={{ marginBottom: 4 }}
+                  />
+                  <Skeleton width={150} height={16} />
+                  <Skeleton width={50} height={12} />
                 </div>
               </div>
             </div>
@@ -289,4 +284,3 @@ const Messages = ({ clubId }) => {
 };
 
 export default Messages;
- 

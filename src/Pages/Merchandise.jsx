@@ -296,14 +296,13 @@ const Merchandise = () => {
                   />
                   <div className="product-info">
                     <h3>{product.product_name}</h3>
-                    <p className="price">${product.product_price}</p>
+                    <p className="price">Rs.{product.product_price}</p>
                     <p className="description">{product.product_description}</p>
                     <p className="stock">Stock: {product.product_quantity}</p>
                     <button
                       className="purchase-btn"
                       onClick={() => handlePurchase(product)}
-                      disabled={product.product_quantity === 0}
-                    >
+                      disabled={product.product_quantity === 0}>
                       {product.product_quantity === 0
                         ? "Out of Stock"
                         : "Purchase"}

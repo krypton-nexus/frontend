@@ -35,7 +35,6 @@ const AdminLogin = () => {
           localStorage.removeItem("admin_access_token");
         }
       } catch (error) {
-        console.error("Failed to decode token:", error);
         localStorage.removeItem("admin_access_token");
       }
     }
@@ -47,7 +46,7 @@ const AdminLogin = () => {
 
   const handleLogin = async (e) => {
     e.preventDefault();
-    setSnackbar({ ...snackbar, open: false }); 
+    setSnackbar((prev) => ({ ...prev, open: false }));
 
     try {
       const response = await axios.post(
@@ -70,12 +69,12 @@ const AdminLogin = () => {
           return;
         }
         showSnackbar("Login successful!", "success");
-        navigate("/admindashboard");
+        setTimeout(() => navigate("/admindashboard"), 800);
       } else {
         showSnackbar(message || "Login failed!", "error");
+        setPassword("");
       }
     } catch (error) {
-      console.error("Login Error:", error);
       if (error.response) {
         switch (error.response.status) {
           case 404:

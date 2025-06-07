@@ -99,7 +99,10 @@ const ChatBot = () => {
         `${BASE_URL}/chat`,
         {
           question: trimmedInput,
-          history: updatedMessages.filter((msg) => msg.sender === "user"),
+          history: updatedMessages.map(({ sender, text }) => ({
+            sender,
+            text,
+          })),
         },
         { headers: { "Content-Type": "application/json" } }
       );
@@ -127,8 +130,13 @@ const ChatBot = () => {
   };
 
   const handleKeyDown = (e) => {
-    if (e.key === "Enter") sendMessage();
+    if (e.key === "Enter" && !e.shiftKey) {
+      e.preventDefault();
+      sendMessage();
+    }
   };
+
+  
 
   return (
     <>
@@ -199,7 +207,11 @@ const ChatBot = () => {
                   className="chatbot-message bot-message"
                   style={{ whiteSpace: "normal" }}
                 >
-                  <ReactMarkdown>Thinking...</ReactMarkdown>
+                  <div className="chatbot-typing-indicator">
+                    <span>.</span>
+                    <span>.</span>
+                    <span>.</span>
+                  </div>
                 </div>
               )}
               <div ref={messagesEndRef} />

@@ -8,7 +8,6 @@ const NotificationPopup = ({
   markAllAsRead,
   onClose,
 }) => {
-  // Sort and format
   const sortedNotifications = notifications
     .slice()
     .sort((a, b) => new Date(b.created_at) - new Date(a.created_at))
@@ -19,9 +18,8 @@ const NotificationPopup = ({
 
   const popupPositionStyle = {
     position: "fixed",
-    top: "100px",
-    left: "500px",
-    // alignItems: "center",
+    top: "65px",
+    left: "440px",
     zIndex: 99999,
     backgroundColor: "#fff",
     color: "#000",
@@ -52,6 +50,7 @@ const NotificationPopup = ({
     padding: "6px 16px",
     borderBottom: "1px solid #eee",
     background: "#fff",
+    marginTop:"20px"
   };
 
   const listScrollStyle = {
@@ -81,7 +80,8 @@ const NotificationPopup = ({
       <div
         className="notification-popup"
         style={popupPositionStyle}
-        onClick={(e) => e.stopPropagation()}>
+        onClick={(e) => e.stopPropagation()}
+      >
         {/* HEADER - Always visible */}
         <div style={headerStyle}>
           <span style={{ fontWeight: 600, fontSize: 16 }}>Notifications</span>
@@ -96,67 +96,11 @@ const NotificationPopup = ({
               fontWeight: "200",
               cursor: "pointer",
             }}
-            aria-label="Close notifications">
+            aria-label="Close notifications"
+          >
             &times;
           </button>
         </div>
-
-        {/* BUTTONS */}
-        <div style={filterButtonStyle}>
-          <button
-            onClick={markAllAsRead}
-            style={{
-              background: "#222",
-              color: "#fff",
-              border: "none",
-              padding: "4px 12px",
-              cursor: "pointer",
-              borderRadius: "3px",
-              fontSize: "14px",
-            }}>
-            Mark All as Read
-          </button>
-          <div>
-            <button
-              onClick={() => setFilter("all")}
-              style={{
-                margin: "0 2px",
-                background: filter === "all" ? "#eee" : "transparent",
-                border: "none",
-                borderRadius: 4,
-                padding: "2px 8px",
-                color: "#000",
-                cursor: "pointer",
-              }}>
-              All
-            </button>
-            <button
-              onClick={() => setFilter("unread")}
-              style={{
-                margin: "0 2px",
-                background: filter === "unread" ? "#eee" : "transparent",
-                border: "none",
-                borderRadius: 4,
-                padding: "2px 8px",
-                cursor: "pointer",
-              }}>
-              Unread
-            </button>
-            <button
-              onClick={() => setFilter("read")}
-              style={{
-                margin: "0 2px",
-                background: filter === "read" ? "#eee" : "transparent",
-                border: "none",
-                borderRadius: 4,
-                padding: "2px 8px",
-                cursor: "pointer",
-              }}>
-              Read
-            </button>
-          </div>
-        </div>
-
         {/* SCROLLABLE LIST */}
         <div style={listScrollStyle}>
           {sortedNotifications.length > 0 ? (
@@ -168,7 +112,8 @@ const NotificationPopup = ({
                     fontWeight: notif.is_read ? "normal" : "bold",
                     padding: "10px 0 10px 0",
                     borderBottom: "1px solid #f2f2f2",
-                  }}>
+                  }}
+                >
                   <div>{notif.notification}</div>
                   <div style={{ fontSize: "0.8em", color: "#666" }}>
                     {notif.formattedDate}
@@ -181,6 +126,64 @@ const NotificationPopup = ({
               No notifications available.
             </div>
           )}
+        </div>
+
+        <div style={filterButtonStyle}>
+          <button
+            onClick={markAllAsRead}
+            style={{
+              background: "#222",
+              color: "#fff",
+              border: "none",
+              padding: "4px 12px",
+              cursor: "pointer",
+              borderRadius: "3px",
+              fontSize: "14px",
+            }}
+          >
+            Mark All as Read
+          </button>
+          <div>
+            <button
+              onClick={() => setFilter("all")}
+              style={{
+                margin: "0 2px",
+                background: filter === "all" ? "maroon" : "black",
+                border: "none",
+                borderRadius: 4,
+                padding: "2px 8px",
+                cursor: "pointer",
+              }}
+            >
+              All
+            </button>
+            <button
+              onClick={() => setFilter("unread")}
+              style={{
+                margin: "0 2px",
+                background: filter === "unread" ? "red" : "black",
+                border: "none",
+                borderRadius: 4,
+                padding: "2px 8px",
+                cursor: "pointer",
+              }}
+            >
+              Unread
+            </button>
+            <button
+              onClick={() => setFilter("read")}
+              style={{
+                margin: "0 2px",
+                background: filter === "read" ? "green" : "black",
+                border: "none",
+                borderRadius: 4,
+                padding: "2px 8px",
+                cursor: "pointer",
+              }}
+            >
+              Read
+            </button>
+          </div>
         </div>
       </div>
     </>

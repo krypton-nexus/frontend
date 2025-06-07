@@ -1,63 +1,44 @@
 import React, { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { jwtDecode } from "jwt-decode";
-import "../CSS/ChannelList.css"; 
+import "../CSS/ChannelList.css";
 
 const BASE_URL = process.env.REACT_APP_BASE_URL;
 
 const ClubList = () => {
   const [clubs, setClubs] = useState([]);
   const [userClubs, setUserClubs] = useState([]);
-  const [userEmail, setUserEmail] = useState("");
 
   useEffect(() => {
-    const token = localStorage.getItem("access_token");
-    if (token) {
+    const fetchData = async () => {
+      const token = localStorage.getItem("access_token");
+      if (!token) return;
+
       try {
         const decoded = jwtDecode(token);
-        setUserEmail(decoded.email);
-      } catch (error) {
-        console.error("Error decoding token:", error);
-      }
-    }
-  }, []);
+        const userEmail = decoded.email;
 
-  useEffect(() => {
-    const fetchClubs = async () => {
-      try {
-        const response = await fetch(`${BASE_URL}/club/list`);
-        if (response.ok) {
-          const data = await response.json();
-          setClubs(data.clubs || []);
-        } else {
-          console.error("Failed to fetch clubs:", response.statusText);
+        const [clubsRes, userClubsRes] = await Promise.all([
+          fetch(`${BASE_URL}/club/list`),
+          fetch(`${BASE_URL}/student/clubs/${userEmail}`),
+        ]);
+
+        if (clubsRes.ok) {
+          const clubsData = await clubsRes.json();
+          setClubs(clubsData.clubs || []);
+        }
+
+        if (userClubsRes.ok) {
+          const userClubsData = await userClubsRes.json();
+          setUserClubs(userClubsData.clubs || []);
         }
       } catch (error) {
-        console.error("Error fetching clubs:", error);
+        console.error("Error fetching data:", error);
       }
     };
 
-    fetchClubs();
+    fetchData();
   }, []);
-
-  useEffect(() => {
-    if (!userEmail) return;
-    const fetchUserClubs = async () => {
-      try {
-        const response = await fetch(`${BASE_URL}/student/clubs/${userEmail}`);
-        if (response.ok) {
-          const data = await response.json();
-          setUserClubs(data.clubs || []);
-        } else {
-          console.error("Failed to fetch user's clubs:", response.statusText);
-        }
-      } catch (error) {
-        console.error("Error fetching user's clubs:", error);
-      }
-    };
-
-    fetchUserClubs();
-  }, [userEmail]);
 
   return (
     <div className="club-list-container">

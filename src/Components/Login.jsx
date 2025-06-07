@@ -12,7 +12,6 @@ const BASE_URL = process.env.REACT_APP_BASE_URL;
 const Login = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [error, setError] = useState("");
   const navigate = useNavigate();
 
   useAuthCheck(navigate);
@@ -33,7 +32,6 @@ const Login = () => {
 
   const handleLogin = async (e) => {
     e.preventDefault();
-    setError("");
 
     try {
       const { data } = await axios.post(
@@ -43,22 +41,40 @@ const Login = () => {
       );
 
       if (data.token) {
-        const { exp } = jwtDecode(data.token);
-        const expiryTime = exp * 1000;
+        const decoded = jwtDecode(data.token);
+        const expiryTime = (decoded?.exp || 0) * 1000;
+        console.log(data.token);
         localStorage.setItem("access_token", data.token);
         localStorage.setItem("token_expiry", expiryTime);
+        // 🔽 Fetch user clubs and all clubs
+        const [userClubsRes, allClubsRes] = await Promise.all([
+          axios.get(`${BASE_URL}/student/clubs/${decoded.email}`, {
+            headers: { Authorization: `Bearer ${data.token}` },
+          }),
+          axios.get(`${BASE_URL}/club/list`, {
+            headers: { Authorization: `Bearer ${data.token}` },
+          }),
+        ]);
+
+        // 🔽 Store in localStorage
+        localStorage.setItem(
+          "user_clubs",
+          JSON.stringify(userClubsRes.data.clubs || [])
+        );
+
+        localStorage.setItem(
+          "all_clubs",
+          JSON.stringify(allClubsRes.data.clubs || [])
+        );
         enqueueSnackbar("Login Successful", { variant: "success" });
         navigate("/viewclubs");
       } else {
-        const message = data.message || "Login failed!";
-        setError(message);
-        enqueueSnackbar(message, { variant: "error" });
+        enqueueSnackbar(data.message || "Login failed!", { variant: "error" });
       }
     } catch (err) {
       const errorMessage =
         err.response?.data?.error ||
         "An unexpected error occurred. Please try again later.";
-      setError(errorMessage);
       enqueueSnackbar(errorMessage, { variant: "error" });
     }
   };
@@ -107,9 +123,6 @@ const Login = () => {
             Login
           </button>
         </form>
-
-        {error && <p className="error-message">{error}</p>}
-
         <p className="register">
           Don’t have an account? <Link to="/signup">Register</Link>
         </p>

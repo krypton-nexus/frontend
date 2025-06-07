@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useMemo } from "react";
+import React, { useEffect, useState, useMemo, useCallback } from "react";
 import { jwtDecode } from "jwt-decode";
 import Sidebar from "./SideBar";
 import ClubCard from "./ClubCard";
@@ -18,6 +18,10 @@ const ShowClubs = () => {
   const [user, setUser] = useState(null);
   const [searchQuery, setSearchQuery] = useState("");
   const [profileOpen, setProfileOpen] = useState(false);
+
+  const handleSearch = useCallback((e) => {
+    setSearchQuery(e.target.value);
+  }, []);
 
   // Decode JWT token and set student email
   useEffect(() => {
@@ -122,7 +126,7 @@ const ShowClubs = () => {
               placeholder="Search Clubs..."
               className="membership-search"
               value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
+              onChange={handleSearch}
             />
             <button className="searchIcon" type="button">
               <FaSearch />

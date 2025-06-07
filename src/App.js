@@ -6,12 +6,9 @@ import {
   Navigate,
 } from "react-router-dom";
 
-// Import Components
 import ClubDetails from "./Components/ClubDetails";
 import ChatBot from "./Components/ChatBot";
 import UseAuthCheck from "./Components/UseAuthCheck";
-import ChannelList from "./Components/ChannelList";
-import ClubChannel from "./Components/ClubChannel";
 import AdminLogin from "./Components/AdminLogin";
 import ShowClubs from "./Components/ShowClubs";
 import Login from "./Components/Login";
@@ -32,6 +29,7 @@ import Merchandise from "./Pages/Merchandise";
 import Communication from "./Pages/Communication";
 import Task from "./Pages/Task";
 import ViewFeed from "./Pages/ViewFeed";
+import SystemAdminDashboard from "./Pages/SystemAdminDashboard";
 
 // Layout Wrapper to include ChatBot in all pages
 const NoButtonLayout = ({ children }) => (
@@ -211,22 +209,7 @@ const App = () => {
             </NoButtonLayout>
           }
         />
-        <Route
-          path="/clubs"
-          element={
-            <NoButtonLayout>
-              <ChannelList />
-            </NoButtonLayout>
-          }
-        />
-        <Route
-          path="/club/:clubId/channel"
-          element={
-            <NoButtonLayout>
-              <ClubChannel />
-            </NoButtonLayout>
-          }
-        />
+
         <Route
           path="/add-product"
           element={
@@ -240,6 +223,14 @@ const App = () => {
           element={
             <NoButtonLayout>
               <ViewFeed />
+            </NoButtonLayout>
+          }
+        />
+        <Route
+          path="/system-admin-dashboard"
+          element={
+            <NoButtonLayout>
+              <SystemAdminDashboard />
             </NoButtonLayout>
           }
         />
