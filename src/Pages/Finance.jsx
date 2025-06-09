@@ -286,64 +286,83 @@ const Finance = () => {
     }
   }, []);
 
-  // Fetch transactions function (now defined outside useEffect)
   const fetchTransactions = useCallback(async () => {
-    if (!token || !clubId) return;
+  if (!token || !clubId) return;
 
-    setLoading(true);
-    try {
-      const response = await fetch(
-        `${BASE_URL}/finance/get_transactions?club_id=${clubId}`,
-        {
-          method: "GET",
-          headers: { "Content-Type": "application/json" },
-        }
-      );
-      if (!response.ok)
-        throw new Error(`HTTP error! Status: ${response.status}`);
+  setLoading(true);
+  setError(null);
+  let fetchedTransactions = [];
+
+  try {
+    const response = await fetch(
+      `${BASE_URL}/finance/get_transactions?club_id=${clubId}`
+    );
+
+    if (response.ok) {
       const data = await response.json();
-
-      if (data.transactions) {
-        const fetchedTransactions = data.transactions.map((t) => ({
-          id: t.ID, // Using the actual database ID
-          date: new Date(t.Date).toISOString().split("T")[0],
-          name: t.Name,
-          description: t.Description,
-          category: t["Category Name"],
-          amount: parseFloat(t.Amount),
-          type: t["Transaction Type"].toLowerCase(),
-        }));
-        console.log(fetchedTransactions);
-        setTransactions(fetchedTransactions);
-
-        const incomeCategories = [
-          ...new Set(
-            fetchedTransactions
-              .filter((t) => t.type === "income")
-              .map((t) => t.category)
-          ),
-        ];
-        const expenseCategories = [
-          ...new Set(
-            fetchedTransactions
-              .filter((t) => t.type === "expense")
-              .map((t) => t.category)
-          ),
-        ];
-        setCategories({ income: incomeCategories, expense: expenseCategories });
-      }
-    } catch (error) {
-      console.error("Fetch error:", error);
-      setError("Failed to load transactions.");
-    } finally {
-      setLoading(false);
+      fetchedTransactions = data.transactions.map((t) => ({
+        id: t.ID,
+        date: new Date(t.Date).toISOString().split("T")[0],
+        name: t.Name,
+        description: t.Description,
+        category: t["Category Name"],
+        amount: parseFloat(t.Amount),
+        type: t["Transaction Type"].toLowerCase(),
+      }));
+    } else if (response.status === 404) {
+      console.warn("No transactions found for this club.");
+    } else {
+      throw new Error("Failed to fetch transactions.");
     }
-  }, [token, clubId]);
+  } catch (error) {
+    console.error("Transactions fetch error:", error);
+    setError("Failed to load transactions.");
+  }
+
+  setTransactions(fetchedTransactions);
+  setLoading(false);
+}, [token, clubId]);
+const fetchCategories = useCallback(async () => {
+  if (!token || !clubId) return;
+  try {
+    const response = await fetch(
+      `${BASE_URL}/finance/get_categories?club_id=${clubId}`
+    );
+
+    if (!response.ok) throw new Error("Failed to fetch categories");
+
+    const data = await response.json();
+
+    const categoriesArray = data.categories; // <-- fix here
+
+    if (!Array.isArray(categoriesArray)) {
+      throw new Error("Categories data is not an array");
+    }
+
+    const incomeCategories = categoriesArray
+      .filter((cat) => cat["Transaction Type"] === "Income")
+      .map((cat) => cat["Category Name"]);
+
+    const expenseCategories = categoriesArray
+      .filter((cat) => cat["Transaction Type"] === "Expense")
+      .map((cat) => cat["Category Name"]);
+
+    setCategories({
+      income: incomeCategories,
+      expense: expenseCategories,
+    });
+  } catch (error) {
+    console.error("Categories fetch error:", error);
+    setError("Failed to load categories.");
+  }
+}, [token, clubId]);
+
 
   // Call fetchTransactions when component mounts or dependencies change
   useEffect(() => {
-    fetchTransactions();
-  }, [fetchTransactions]);
+  fetchTransactions();
+  fetchCategories();
+}, [fetchTransactions, fetchCategories]);
 
   // Sort and filter transactions
   const sortedTransactions = [...transactions].sort(
@@ -486,7 +505,8 @@ const Finance = () => {
       const result = await response.json();
       if (1) {
         // Refresh categories and transactions
-        await fetchTransactions();
+        // await fetchTransactions();
+        await fetchCategories();
         setNewCategory("");
         alert("Category added successfully");
       } else {
