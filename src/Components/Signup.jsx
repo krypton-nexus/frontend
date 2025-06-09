@@ -7,6 +7,80 @@ import logo1 from "../Images/logo1.png";
 
 const BASE_URL = process.env.REACT_APP_BASE_URL;
 
+const facultyData = {
+  "Faculty of Commerce & Management studies": [
+    "DEPARTMENT OF ACCOUNTANCY",
+    "DEPARTMENT OF COMMERCE & FINANCIAL MANAGEMENT",
+    "DEPARTMENT OF FINANCE",
+    "DEPARTMENT OF HUMAN RESOURCE MANAGEMENT",
+    "DEPARTMENT OF MARKETING MANAGEMENT",
+  ],
+  "Faculty of Computing and Technology": [
+    "Department of Applied Computing",
+    "Department of Computer Systems Engineering",
+    "Department of Software Engineering",
+  ],
+  "Faculty of Humanities": [
+    "Drama, Cinema, and Television",
+    "English",
+    "English Language Teaching",
+    "Fine Arts",
+    "Hindi Studies",
+    "Linguistics",
+    "Modern Languages",
+    "Pali & Buddhist Studies",
+    "Sanskrit and Eastern Studies",
+    "Sinhala",
+    "Western Classical Culture & Christian Culture",
+  ],
+  "Faculty of Medicine": [
+    "Anatomy",
+    "Biochemistry & Clinical Chemistry",
+    "Disability Studies",
+    "Family Medicine",
+    "Forensic Medicine",
+    "Medicine",
+    "Medical Education",
+    "Medical Microbiology",
+    "Obstetrics & Gynaecology",
+    "Paediatrics",
+    "Parasitology",
+    "Pathology",
+    "Pharmacology",
+    "Physiology",
+    "Psychiatry",
+    "Public Health",
+    "Surgery",
+  ],
+  "Faculty of Science": [
+    "Software Engineering Teaching Unit",
+    "Sports & Exercise Science",
+    "Chemistry",
+    "Industrial Management",
+    "Mathematics",
+    "Microbiology",
+    "Physics and Electronics",
+    "Plant and Molecular Biology",
+    "Statistics & Computer Science",
+    "Zoology and Environmental Management",
+  ],
+  "Faculty of Social Sciences": [
+    "Archaeology",
+    "Economics",
+    "Geography",
+    "History",
+    "Information Technology",
+    "International Studies",
+    "Mass Communication",
+    "Library and Information Science",
+    "Philosophy",
+    "Political Science",
+    "Sociology",
+    "Social Statistics",
+    "Sport Science and Physical Education",
+  ],
+};
+
 const Signup = () => {
   const navigate = useNavigate();
   const [formData, setFormData] = useState({
@@ -59,7 +133,16 @@ const Signup = () => {
 
   const handleChange = (e) => {
     const { name, value } = e.target;
-    setFormData((prev) => ({ ...prev, [name]: value }));
+    if (name === "faculty") {
+      setFormData((prev) => ({
+        ...prev,
+        faculty: value,
+        department: "", // reset department when faculty changes
+      }));
+    } else {
+      setFormData((prev) => ({ ...prev, [name]: value }));
+    }
+
     setFormErrors((prev) => ({ ...prev, [name]: "" }));
     setServerError("");
   };
@@ -195,33 +278,53 @@ const Signup = () => {
           </div>
 
           <div className="form-row">
-            <input
+            <select
               name="faculty"
-              placeholder="Faculty"
               className="input-field"
               value={formData.faculty}
               onChange={handleChange}
-            />
-            <input
+            >
+              <option value="">Select Faculty</option>
+              {Object.keys(facultyData).map((faculty) => (
+                <option key={faculty} value={faculty}>
+                  {faculty}
+                </option>
+              ))}
+            </select>
+            <select
               name="department"
-              placeholder="Department"
               className="input-field"
               value={formData.department}
               onChange={handleChange}
-            />
+              disabled={!formData.faculty}
+            >
+              <option value="">Select Department</option>
+              {facultyData[formData.faculty]?.map((dept) => (
+                <option key={dept} value={dept}>
+                  {dept}
+                </option>
+              ))}
+            </select>
           </div>
 
           <div className="form-row">
-            <input
+            <select
               name="year"
-              placeholder="Year"
               className="input-field"
               value={formData.year}
               onChange={handleChange}
-            />
+            >
+              <option value="">Select Year</option>
+              {[1, 2, 3, 4, 5].map((y) => (
+                <option key={y} value={y}>
+                  {y}
+                </option>
+              ))}
+            </select>
+
             <input
               name="courseName"
-              placeholder="Course Name"
+              placeholder="Course Name (e.g., SE, PS, PE)"
               className="input-field"
               value={formData.courseName}
               onChange={handleChange}
@@ -245,11 +348,6 @@ const Signup = () => {
             />
           </div>
 
-          <div className="remember-me">
-            <input type="checkbox" id="remember" />
-            <label htmlFor="remember">Remember Me</label>
-          </div>
-
           <button type="submit" className="register-btn" disabled={loading}>
             {loading ? "Registering..." : "Register"}
           </button>
@@ -262,7 +360,6 @@ const Signup = () => {
                 </p>
               )
           )}
-
           {serverError && <p className="error-message">{serverError}</p>}
         </form>
 
