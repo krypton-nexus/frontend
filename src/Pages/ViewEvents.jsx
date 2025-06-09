@@ -108,6 +108,7 @@ const ViewEvents = () => {
             }
           );
           const data = await res.json();
+          console.log(data);
 
           if (Array.isArray(data.events)) {
             allEvents.push(...data.events);
@@ -261,7 +262,12 @@ const ViewEvents = () => {
     if (activeTab === "past") return date < new Date();
     return false;
   });
-
+  const isPastEvent = (eventDateString) => {
+    const eventDate = new Date(eventDateString);
+    const today = new Date();
+    return eventDate < today;
+  };
+  
   return (
     <div className="view-events-container">
       <Sidebar />
@@ -387,7 +393,7 @@ const ViewEvents = () => {
                     {participantCounts[event.id] || 0}
                   </p>
                   <div className="event-buttons">
-                    <button
+                    {/* <button
                       className="yes-btn"
                       onClick={() => handleYesVote(event)}
                     >
@@ -401,7 +407,28 @@ const ViewEvents = () => {
                     </button>
                     <button className="maybe-btn" onClick={handleMaybeVote}>
                       Maybe
-                    </button>
+                    </button> */}
+                    {!isPastEvent(event.event_date) ? (
+                      <>
+                        <button
+                          className="yes-btn"
+                          onClick={() => handleYesVote(event)}
+                        >
+                          Yes
+                        </button>
+                        <button
+                          className="no-btn"
+                          onClick={() => handleNoVote(event)}
+                        >
+                          No
+                        </button>
+                        <button className="maybe-btn" onClick={handleMaybeVote}>
+                          Maybe
+                        </button>
+                      </>
+                    ) : (
+                      <div className="past-event-label">This event has ended.</div>
+                    )}
                   </div>
                 </div>
               </div>

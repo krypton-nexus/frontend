@@ -15,7 +15,6 @@ import "../CSS/SideBar.css";
 import { FaSearch, FaUserCircle } from "react-icons/fa";
 import { Skeleton, Box, Stack } from "@mui/material";
 import MemberAnalysisCharts from "../Components/MemberAnalysisCharts";
-import NotificationPopup from "../Components/NotificationPopup";
 import UserDetailModal from "../Components/UserDetailModal";
 import MembershipTable from "../Components/MembershipTable";
 
@@ -196,6 +195,7 @@ const AdminDashboard = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [modalUserData, setModalUserData] = useState(null);
   const [isLoadingDashboard, setIsLoadingDashboard] = useState(true);
+  const [searchTerm, setSearchTerm] = useState("");
 
   const navigate = useNavigate();
   const adminAccessToken = localStorage.getItem("admin_access_token");
@@ -372,11 +372,16 @@ const AdminDashboard = () => {
         club_id: clubId,
         status: action,
       });
+
       toast.success(`${action} membership request for ${email}.`);
+
       setNewMembershipRequests((prev) => prev.filter((m) => m.email !== email));
+
       if (action === "Approved") {
         const approved = newMembershipRequests.find((m) => m.email === email);
-        if (approved) setCurrentMembers((prev) => [...prev, approved]);
+        if (approved) {
+          setCurrentMembers((prev) => [...prev, approved]);
+        }
       }
     } catch {
       toast.error("Failed to update membership status.");
@@ -385,17 +390,45 @@ const AdminDashboard = () => {
 
   const handleMemberDeletion = async (email) => {
     if (!window.confirm("Are you sure you want to delete this member?")) return;
+
     try {
       await apiDelete(`/membership/delete`, adminAccessToken, {
         student_id: email,
         club_id: clubId,
       });
+
       toast.success(`Member ${email} has been removed from the club.`);
-      fetchUnreadNotificationCount();
+
+      setCurrentMembers((prev) =>
+        prev.filter((member) => member.email !== email)
+      );
     } catch {
       toast.error("Failed to delete member.");
     }
   };
+
+  const filteredNewRequests = useMemo(() => {
+    return newMembershipRequests
+      .filter(
+        (member) =>
+          member.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
+          member.firstName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+          member.lastName?.toLowerCase().includes(searchTerm.toLowerCase())
+      )
+      .sort((a, b) => new Date(b.created_at) - new Date(a.created_at)); // latest first
+  }, [newMembershipRequests, searchTerm]);
+
+  const filteredCurrentMembers = useMemo(() => {
+    return currentMembers
+      .filter(
+        (member) =>
+          member.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
+          member.firstName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+          member.lastName?.toLowerCase().includes(searchTerm.toLowerCase())
+      )
+      .sort((a, b) => new Date(b.created_at) - new Date(a.created_at)); // latest first
+  }, [currentMembers, searchTerm]);
+  
 
   return (
     <div
@@ -427,6 +460,8 @@ const AdminDashboard = () => {
                 type="text"
                 placeholder="Search members..."
                 className="membership-search"
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
               />
               <button className="searchIcon">
                 <FaSearch />
@@ -445,7 +480,7 @@ const AdminDashboard = () => {
             <>
               <MembershipTable
                 title="New Membership Requests"
-                data={newMembershipRequests}
+                data={filteredNewRequests}
                 isCurrentMembers={false}
                 onViewDetails={handleViewDetails}
                 onStatusChange={handleMembershipStatus}
@@ -461,7 +496,7 @@ const AdminDashboard = () => {
               )}
               <MembershipTable
                 title="Current Members List"
-                data={currentMembers}
+                data={filteredCurrentMembers}
                 isCurrentMembers={true}
                 onViewDetails={handleViewDetails}
                 onMemberDeletion={handleMemberDeletion}

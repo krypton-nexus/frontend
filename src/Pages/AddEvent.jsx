@@ -287,7 +287,7 @@ const AddEvent = () => {
                 <span className="slider round"></span>
               </div>
               <span className="toggle-status">
-                {eventData.ispublic === "0" ? "Private" : "Public"}
+                {eventData.ispublic === "1" ? "Public" : "Private"}
               </span>
             </div>
           </label>

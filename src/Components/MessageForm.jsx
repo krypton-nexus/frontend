@@ -6,16 +6,15 @@ import {
   doc,
   setDoc,
   onSnapshot,
+  deleteField,
 } from "firebase/firestore";
 import { db } from "../firebase";
 import { jwtDecode } from "jwt-decode";
 import "../CSS/MessageForm.css";
 import { FaPaperPlane } from "react-icons/fa";
-import { bgcolor, color } from "@mui/system";
-import { deleteField } from "firebase/firestore";
 
 const BASE_URL = process.env.REACT_APP_BASE_URL;
-const TYPING_TIMEOUT = 2000;
+const TYPING_TIMEOUT = 3000;
 
 const MessageForm = ({ clubId, userEmail }) => {
   const [text, setText] = useState("");
@@ -25,6 +24,14 @@ const MessageForm = ({ clubId, userEmail }) => {
   const [membershipChecked, setMembershipChecked] = useState(false);
   const [usersTyping, setUsersTyping] = useState([]);
   const typingTimeoutRef = useRef(null);
+  const isTypingRef = useRef(false);
+  const lastTypingStatusRef = useRef(null);
+
+  const encodeEmail = (email) =>
+    email.replace(/\./g, "_dot_").replace(/@/g, "_at_");
+  const decodeEmail = (key) => key.replace(/_dot_/g, ".").replace(/_at_/g, "@");
+
+  const safeEmailKey = encodeEmail(userEmail);
 
   useEffect(() => {
     const token = localStorage.getItem("access_token");
@@ -43,23 +50,39 @@ const MessageForm = ({ clubId, userEmail }) => {
   useEffect(() => {
     setMembershipChecked(false);
     const stored = JSON.parse(localStorage.getItem("user_clubs") || "[]");
-    const isInClub = stored.some((club) => club === clubId);
-    setIsMember(isInClub);
+    setIsMember(stored.includes(clubId));
     setMembershipChecked(true);
   }, [clubId]);
 
   const updateTypingStatus = useCallback(
     async (typing) => {
       if (!clubId || !userEmail || !isMember) return;
+      if (lastTypingStatusRef.current === typing) return;
+
+      lastTypingStatusRef.current = typing;
       const typingDocRef = doc(db, "typingIndicators", clubId);
+
       try {
-        await setDoc(
-          typingDocRef,
-          typing
-            ? { [userEmail]: serverTimestamp() }
-            : { [userEmail]: deleteField() },
-          { merge: true }
-        );
+        if (typing) {
+          await setDoc(
+            typingDocRef,
+            {
+              [safeEmailKey]: {
+                timestamp: serverTimestamp(),
+                lastSeen: Date.now(),
+              },
+            },
+            { merge: true }
+          );
+          isTypingRef.current = true;
+        } else {
+          await setDoc(
+            typingDocRef,
+            { [safeEmailKey]: deleteField() },
+            { merge: true }
+          );
+          isTypingRef.current = false;
+        }
       } catch (error) {
         console.error("Error updating typing status:", error);
       }
@@ -68,27 +91,32 @@ const MessageForm = ({ clubId, userEmail }) => {
   );
 
   const handleTyping = (e) => {
-    setText(e.target.value);
-    if (isMember) {
-      updateTypingStatus(true);
-      if (typingTimeoutRef.current) clearTimeout(typingTimeoutRef.current);
+    const newText = e.target.value;
+    setText(newText);
+    if (!isMember || !isAuthorized) return;
+
+    if (typingTimeoutRef.current) {
+      clearTimeout(typingTimeoutRef.current);
+    }
+
+    if (newText.trim().length > 0) {
+      if (!isTypingRef.current) updateTypingStatus(true);
       typingTimeoutRef.current = setTimeout(() => {
         updateTypingStatus(false);
       }, TYPING_TIMEOUT);
+    } else {
+      updateTypingStatus(false);
     }
   };
 
   const sendMessage = async (e) => {
     e.preventDefault();
-    if (!text.trim()) {
-      setError("Message cannot be empty.");
-      return;
-    }
-    if (!isAuthorized || !isMember) {
-      setError("You are not authorized to send messages.");
-      return;
-    }
+    if (!text.trim()) return setError("Message cannot be empty.");
+    if (!isAuthorized || !isMember)
+      return setError("You are not authorized to send messages.");
+
     try {
+      updateTypingStatus(false);
       await addDoc(collection(db, "messages", clubId, "messages"), {
         sendersEmail: userEmail,
         text: text.trim(),
@@ -96,7 +124,7 @@ const MessageForm = ({ clubId, userEmail }) => {
       });
       setText("");
       setError(null);
-      updateTypingStatus(false);
+      if (typingTimeoutRef.current) clearTimeout(typingTimeoutRef.current);
     } catch (err) {
       console.error("Error sending message:", err);
       setError("Failed to send message. Please try again.");
@@ -107,12 +135,9 @@ const MessageForm = ({ clubId, userEmail }) => {
     try {
       const token = localStorage.getItem("access_token");
       const response = await fetch(`${BASE_URL}/student/${email}`, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
+        headers: { Authorization: `Bearer ${token}` },
       });
-      if (!response.ok)
-        throw new Error(`HTTP error! status: ${response.status}`);
+      if (!response.ok) throw new Error("Fetch error");
       const data = await response.json();
       return data.first_name || email;
     } catch (err) {
@@ -124,35 +149,57 @@ const MessageForm = ({ clubId, userEmail }) => {
   useEffect(() => {
     if (!clubId || !isMember) return;
     const typingDocRef = doc(db, "typingIndicators", clubId);
+
     const unsubscribe = onSnapshot(typingDocRef, async (docSnapshot) => {
       const data = docSnapshot.data();
-      if (data) {
-        const now = Date.now();
-        const activeEmails = [];
-        Object.entries(data).forEach(([email, timestamp]) => {
-          if (email === userEmail) return;
-          if (timestamp && now - timestamp.toMillis() < TYPING_TIMEOUT) {
-            activeEmails.push(email);
-          }
-        });
-        const firstNames = await Promise.all(
-          activeEmails.map(async (email) => await fetchFirstName(email))
-        );
-        setUsersTyping(firstNames);
-      } else {
-        setUsersTyping([]);
-      }
+      if (!data) return setUsersTyping([]);
+
+      const now = Date.now();
+      const activeEmails = [];
+
+      Object.entries(data).forEach(([key, typingData]) => {
+        const decoded = decodeEmail(key);
+        if (decoded === userEmail) return;
+
+        let timestamp = typingData?.timestamp;
+        let lastSeen = typingData?.lastSeen;
+
+        if (timestamp && timestamp.toMillis) {
+          const timeDiff = now - timestamp.toMillis();
+          if (timeDiff < TYPING_TIMEOUT * 2) activeEmails.push(decoded);
+        } else if (lastSeen && now - lastSeen < TYPING_TIMEOUT * 2) {
+          activeEmails.push(decoded);
+        }
+      });
+
+      const firstNames = await Promise.all(
+        activeEmails.map((email) => fetchFirstName(email))
+      );
+      setUsersTyping(firstNames);
     });
 
     return () => unsubscribe();
   }, [clubId, userEmail, isMember, fetchFirstName]);
 
   useEffect(() => {
-    return () => {
-      if (typingTimeoutRef.current) {
-        clearTimeout(typingTimeoutRef.current);
+    const handleLeave = () => {
+      if (isTypingRef.current) updateTypingStatus(false);
+    };
+
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === "hidden" && isTypingRef.current) {
+        updateTypingStatus(false);
       }
-      updateTypingStatus(false);
+    };
+
+    window.addEventListener("beforeunload", handleLeave);
+    document.addEventListener("visibilitychange", handleVisibilityChange);
+
+    return () => {
+      handleLeave();
+      window.removeEventListener("beforeunload", handleLeave);
+      document.removeEventListener("visibilitychange", handleVisibilityChange);
+      if (typingTimeoutRef.current) clearTimeout(typingTimeoutRef.current);
     };
   }, [updateTypingStatus]);
 
@@ -160,22 +207,15 @@ const MessageForm = ({ clubId, userEmail }) => {
 
   return (
     <div className="message-form-wrapper">
-      {/* {!membershipChecked ? (
-        <p className="info-message">Checking club membership...</p>
-      ) : !isMember ? (
-        <p className="error-message">
-          You must be a member of this club to send messages.
-        </p>
-      ) : !isAuthorized ? (
-        <p className="error-message">
-          You are not authorized to send messages.
-        </p>
-      ) : null} */}
-
       {usersTyping.length > 0 && isMember && (
         <div className="typing-indicator">
-          {usersTyping.join(", ")} {usersTyping.length === 1 ? "is" : "are"}{" "}
-          typing...
+          {usersTyping.length === 1
+            ? `${usersTyping[0]} is typing...`
+            : usersTyping.length === 2
+            ? `${usersTyping.join(" and ")} are typing...`
+            : `${usersTyping.slice(0, 2).join(", ")} and ${
+                usersTyping.length - 2
+              } other${usersTyping.length - 2 > 1 ? "s" : ""} are typing...`}
         </div>
       )}
 
@@ -193,9 +233,9 @@ const MessageForm = ({ clubId, userEmail }) => {
           className="message-send-button"
           disabled={disabled}
           style={{
-            backgroundColor: disabled && "black",
-            cursor: disabled && "not-allowed",
-            opacity: disabled && 0.1,
+            backgroundColor: disabled ? "black" : undefined,
+            cursor: disabled ? "not-allowed" : undefined,
+            opacity: disabled ? 0.1 : undefined,
           }}
         >
           <FaPaperPlane />
