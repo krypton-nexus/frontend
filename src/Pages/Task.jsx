@@ -132,7 +132,7 @@ const Task = () => {
       if (!response.ok) throw new Error(response.statusText);
 
       const data = await response.json();
-      return data.tasks.map((task) => ({
+      return data.tasks.reverse().map((task) => ({
         id: `pt-${task.task_id}`,
         name: task.task_name,
         description: task.description || "",
@@ -157,7 +157,7 @@ const Task = () => {
       if (!response.ok) throw new Error(response.statusText);
 
       const data = await response.json();
-      return data.tasks.map((task) => ({
+      return data.tasks.reverse().map((task) => ({
         id: `ct-${task.task_id}`,
         name: task.title,
         description: task.description || "",
@@ -350,6 +350,7 @@ const Task = () => {
           },
         ]);
 
+        await loadAllTasks();
         showToast("Task created successfully");
         setIsAddTaskOpen(false);
       }
