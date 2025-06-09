@@ -217,9 +217,62 @@ const AdminDashboard = () => {
     if (!adminEmail) navigate("/admin");
   }, [adminEmail, navigate]);
 
+  // useEffect(() => {
+  //   const initDashboard = async () => {
+  //     setIsLoadingDashboard(true);
+  //     try {
+  //       const adminData = await apiGet(
+  //         `/admin/email?email=${adminEmail}`,
+  //         adminAccessToken
+  //       );
+  //       setClubId(adminData.club_id);
+
+  //       const [membershipData, studentData] = await Promise.all([
+  //         apiGet(
+  //           `/membership/list?club_id=${adminData.club_id}`,
+  //           adminAccessToken
+  //         ),
+  //         apiGet("/student/list", adminAccessToken),
+  //       ]);
+
+  //       const memberships = membershipData.memberships || [];
+  //       const allStudents = studentData.students || [];
+
+  //       const emailToStudentDataMap = allStudents.reduce((acc, student) => {
+  //         acc[student.email] = {
+  //           firstName: student.first_name,
+  //           lastName: student.last_name,
+  //           courseName: student.course_name,
+  //           year: student.year,
+  //           faculty: student.faculty,
+  //         };
+  //         return acc;
+  //       }, {});
+
+  //       const enriched = memberships.map((member) => ({
+  //         ...member,
+  //         ...emailToStudentDataMap[member.email],
+  //       }));
+
+  //       setNewMembershipRequests(
+  //         enriched.filter((m) => m.status === "Pending")
+  //       );
+  //       setCurrentMembers(enriched.filter((m) => m.status === "Approved"));
+  //     } catch {}
+  //     setIsLoadingDashboard(false);
+  //   };
+
+  //   if (adminEmail) {
+  //     initDashboard();
+  //     fetchUnreadNotificationCount();
+  //   }
+  // }, [adminEmail, adminAccessToken]);
+
   useEffect(() => {
-    const initDashboard = async () => {
-      setIsLoadingDashboard(true);
+    if (!adminEmail) return;
+
+    const initDashboard = async (showLoader = true) => {
+      if (showLoader) setIsLoadingDashboard(true);
       try {
         const adminData = await apiGet(
           `/admin/email?email=${adminEmail}`,
@@ -258,14 +311,20 @@ const AdminDashboard = () => {
           enriched.filter((m) => m.status === "Pending")
         );
         setCurrentMembers(enriched.filter((m) => m.status === "Approved"));
-      } catch {}
-      setIsLoadingDashboard(false);
+      } catch (err) {
+        console.error("Dashboard refresh failed:", err);
+      }
+      if (showLoader) setIsLoadingDashboard(false);
     };
 
-    if (adminEmail) {
-      initDashboard();
-      fetchUnreadNotificationCount();
-    }
+    // Initial load with skeletons
+    initDashboard(true);
+    fetchUnreadNotificationCount();
+
+    // Silent refresh every 20 seconds
+    const interval = setInterval(() => initDashboard(false), 10000);
+
+    return () => clearInterval(interval);
   }, [adminEmail, adminAccessToken]);
 
   const fetchUnreadNotificationCount = async () => {
@@ -428,7 +487,6 @@ const AdminDashboard = () => {
       )
       .sort((a, b) => new Date(b.created_at) - new Date(a.created_at)); // latest first
   }, [currentMembers, searchTerm]);
-  
 
   return (
     <div
