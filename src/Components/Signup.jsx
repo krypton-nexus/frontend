@@ -81,6 +81,51 @@ const facultyData = {
   ],
 };
 
+const countryOptions = [
+  { code: "+1", name: "USA", flag: "🇺🇸", maxLength: 10 },
+  { code: "+44", name: "United Kingdom", flag: "🇬🇧", maxLength: 10 },
+  { code: "+91", name: "India", flag: "🇮🇳", maxLength: 10 },
+  { code: "+94", name: "Sri Lanka", flag: "🇱🇰", maxLength: 9 },
+  { code: "+61", name: "Australia", flag: "🇦🇺", maxLength: 9 },
+  { code: "+81", name: "Japan", flag: "🇯🇵", maxLength: 10 },
+  { code: "+86", name: "China", flag: "🇨🇳", maxLength: 11 },
+  { code: "+49", name: "Germany", flag: "🇩🇪", maxLength: 11 },
+  { code: "+33", name: "France", flag: "🇫🇷", maxLength: 9 },
+  { code: "+39", name: "Italy", flag: "🇮🇹", maxLength: 10 },
+  { code: "+7", name: "Russia", flag: "🇷🇺", maxLength: 10 },
+  { code: "+34", name: "Spain", flag: "🇪🇸", maxLength: 9 },
+  { code: "+60", name: "Malaysia", flag: "🇲🇾", maxLength: 9 },
+  { code: "+65", name: "Singapore", flag: "🇸🇬", maxLength: 8 },
+  { code: "+62", name: "Indonesia", flag: "🇮🇩", maxLength: 10 },
+  { code: "+880", name: "Bangladesh", flag: "🇧🇩", maxLength: 10 },
+  { code: "+92", name: "Pakistan", flag: "🇵🇰", maxLength: 10 },
+  { code: "+966", name: "Saudi Arabia", flag: "🇸🇦", maxLength: 9 },
+  { code: "+971", name: "United Arab Emirates", flag: "🇦🇪", maxLength: 9 },
+  { code: "+974", name: "Qatar", flag: "🇶🇦", maxLength: 8 },
+  { code: "+20", name: "Egypt", flag: "🇪🇬", maxLength: 10 },
+  { code: "+27", name: "South Africa", flag: "🇿🇦", maxLength: 9 },
+  { code: "+256", name: "Uganda", flag: "🇺🇬", maxLength: 9 },
+  { code: "+234", name: "Nigeria", flag: "🇳🇬", maxLength: 10 },
+  { code: "+351", name: "Portugal", flag: "🇵🇹", maxLength: 9 },
+  { code: "+47", name: "Norway", flag: "🇳🇴", maxLength: 8 },
+  { code: "+46", name: "Sweden", flag: "🇸🇪", maxLength: 9 },
+  { code: "+45", name: "Denmark", flag: "🇩🇰", maxLength: 8 },
+  { code: "+41", name: "Switzerland", flag: "🇨🇭", maxLength: 9 },
+  { code: "+82", name: "South Korea", flag: "🇰🇷", maxLength: 10 },
+  { code: "+84", name: "Vietnam", flag: "🇻🇳", maxLength: 9 },
+  { code: "+66", name: "Thailand", flag: "🇹🇭", maxLength: 9 },
+  { code: "+63", name: "Philippines", flag: "🇵🇭", maxLength: 10 },
+  { code: "+48", name: "Poland", flag: "🇵🇱", maxLength: 9 },
+  { code: "+52", name: "Mexico", flag: "🇲🇽", maxLength: 10 },
+  { code: "+598", name: "Uruguay", flag: "🇺🇾", maxLength: 9 },
+  { code: "+591", name: "Bolivia", flag: "🇧🇴", maxLength: 8 },
+  { code: "+54", name: "Argentina", flag: "🇦🇷", maxLength: 10 },
+  { code: "+55", name: "Brazil", flag: "🇧🇷", maxLength: 11 },
+  { code: "+998", name: "Uzbekistan", flag: "🇺🇿", maxLength: 9 },
+  { code: "+976", name: "Mongolia", flag: "🇲🇳", maxLength: 8 },
+  { code: "+90", name: "Turkey", flag: "🇹🇷", maxLength: 10 },
+];
+
 const Signup = () => {
   const navigate = useNavigate();
   const [formData, setFormData] = useState({
@@ -101,6 +146,7 @@ const Signup = () => {
   const [formErrors, setFormErrors] = useState({});
   const [loading, setLoading] = useState(false);
   const [serverError, setServerError] = useState("");
+  const [selectedCountry, setSelectedCountry] = useState(countryOptions[3]);
 
   const validateFields = () => {
     const errors = {};
@@ -126,6 +172,13 @@ const Signup = () => {
       errors.studentNumber = "Student number is required.";
     if (!formData.dateOfBirth)
       errors.dateOfBirth = "Date of birth is required.";
+    if (!formData.phoneNumber) {
+      errors.phoneNumber = "Phone number is required.";
+    } else if (formData.phoneNumber.length !== selectedCountry.maxLength) {
+      errors.phoneNumber = `Phone number must be ${selectedCountry.maxLength} digits.`;
+    } else if (formData.phoneNumber[0] === "0") {
+      errors.phoneNumber = "Phone number should not start with 0.";
+    }
 
     setFormErrors(errors);
     return Object.keys(errors).length === 0;
@@ -245,13 +298,45 @@ const Signup = () => {
               value={formData.email}
               onChange={handleChange}
             />
-            <input
-              name="phoneNumber"
-              placeholder="Phone Number"
-              className="input-field"
-              value={formData.phoneNumber}
-              onChange={handleChange}
-            />
+            <div className="form-ro">
+              <div className="phone-container">
+                <select
+                  className="country-select"
+                  value={selectedCountry.code}
+                  onChange={(e) => {
+                    const selected = countryOptions.find(
+                      (c) => c.code === e.target.value
+                    );
+                    setSelectedCountry(selected);
+                    setFormData((prev) => ({ ...prev, phoneNumber: "" }));
+                  }}
+                >
+                  {countryOptions.map((country) => (
+                    <option key={country.code} value={country.code}>
+                      {country.flag} {country.code}
+                    </option>
+                  ))}
+                </select>
+                <input
+                  type="text"
+                  className="phone-input"
+                  placeholder="Enter phone number"
+                  value={formData.phoneNumber}
+                  onChange={(e) => {
+                    const val = e.target.value;
+                    if (
+                      /^\d*$/.test(val) &&
+                      val.length <= selectedCountry.maxLength
+                    ) {
+                      if (val.length === 0 || val[0] !== "0") {
+                        setFormData((prev) => ({ ...prev, phoneNumber: val }));
+                      }
+                    }
+                  }}
+                  maxLength={selectedCountry.maxLength}
+                />
+              </div>
+            </div>
           </div>
 
           <div className="form-row">
