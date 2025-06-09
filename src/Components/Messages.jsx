@@ -10,6 +10,7 @@ const BASE_URL = process.env.REACT_APP_BASE_URL;
 const Messages = ({ clubId }) => {
   const [messages, setMessages] = useState([]);
   const [userEmail, setUserEmail] = useState(null);
+  const [userToken, setUserToken] = useState(null);
   const [userNames, setUserNames] = useState({});
   const [isLoading, setIsLoading] = useState(true);
   const [isUserMember, setIsUserMember] = useState(false);
@@ -22,6 +23,7 @@ const Messages = ({ clubId }) => {
     if (token) {
       try {
         const decoded = jwtDecode(token);
+        setUserToken(token);
         setUserEmail(decoded.email || null);
       } catch (err) {
         console.error("Token decode failed:", err);
@@ -29,15 +31,38 @@ const Messages = ({ clubId }) => {
     }
   }, []);
 
-  // Step 2: Check membership from localStorage user_clubs
+  // Step 2: Membership check runs in background while loading skeletons
   useEffect(() => {
-    setMembershipCheckDone(false);
-    const stored = JSON.parse(localStorage.getItem("user_clubs") || "[]");
-    const isMember = stored.some((club) => club === clubId);
-    setIsUserMember(isMember);
-    setMembershipCheckDone(true);
-  }, [clubId]);
+    if (!userEmail || !userToken) return;
+    let isMounted = true;
 
+    const checkMembership = async () => {
+      setMembershipCheckDone(false);
+      try {
+        const res = await fetch(`${BASE_URL}/student/clubs/${userEmail}`, {
+          headers: { Authorization: `Bearer ${userToken}` },
+        });
+        let stored = [];
+        if (res.ok) {
+          const data = await res.json();
+          stored = Array.isArray(data) ? data : data.clubs;
+        }
+        const isMember = (stored || []).some((club) => club === clubId);
+        if (isMounted) setIsUserMember(isMember);
+      } catch (err) {
+        console.error("Membership check failed:", err);
+        if (isMounted) setIsUserMember(false);
+      }
+      if (isMounted) setMembershipCheckDone(true);
+    };
+    checkMembership();
+
+    return () => {
+      isMounted = false;
+    };
+  }, [clubId, userEmail, userToken]);
+
+  // Step 3: Fetch names for emails
   const fetchUserNames = useCallback(async (emails) => {
     const result = {};
     const token = localStorage.getItem("access_token");
@@ -65,7 +90,7 @@ const Messages = ({ clubId }) => {
     return result;
   }, []);
 
-  // Step 4: Firestore messages listener (only if member)
+  // Step 4: Firestore messages listener (only if member, but allow skeleton while loading)
   useEffect(() => {
     if (!clubId || !isUserMember) return;
 
@@ -138,22 +163,72 @@ const Messages = ({ clubId }) => {
 
   // === UI Render Section ===
 
+  // 1. Show skeletons immediately while loading (membership check in parallel)
   if (!membershipCheckDone) {
     return (
       <div className="messages-container">
-        <Skeleton width={150} height={20} animation="wave" />
+        <div className="date-separator">
+          <Skeleton
+            width={80}
+            height={20}
+            animation="wave"
+            style={{ margin: "0 auto" }}
+          />
+        </div>
+        {[...Array(5)].map((_, i) => {
+          const isRight = i % 2 === 0;
+          return (
+            <div
+              key={i}
+              className={`message ${
+                isRight ? "message-right" : "message-left"
+              }`}
+            >
+              {!isRight && (
+                <Skeleton
+                  className="message-avatar"
+                  variant="circular"
+                  width={40}
+                  height={40}
+                />
+              )}
+              <div
+                className={`message-bubble ${isRight ? "sent" : "received"}`}
+              >
+                {!isRight && (
+                  <div className="message-sender-name">
+                    <Skeleton width={80} height={16} />
+                  </div>
+                )}
+                <div className="message-text">
+                  <Skeleton
+                    width={180}
+                    height={16}
+                    style={{ marginBottom: 4 }}
+                  />
+                  <Skeleton width={150} height={16} />
+                  <Skeleton width={50} height={12} />
+                </div>
+              </div>
+            </div>
+          );
+        })}
       </div>
     );
   }
 
-  if (!isUserMember) {
+  // 2. If NOT a member, show error (overrides skeletons and messages)
+  if (membershipCheckDone && !isUserMember) {
     return (
       <div className="messages-container">
-        <div className="membership_error"> You must be a member of this club to access messages.</div>
+        <div className="membership_error">
+          You must be a member of this club to access messages.
+        </div>
       </div>
     );
   }
 
+  // 3. Message skeletons if still loading messages for a member
   if (isLoading) {
     return (
       <div className="messages-container">
@@ -207,6 +282,7 @@ const Messages = ({ clubId }) => {
     );
   }
 
+  // 4. If there are no messages (but user is a member)
   if (messages.length === 0) {
     return (
       <div className="messages-container">
@@ -215,6 +291,7 @@ const Messages = ({ clubId }) => {
     );
   }
 
+  // 5. Show messages (user is a member, not loading)
   const grouped = groupMessagesByDate(messages);
   const orderedLabels = Object.keys(grouped).sort((a, b) => {
     const firstA = grouped[a][0]?.timestamp?.seconds || 0;

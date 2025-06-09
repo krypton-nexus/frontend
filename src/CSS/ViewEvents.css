@@ -115,9 +115,9 @@ html {
   color: #a91d3a;
 }
 .events-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-  gap: 20px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 50px;
   padding-bottom: 70px;
   padding-left: 30px;
   align-items: start;
@@ -148,8 +148,9 @@ html {
 
 .event-buttons {
   display: flex;
-  justify-content: space-between;
-  margin-top: 10px;
+  /* justify-content: space-between; */
+  margin-top: 20px;
+  align-items: center;
 }
 
 .event-buttons button {
@@ -326,4 +327,12 @@ html {
   .events-grid {
     grid-template-columns: 1fr;
   }
+}
+.past-event-label {
+  width: 250px;
+  margin-top: 0px;
+  color: red;
+  font-style: italic;
+  font-weight: 500;
+  text-align: center;
 }

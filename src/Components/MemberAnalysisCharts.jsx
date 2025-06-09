@@ -483,7 +483,7 @@ const MemberAnalysisCharts = ({
         gridTemplateColumns: {
           xs: "1fr",
           sm: "1fr 1fr",
-          lg: "1fr 1fr 1fr",
+          lg: "1fr 1fr",
         },
         gap: 2,
         width: "100%",

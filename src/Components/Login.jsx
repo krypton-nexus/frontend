@@ -43,29 +43,42 @@ const Login = () => {
       if (data.token) {
         const decoded = jwtDecode(data.token);
         const expiryTime = (decoded?.exp || 0) * 1000;
-        console.log(data.token);
+
         localStorage.setItem("access_token", data.token);
         localStorage.setItem("token_expiry", expiryTime);
-        // 🔽 Fetch user clubs and all clubs
-        const [userClubsRes, allClubsRes] = await Promise.all([
-          axios.get(`${BASE_URL}/student/clubs/${decoded.email}`, {
-            headers: { Authorization: `Bearer ${data.token}` },
-          }),
-          axios.get(`${BASE_URL}/club/list`, {
-            headers: { Authorization: `Bearer ${data.token}` },
-          }),
-        ]);
 
-        // 🔽 Store in localStorage
-        localStorage.setItem(
-          "user_clubs",
-          JSON.stringify(userClubsRes.data.clubs || [])
-        );
+        // Default empty arrays
+        let userClubs = [];
+        let allClubs = [];
 
-        localStorage.setItem(
-          "all_clubs",
-          JSON.stringify(allClubsRes.data.clubs || [])
-        );
+        // ✅ Try to fetch user clubs safely
+        try {
+          const userClubsRes = await axios.get(
+            `${BASE_URL}/student/clubs/${decoded.email}`,
+            { headers: { Authorization: `Bearer ${data.token}` } }
+          );
+          if (typeof userClubsRes.data !== "string") {
+            userClubs = userClubsRes.data.clubs || [];
+          }
+        } catch (clubErr) {
+          console.warn("User not in any clubs or fetch failed:", clubErr);
+        }
+
+        // ✅ Try to fetch all clubs safely
+        try {
+          const allClubsRes = await axios.get(`${BASE_URL}/club/list`, {
+            headers: { Authorization: `Bearer ${data.token}` },
+          });
+          if (typeof allClubsRes.data !== "string") {
+            allClubs = allClubsRes.data.clubs || [];
+          }
+        } catch (allClubErr) {
+          console.warn("Failed to fetch all clubs:", allClubErr);
+        }
+
+        localStorage.setItem("user_clubs", JSON.stringify(userClubs));
+        localStorage.setItem("all_clubs", JSON.stringify(allClubs));
+
         enqueueSnackbar("Login Successful", { variant: "success" });
         navigate("/viewclubs");
       } else {
@@ -77,6 +90,7 @@ const Login = () => {
         "An unexpected error occurred. Please try again later.";
       enqueueSnackbar(errorMessage, { variant: "error" });
     }
+    
   };
 
   useEffect(() => {

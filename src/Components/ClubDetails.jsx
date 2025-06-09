@@ -25,6 +25,117 @@ const ClubDetails = () => {
   const [error, setError] = useState(null);
   const [loading, setLoading] = useState(true);
 
+  const ClubDetailsSkeleton = () => (
+    <div className="club-details-container skeleton">
+      <div className="club-header">
+        <div className="club-header-content">
+          <div
+            className="back-arrow skeleton-box"
+            style={{ width: 32, height: 32 }}
+          ></div>
+          <div
+            className="club-title skeleton-box"
+            style={{ width: 220, height: 32, marginLeft: 16 }}
+          ></div>
+        </div>
+        <div
+          className="club-header-img skeleton-box"
+          style={{ width: "100%", height: 180, marginTop: 16 }}
+        ></div>
+      </div>
+      <div
+        className="club-welcome-section skeleton-box"
+        style={{ width: "60%", height: 36, margin: "32px auto" }}
+      ></div>
+      <div className="club-content">
+        <div
+          className="club-welcome-message skeleton-box"
+          style={{ width: "80%", height: 20, margin: "0 auto 12px" }}
+        ></div>
+        <div
+          className="club-short-message skeleton-box"
+          style={{ width: "65%", height: 16, margin: "0 auto 24px" }}
+        ></div>
+
+        <section className="club-section">
+          <div
+            className="section-title skeleton-box"
+            style={{ width: 150, height: 24, marginBottom: 10 }}
+          ></div>
+          <div
+            className="section-content skeleton-box"
+            style={{ width: "90%", height: 60 }}
+          ></div>
+        </section>
+
+        <div
+          className="activity-card-grid"
+          style={{ marginTop: 30, gap: 16, display: "flex", flexWrap: "wrap" }}
+        >
+          {[...Array(5)].map((_, i) => (
+            <div
+              className="activity-card skeleton-box"
+              style={{
+                width: 250,
+                height: 250,
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                margin: "auto",
+              }}
+              key={i}
+            ></div>
+          ))}
+        </div>
+
+        <section className="club-section" style={{ marginTop: 36 }}>
+          <div
+            className="section-title skeleton-box"
+            style={{ width: 180, height: 24, marginBottom: 10 }}
+          ></div>
+          <div
+            className="section-content skeleton-box"
+            style={{ width: "90%", height: 60 }}
+          ></div>
+          <div
+            className="activity-card-grid"
+            style={{
+              marginTop: 16,
+              gap: 12,
+              display: "flex",
+              flexWrap: "wrap",
+            }}
+          >
+            {[...Array(8)].map((_, i) => (
+              <div
+                className="activity-card skeleton-box"
+                style={{ width: 110, height: 80 }}
+                key={i}
+              ></div>
+            ))}
+          </div>
+        </section>
+
+        <section className="club-section" style={{ marginTop: 36 }}>
+          <div
+            className="section-title skeleton-box"
+            style={{ width: 200, height: 24, marginBottom: 10 }}
+          ></div>
+          <div
+            className="section-content skeleton-box"
+            style={{ width: "90%", height: 48 }}
+          ></div>
+        </section>
+      </div>
+      <div className="club-footer" style={{ marginTop: 40 }}>
+        <div
+          className="club-footer-img skeleton-box"
+          style={{ width: "100%", height: 90 }}
+        ></div>
+      </div>
+    </div>
+  );
+
   const getValidToken = () => {
     const token = localStorage.getItem("access_token");
     if (!token) return null;
@@ -86,7 +197,7 @@ const ClubDetails = () => {
   }
 
   if (loading) {
-    return <div className="loading-message">Loading club details...</div>;
+    return <ClubDetailsSkeleton />;
   }
 
   if (!club) {
@@ -100,7 +211,8 @@ const ClubDetails = () => {
           <Link
             to="/viewclubs"
             className="back-arrow"
-            aria-label="Back to club list">
+            aria-label="Back to club list"
+          >
             <FaArrowLeft />
           </Link>
           <h1 className="club-title">{club.title || "Untitled Club"}</h1>
@@ -139,18 +251,10 @@ const ClubDetails = () => {
           ))}
         </div>
 
-        {/* {club.our_activities && (
-          <section className="club-section">
-            <h2>Our Activities</h2>
-            <p>{club.our_activities}</p>
-          </section>
-        )} */}
-
         {club.our_activities && (
           <section className="club-section">
             <h2>Our Activities</h2>
             <p>{club.our_activities}</p>
-
             <div className="activity-card-grid">
               {[img1, img2, img3, img4, img5, img6, img7, img8].map(
                 (src, index) => (
