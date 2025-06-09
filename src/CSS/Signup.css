@@ -59,11 +59,13 @@ p {
 }
 
 .signup-container .form-row {
-  display: flex;
-  justify-content: space-between;
+  display: grid;
+  grid-template-columns: 1fr 1fr; /* two equal-width columns */
   gap: 20px;
-  margin-bottom: 2px; /* Consistent spacing */
+  margin-bottom: 12px;
+  align-items: baseline;
 }
+
 
 .signup-container .input-wrapper {
   position: relative;
@@ -157,4 +159,39 @@ input[type="date"]::-webkit-calendar-picker-indicator {
   align-items: center;
   justify-content: center;
   margin-right: 8px;
+}
+
+.phone-container {
+  display: flex;
+  align-items: center;
+  background-color: #333;
+  border: 1px solid #ccc;
+  border-radius: 6px;
+  height: 40px;
+  width: 100%;
+  padding: 0;
+  overflow: hidden;
+}
+
+.country-select {
+  background-color: #333;
+  color: white;
+  border: none;
+  font-size: 1rem;
+  padding: 0 10px;
+  height: 100%;
+  outline: none;
+  cursor: pointer;
+  border-right: 1px solid #444;
+}
+
+.phone-input {
+  flex: 1;
+  background-color: #333;
+  color: white;
+  border: none;
+  font-size: 1rem;
+  padding: 0 10px;
+  height: 100%;
+  outline: none;
 }

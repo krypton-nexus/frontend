@@ -14,6 +14,7 @@ import ShowClubs from "./Components/ShowClubs";
 import Login from "./Components/Login";
 import Signup from "./Components/Signup";
 import UserProfile from "./Components/UserProfile";
+import ClubPollingProvider from "./Components/ClubPollingProvider";
 
 // Import Pages
 import Home from "./Pages/Home";
@@ -34,6 +35,7 @@ import SystemAdminDashboard from "./Pages/SystemAdminDashboard";
 // Layout Wrapper to include ChatBot in all pages
 const NoButtonLayout = ({ children }) => (
   <>
+    <ClubPollingProvider />
     {children}
     <ChatBot />
   </>
