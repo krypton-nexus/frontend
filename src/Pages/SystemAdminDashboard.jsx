@@ -21,6 +21,14 @@ import {
   Alert,
 } from "@mui/material";
 import { Building2, UserPlus, Loader2 } from "lucide-react";
+import AWS from "aws-sdk";
+
+AWS.config.update({
+  accessKeyId: process.env.REACT_APP_S3_ACCESS_KEY_ID,
+  secretAccessKey: process.env.REACT_APP_S3_SECRET_ACCESS_KEY,
+  region: process.env.REACT_APP_S3_REGION,
+});
+const s3 = new AWS.S3();
 
 const SystemAdminDashboard = () => {
   const [tabIndex, setTabIndex] = useState(0);
@@ -57,6 +65,34 @@ const SystemAdminDashboard = () => {
     role: "",
     is_active: true,
   });
+  // Define your style objects
+  const styles = {
+    hiddenInput: {
+      display: "none",
+    },
+    uploadButton: {
+      bgcolor: "#a91d3a",
+      color: "common.white",
+      px: 3,
+      py: 1,
+      borderRadius: 2,
+      textTransform: "none",
+      "&:hover": {
+        bgcolor: "#87162e",
+      },
+    },
+    previewWrapper: {
+      mt: 2,
+      display: "flex",
+      justifyContent: "center",
+    },
+    previewImage: {
+      maxWidth: "100%",
+      maxHeight: 200,
+      borderRadius: 2,
+      boxShadow: 3,
+    },
+  };
 
   const BASE_URL = process.env.REACT_APP_BASE_URL;
 
@@ -108,7 +144,7 @@ const SystemAdminDashboard = () => {
         images_url: clubForm.images_url,
       };
 
-      const response = await fetch(`${BASE_URL}/club/`, {
+      const response = await fetch(`${BASE_URL}/club/create`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -186,6 +222,30 @@ const SystemAdminDashboard = () => {
       openSnackbar("error", error.message || "Failed to register admin");
     } finally {
       setIsAddingAdmin(false);
+    }
+  };
+  const handleImageUpload = async (event) => {
+    const file = event.target.files[0];
+    if (!file) return;
+
+    const fileName = `clubs/${Date.now()}-${file.name}`;
+    const params = {
+      Bucket: process.env.REACT_APP_S3_BUCKET_NAME,
+      Key: fileName,
+      Body: file,
+      ContentType: file.type,
+    };
+
+    try {
+      const upload = await s3.upload(params).promise();
+      setClubForm((prev) => ({
+        ...prev,
+        images_url: upload.Location,
+      }));
+      openSnackbar("success", "Image uploaded successfully!");
+    } catch (error) {
+      console.error("S3 Upload Error:", error);
+      openSnackbar("error", "Failed to upload image.");
     }
   };
 
@@ -362,14 +422,43 @@ const SystemAdminDashboard = () => {
                     />
                   </Grid>
                   <Grid item xs={12}>
-                    <TextField
-                      label="Club Image URL"
-                      fullWidth
-                      type="url"
-                      value={clubForm.images_url}
-                      onChange={handleClubFormChange("images_url")}
-                    />
+                    <FormControl fullWidth>
+                      {/* Hidden file input */}
+                      <input
+                        accept="image/*"
+                        id="club-image-upload"
+                        type="file"
+                        onChange={handleImageUpload}
+                        style={styles.hiddenInput}
+                      />
+                      {/* Styled button triggers the file browser */}
+                      <label htmlFor="club-image-upload">
+                        <Button
+                          component="span"
+                          variant="contained"
+                          sx={styles.uploadButton}
+                          startIcon={<Loader2 size={16} />}
+                        >
+                          {clubForm.images_url
+                            ? "Change Image"
+                            : "Upload Club Image *"}
+                        </Button>
+                      </label>
+                    </FormControl>
+
+                    {/* Preview */}
+                    {clubForm.images_url && (
+                      <Box sx={styles.previewWrapper}>
+                        <Box
+                          component="img"
+                          src={clubForm.images_url}
+                          alt="Club Preview"
+                          sx={styles.previewImage}
+                        />
+                      </Box>
+                    )}
                   </Grid>
+
                   <Grid item xs={12}>
                     <Box textAlign="right">
                       <Button

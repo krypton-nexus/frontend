@@ -45,7 +45,7 @@ const useAuthCheck = () => {
       "/adminevent",
       "/add-product",
       "/addevent",
-      "/system-admin-dashboard",
+
     ];
     const isSpecialAdminPath = specialAdminPaths.includes(currentPath);
     if (isAdminPath || isSpecialAdminPath) {
@@ -66,7 +66,12 @@ const useAuthCheck = () => {
       navigate("/viewclubs");
       return;
     }
-    const publicPaths = ["/login", "/signup", "/home"];
+    const publicPaths = [
+      "/login",
+      "/signup",
+      "/home",
+      "/system-admin-dashboard",
+    ];
     const isPublic = publicPaths.includes(currentPath);
     if (!userToken && !isPublic && !isAdminPath && !isSpecialAdminPath) {
       navigate("/home");
